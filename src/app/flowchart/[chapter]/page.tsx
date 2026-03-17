@@ -1,0 +1,63 @@
+import type React from "react";
+import { notFound } from "next/navigation";
+import MotionFlowchart from "@/components/flowcharts/physics-9-ch1";
+import ForcesAndLawsFlowchart from "@/components/flowcharts/phy-9-ch2";
+import WorkEnergySimpleMachinesFlowchart from "@/components/flowcharts/phy-9-ch3";
+import SoundFlowchart from "@/components/flowcharts/phy-9-ch4";
+import EarthAsASystemFlowchart from "@/components/flowcharts/phy-9-ch5";
+import CellFlowchart from "@/components/flowcharts/bio-9-ch1";
+import TissuesFlowchart from "@/components/flowcharts/bio-9-ch2";
+import ReproductionFlowchart from "@/components/flowcharts/bio-9-ch3";
+import BiodiversityClassificationFlowchart from "@/components/flowcharts/bio-9-ch4";
+import Chem9Ch1Flowchart from "@/components/flowcharts/chem-9-ch1";
+import StructureOfAtomFlowchart from "@/components/flowcharts/chem-9-ch2";
+import AtomsAndMoleculesFlowchart from "@/components/flowcharts/chem-9-ch3";
+
+const CHAPTER_NAMES = [
+  "physics-9-ch1",
+  "phy-9-ch2",
+  "phy-9-ch3",
+  "phy-9-ch4",
+  "phy-9-ch5",
+  "bio-9-ch1",
+  "bio-9-ch2",
+  "bio-9-ch3",
+  "bio-9-ch4",
+  "chem-9-ch1",
+  "chem-9-ch2",
+  "chem-9-ch3",
+] as const;
+
+type Chapter = (typeof CHAPTER_NAMES)[number];
+
+const FLOWCHARTS: Record<Chapter, React.ComponentType> = {
+  "physics-9-ch1": MotionFlowchart,
+  "phy-9-ch2": ForcesAndLawsFlowchart,
+  "phy-9-ch3": WorkEnergySimpleMachinesFlowchart,
+  "phy-9-ch4": SoundFlowchart,
+  "phy-9-ch5": EarthAsASystemFlowchart,
+  "bio-9-ch1": CellFlowchart,
+  "bio-9-ch2": TissuesFlowchart,
+  "bio-9-ch3": ReproductionFlowchart,
+  "bio-9-ch4": BiodiversityClassificationFlowchart,
+  "chem-9-ch1": Chem9Ch1Flowchart,
+  "chem-9-ch2": StructureOfAtomFlowchart,
+  "chem-9-ch3": AtomsAndMoleculesFlowchart,
+};
+
+export function generateStaticParams() {
+  return CHAPTER_NAMES.map((chapter) => ({ chapter }));
+}
+
+type FlowchartPageProps = {
+  params: Promise<{ chapter: Chapter }>;
+};
+
+export default async function FlowchartChapterPage({
+  params,
+}: FlowchartPageProps) {
+  const { chapter } = await params;
+  const Component = FLOWCHARTS[chapter];
+  if (!Component) notFound();
+  return <Component />;
+}
