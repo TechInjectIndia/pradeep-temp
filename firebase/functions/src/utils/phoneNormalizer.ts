@@ -4,7 +4,7 @@
  */
 
 const E164_REGEX = /^\+[1-9]\d{6,14}$/;
-const INDIAN_MOBILE_REGEX = /^\+91[6-9]\d{9}$/;
+const _INDIAN_MOBILE_REGEX = /^\+91[6-9]\d{9}$/;
 
 /**
  * Normalize a phone number string to E.164 format.
@@ -19,30 +19,30 @@ const INDIAN_MOBILE_REGEX = /^\+91[6-9]\d{9}$/;
  */
 export function normalizePhone(phone: string): string {
   // Strip whitespace, dashes, dots, parentheses
-  let cleaned = phone.replace(/[\s\-.()\u00A0]/g, "");
+  let cleaned = phone.replace(/[\s\-.()\u00A0]/g, '');
 
   // Remove leading + for uniform processing, we will re-add it
-  if (cleaned.startsWith("+")) {
+  if (cleaned.startsWith('+')) {
     cleaned = cleaned.substring(1);
   }
 
   // If starts with 00 (international dial prefix), strip it
-  if (cleaned.startsWith("00")) {
+  if (cleaned.startsWith('00')) {
     cleaned = cleaned.substring(2);
   }
 
   // If starts with 0 and is 11 digits (Indian landline/mobile with trunk prefix)
-  if (cleaned.startsWith("0") && cleaned.length === 11) {
-    cleaned = "91" + cleaned.substring(1);
+  if (cleaned.startsWith('0') && cleaned.length === 11) {
+    cleaned = '91' + cleaned.substring(1);
   }
 
   // If exactly 10 digits and starts with 6-9 (Indian mobile), prepend 91
   if (/^[6-9]\d{9}$/.test(cleaned)) {
-    cleaned = "91" + cleaned;
+    cleaned = '91' + cleaned;
   }
 
   // Re-add the + prefix
-  const normalized = "+" + cleaned;
+  const normalized = '+' + cleaned;
 
   // Validate E.164 format
   if (!E164_REGEX.test(normalized)) {

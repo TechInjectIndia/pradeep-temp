@@ -1,6 +1,6 @@
-import { Request, Response } from 'firebase-functions/v2/https';
-import * as WATIAdapter from '../infrastructure/wati/WATIAdapter';
-import * as ResendAdapter from '../infrastructure/resend/ResendAdapter';
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
+import { AdapterRegistry } from '../adapters/AdapterRegistry';
 import * as CommunicationRepository from '../repositories/CommunicationRepository';
 
 // ---------------------------------------------------------------------------
@@ -15,7 +15,7 @@ export async function handleWATIWebhook(req: Request, res: Response): Promise<vo
 
   try {
     // Verify webhook signature
-    const signature = req.headers['x-wati-signature'] as string || '';
+    const signature = (req.headers['x-wati-signature'] as string) || '';
     const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
     if (!signature) {
@@ -23,7 +23,10 @@ export async function handleWATIWebhook(req: Request, res: Response): Promise<vo
       return;
     }
 
-    const isValid = WATIAdapter.verifyWebhookSignature(rawBody, signature);
+    const isValid = AdapterRegistry.getInstance().messaging.verifyWebhookSignature(
+      rawBody,
+      signature,
+    );
     if (!isValid) {
       res.status(401).json({ error: 'Invalid webhook signature' });
       return;
@@ -32,7 +35,8 @@ export async function handleWATIWebhook(req: Request, res: Response): Promise<vo
     // Extract message ID and delivery status from the WATI webhook payload
     const payload = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const externalMessageId: string = payload.id || payload.messageId || payload.waId || '';
-    const deliveryStatus: string = payload.statusString || payload.status || payload.eventType || '';
+    const deliveryStatus: string =
+      payload.statusString || payload.status || payload.eventType || '';
 
     if (!externalMessageId) {
       res.status(400).json({ error: 'Missing messageId in webhook payload' });
@@ -81,8 +85,10 @@ export async function handleResendWebhook(req: Request, res: Response): Promise<
 
   try {
     // Verify webhook signature
-    const signature = req.headers['resend-signature'] as string ||
-      req.headers['x-resend-signature'] as string || '';
+    const signature =
+      (req.headers['resend-signature'] as string) ||
+      (req.headers['x-resend-signature'] as string) ||
+      '';
     const rawBody = typeof req.body === 'string' ? req.body : JSON.stringify(req.body);
 
     if (!signature) {
@@ -90,7 +96,7 @@ export async function handleResendWebhook(req: Request, res: Response): Promise<
       return;
     }
 
-    const isValid = ResendAdapter.verifyWebhookSignature(rawBody, signature);
+    const isValid = AdapterRegistry.getInstance().email.verifyWebhookSignature(rawBody, signature);
     if (!isValid) {
       res.status(401).json({ error: 'Invalid webhook signature' });
       return;

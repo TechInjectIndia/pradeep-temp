@@ -25,10 +25,31 @@ export const BatchStatus = {
 export const VALID_TRANSITIONS: Record<string, string[]> = {
   [BatchStatus.CREATED]: [BatchStatus.VALIDATING, BatchStatus.CANCELLED],
   [BatchStatus.VALIDATING]: [BatchStatus.RESOLVING, BatchStatus.FAILED, BatchStatus.CANCELLED],
-  [BatchStatus.RESOLVING]: [BatchStatus.ORDERING, BatchStatus.PAUSED, BatchStatus.FAILED, BatchStatus.CANCELLED],
-  [BatchStatus.ORDERING]: [BatchStatus.MESSAGING, BatchStatus.PAUSED, BatchStatus.FAILED, BatchStatus.CANCELLED],
-  [BatchStatus.MESSAGING]: [BatchStatus.COMPLETE, BatchStatus.PARTIAL_FAILURE, BatchStatus.PAUSED, BatchStatus.FAILED, BatchStatus.CANCELLED],
-  [BatchStatus.PAUSED]: [BatchStatus.RESOLVING, BatchStatus.ORDERING, BatchStatus.MESSAGING, BatchStatus.CANCELLED],
+  [BatchStatus.RESOLVING]: [
+    BatchStatus.ORDERING,
+    BatchStatus.PAUSED,
+    BatchStatus.FAILED,
+    BatchStatus.CANCELLED,
+  ],
+  [BatchStatus.ORDERING]: [
+    BatchStatus.MESSAGING,
+    BatchStatus.PAUSED,
+    BatchStatus.FAILED,
+    BatchStatus.CANCELLED,
+  ],
+  [BatchStatus.MESSAGING]: [
+    BatchStatus.COMPLETE,
+    BatchStatus.PARTIAL_FAILURE,
+    BatchStatus.PAUSED,
+    BatchStatus.FAILED,
+    BatchStatus.CANCELLED,
+  ],
+  [BatchStatus.PAUSED]: [
+    BatchStatus.RESOLVING,
+    BatchStatus.ORDERING,
+    BatchStatus.MESSAGING,
+    BatchStatus.CANCELLED,
+  ],
   [BatchStatus.PARTIAL_FAILURE]: [BatchStatus.MESSAGING, BatchStatus.CANCELLED],
   // Terminal states have no outgoing transitions
   [BatchStatus.COMPLETE]: [],
@@ -141,10 +162,7 @@ export async function resumeBatch(batchId: string): Promise<void> {
 /**
  * Cancel a batch, optionally recording a reason.
  */
-export async function cancelBatch(
-  batchId: string,
-  reason?: string,
-): Promise<void> {
+export async function cancelBatch(batchId: string, reason?: string): Promise<void> {
   await transitionBatch(batchId, BatchStatus.CANCELLED, 'manual_cancel');
 
   const updates: Record<string, unknown> = {

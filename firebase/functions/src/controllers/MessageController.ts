@@ -1,6 +1,7 @@
-import { Request, Response } from 'firebase-functions/v2/https';
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
 import * as CommLogRepository from '../repositories/CommLogRepository';
-import * as CloudTasksAdapter from '../infrastructure/cloudtasks/CloudTasksAdapter';
+import { AdapterRegistry } from '../adapters/AdapterRegistry';
 
 const WHATSAPP_QUEUE = 'whatsapp-messages';
 const EMAIL_QUEUE = 'email-messages';
@@ -52,7 +53,7 @@ export async function resendMessage(req: Request, res: Response): Promise<void> 
       isRetry: true,
     };
 
-    await CloudTasksAdapter.enqueueTask(queueName, payload);
+    await AdapterRegistry.getInstance().taskQueue.enqueueTask(queueName, payload);
 
     // Update comm_log status back to queued
     await CommLogRepository.update(messageId, {

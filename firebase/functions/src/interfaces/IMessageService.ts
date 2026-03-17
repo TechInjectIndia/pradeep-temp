@@ -4,7 +4,7 @@
 export interface IMessageService {
   sendMessage(
     phone: string,
-    channel: "whatsapp" | "email",
+    channel: 'whatsapp' | 'email',
     payload: any,
   ): Promise<{ messageId: string }>;
 }

@@ -1,5 +1,11 @@
 import * as admin from 'firebase-admin';
-import { db, getDoc, setDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
+import {
+  db,
+  getDoc,
+  setDoc,
+  updateDoc,
+  queryDocs,
+} from '../infrastructure/firestore/FirestoreAdapter';
 
 const COLLECTION = 'specimen_batches';
 
@@ -39,12 +45,9 @@ export async function incrementStat(batchId: string, field: string, value: numbe
   });
 }
 
-export async function list(
-  filters?: { status?: string },
-  limit?: number,
-  startAfter?: string
-) {
-  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> = [];
+export async function list(filters?: { status?: string }, limit?: number, startAfter?: string) {
+  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> =
+    [];
 
   if (filters?.status) {
     queryFilters.push({ field: 'status', op: '==', value: filters.status });

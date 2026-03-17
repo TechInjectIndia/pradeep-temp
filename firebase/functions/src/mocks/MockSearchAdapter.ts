@@ -13,7 +13,10 @@ export class MockSearchAdapter implements ISearchPort {
 
     for (const teacher of this.teachers.values()) {
       const searchable = `${teacher.name} ${teacher.school} ${teacher.city}`.toLowerCase();
-      if (searchable.includes(queryLower) || queryLower.split(' ').some(term => searchable.includes(term))) {
+      if (
+        searchable.includes(queryLower) ||
+        queryLower.split(' ').some((term) => searchable.includes(term))
+      ) {
         results.push({
           objectID: teacher.objectID,
           name: teacher.name,
@@ -31,7 +34,13 @@ export class MockSearchAdapter implements ISearchPort {
   }
 
   // Test helpers
-  getIndexedCount(): number { return this.teachers.size; }
-  reset(): void { this.teachers.clear(); }
-  getAll(): TeacherRecord[] { return Array.from(this.teachers.values()); }
+  getIndexedCount(): number {
+    return this.teachers.size;
+  }
+  reset(): void {
+    this.teachers.clear();
+  }
+  getAll(): TeacherRecord[] {
+    return Array.from(this.teachers.values());
+  }
 }

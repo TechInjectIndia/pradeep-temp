@@ -3,7 +3,8 @@ import * as PhoneLookupRepository from '../repositories/PhoneLookupRepository';
 import * as EmailLookupRepository from '../repositories/EmailLookupRepository';
 import * as TeacherRawRepository from '../repositories/TeacherRawRepository';
 import * as DuplicateRepository from '../repositories/DuplicateRepository';
-import * as AlgoliaAdapter from '../infrastructure/algolia/AlgoliaAdapter';
+import { AdapterRegistry } from '../adapters/AdapterRegistry';
+import { TeacherSearchResult } from '../ports';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -142,9 +143,7 @@ function scoreCandidate(
  *      - 70-90: flag as possible duplicate, create new
  *      - < 70: create new
  */
-export async function resolveTeacher(
-  rawTeacher: RawTeacherInput,
-): Promise<ResolveResult> {
+export async function resolveTeacher(rawTeacher: RawTeacherInput): Promise<ResolveResult> {
   // Step 1 — phone lookup
   if (rawTeacher.phone) {
     const normalizedPhone = normalizePhone(rawTeacher.phone);
@@ -173,10 +172,10 @@ export async function resolveTeacher(
 
   if (searchQuery) {
     try {
-      const candidates = await AlgoliaAdapter.searchTeachers(searchQuery);
+      const candidates = await AdapterRegistry.getInstance().search.searchTeachers(searchQuery);
 
       let bestScore = 0;
-      let bestCandidate: AlgoliaAdapter.TeacherSearchResult | null = null;
+      let bestCandidate: TeacherSearchResult | null = null;
       let bestReasons: string[] = [];
 
       for (const candidate of candidates) {
@@ -245,7 +244,7 @@ export async function createNewTeacher(data: RawTeacherInput): Promise<string> {
   // Lookup entries are created inside TeacherRepository.create already,
   // but we still need to index in Algolia.
   try {
-    await AlgoliaAdapter.indexTeacher({
+    await AdapterRegistry.getInstance().search.indexTeacher({
       objectID: teacherId,
       name: data.name,
       school: data.school,
@@ -304,7 +303,7 @@ export async function mergeTeacher(
 
   // Re-index in Algolia
   try {
-    await AlgoliaAdapter.indexTeacher({
+    await AdapterRegistry.getInstance().search.indexTeacher({
       objectID: existingId,
       name: incomingData.name || (existing as any).name,
       school: incomingData.school || (existing as any).school,

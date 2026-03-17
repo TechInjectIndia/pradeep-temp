@@ -1,4 +1,5 @@
-import { Request, Response } from 'firebase-functions/v2/https';
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
 import * as DuplicateService from '../services/DuplicateService';
 
 // ---------------------------------------------------------------------------

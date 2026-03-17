@@ -17,7 +17,7 @@ function getClient(): Resend {
 export async function sendEmail(
   to: string,
   subject: string,
-  html: string
+  html: string,
 ): Promise<{ messageId: string }> {
   const client = getClient();
 
@@ -38,23 +38,14 @@ export async function sendEmail(
 /**
  * Verify the authenticity of a Resend webhook request using HMAC-SHA256.
  */
-export function verifyWebhookSignature(
-  body: string,
-  signature: string
-): boolean {
+export function verifyWebhookSignature(body: string, signature: string): boolean {
   const { webhookSecret } = config.resend;
 
   if (!webhookSecret) {
     throw new Error('Resend webhook secret is not configured');
   }
 
-  const expected = crypto
-    .createHmac('sha256', webhookSecret)
-    .update(body)
-    .digest('hex');
+  const expected = crypto.createHmac('sha256', webhookSecret).update(body).digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expected)
-  );
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 }

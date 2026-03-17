@@ -1,5 +1,11 @@
 import * as admin from 'firebase-admin';
-import { db, getDoc, setDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
+import {
+  db,
+  getDoc,
+  setDoc,
+  updateDoc,
+  queryDocs,
+} from '../infrastructure/firestore/FirestoreAdapter';
 
 const COLLECTION = 'comm_log';
 

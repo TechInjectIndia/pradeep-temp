@@ -1,5 +1,6 @@
-import { Request, Response } from 'firebase-functions/v2/https';
-import * as Busboy from 'busboy';
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
+import Busboy from 'busboy';
 import { parseExcelBuffer, validateRows } from '../utils/excelParser';
 import * as BatchRepository from '../repositories/BatchRepository';
 import * as TeacherRawRepository from '../repositories/TeacherRawRepository';
@@ -160,12 +161,15 @@ function parseMultipartFile(req: Request): Promise<Buffer> {
     const chunks: Buffer[] = [];
     let fileName = '';
 
-    busboy.on('file', (_fieldname: string, file: NodeJS.ReadableStream, info: { filename: string }) => {
-      fileName = info.filename || 'upload.xlsx';
-      file.on('data', (data: Buffer) => {
-        chunks.push(data);
-      });
-    });
+    busboy.on(
+      'file',
+      (_fieldname: string, file: NodeJS.ReadableStream, info: { filename: string }) => {
+        fileName = info.filename || 'upload.xlsx';
+        file.on('data', (data: Buffer) => {
+          chunks.push(data);
+        });
+      },
+    );
 
     busboy.on('finish', () => {
       (req as any).fileName = fileName;

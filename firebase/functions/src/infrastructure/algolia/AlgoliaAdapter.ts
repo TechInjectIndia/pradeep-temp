@@ -39,7 +39,7 @@ export async function indexTeacher(teacher: TeacherRecord): Promise<void> {
  */
 export async function searchTeachers(
   query: string,
-  filters?: string
+  filters?: string,
 ): Promise<TeacherSearchResult[]> {
   const index = getTeacherIndex();
 

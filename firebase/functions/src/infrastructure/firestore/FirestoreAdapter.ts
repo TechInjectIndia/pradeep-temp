@@ -8,7 +8,7 @@ export const db = admin.firestore();
 
 export async function getDoc<T = admin.firestore.DocumentData>(
   collectionPath: string,
-  docId: string
+  docId: string,
 ): Promise<(T & { id: string }) | null> {
   const snap = await db.collection(collectionPath).doc(docId).get();
   if (!snap.exists) {
@@ -21,7 +21,7 @@ export async function setDoc(
   collectionPath: string,
   docId: string,
   data: Record<string, unknown>,
-  options?: { merge?: boolean }
+  options?: { merge?: boolean },
 ): Promise<void> {
   const ref = db.collection(collectionPath).doc(docId);
   if (options?.merge) {
@@ -34,15 +34,12 @@ export async function setDoc(
 export async function updateDoc(
   collectionPath: string,
   docId: string,
-  data: Record<string, unknown>
+  data: Record<string, unknown>,
 ): Promise<void> {
   await db.collection(collectionPath).doc(docId).update(data);
 }
 
-export async function deleteDoc(
-  collectionPath: string,
-  docId: string
-): Promise<void> {
+export async function deleteDoc(collectionPath: string, docId: string): Promise<void> {
   await db.collection(collectionPath).doc(docId).delete();
 }
 
@@ -61,7 +58,7 @@ export interface QueryOptions {
 
 export async function queryDocs<T = admin.firestore.DocumentData>(
   collectionPath: string,
-  options?: QueryOptions
+  options?: QueryOptions,
 ): Promise<Array<T & { id: string }>> {
   let query: admin.firestore.Query = db.collection(collectionPath);
 
@@ -91,7 +88,7 @@ export async function queryDocs<T = admin.firestore.DocumentData>(
 }
 
 export async function runTransaction<T>(
-  fn: (transaction: admin.firestore.Transaction) => Promise<T>
+  fn: (transaction: admin.firestore.Transaction) => Promise<T>,
 ): Promise<T> {
   return db.runTransaction(fn);
 }

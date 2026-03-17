@@ -3,9 +3,7 @@ import * as AggregationRepository from '../repositories/AggregationRepository';
 import * as CommLogRepository from '../repositories/CommLogRepository';
 import * as CommunicationRepository from '../repositories/CommunicationRepository';
 import * as BatchRepository from '../repositories/BatchRepository';
-import * as CloudTasksAdapter from '../infrastructure/cloudtasks/CloudTasksAdapter';
-import * as WATIAdapter from '../infrastructure/wati/WATIAdapter';
-import * as ResendAdapter from '../infrastructure/resend/ResendAdapter';
+import { AdapterRegistry } from '../adapters/AdapterRegistry';
 
 const WHATSAPP_QUEUE = 'whatsapp-messages';
 const EMAIL_QUEUE = 'email-messages';
@@ -34,9 +32,7 @@ interface EmailPayload {
  * Read completed aggregations for a batch, create comm_log entries, and
  * enqueue Cloud Tasks to the appropriate channel queue.
  */
-export async function enqueueMessagesForBatch(
-  batchId: string,
-): Promise<{ totalMessages: number }> {
+export async function enqueueMessagesForBatch(batchId: string): Promise<{ totalMessages: number }> {
   const aggregations = await AggregationRepository.getCompleteByBatchId(batchId);
 
   if (aggregations.length === 0) {
@@ -59,11 +55,7 @@ export async function enqueueMessagesForBatch(
     const productIds: string[] = links.map((l: any) => l.productId);
 
     // Generate idempotency hash
-    const messageHash = generateMessageHash(
-      teacherPhone || teacherEmail,
-      batchId,
-      productIds,
-    );
+    const messageHash = generateMessageHash(teacherPhone || teacherEmail, batchId, productIds);
 
     // Check for existing comm_log with this hash (idempotency)
     const existing = await CommLogRepository.findByMessageHash(messageHash);
@@ -97,7 +89,7 @@ export async function enqueueMessagesForBatch(
       attemptNumber: 1,
     };
 
-    await CloudTasksAdapter.enqueueTask(queueName, payload);
+    await AdapterRegistry.getInstance().taskQueue.enqueueTask(queueName, payload);
     totalMessages++;
   }
 
@@ -167,7 +159,7 @@ export async function processMessageTask(
     if (channel === 'email') {
       const teacherEmail: string = log.teacherEmail || payload.teacherEmail;
       const emailPayload: EmailPayload = buildEmailPayload(teacherEmail, links, batchId);
-      const result = await ResendAdapter.sendEmail(
+      const result = await AdapterRegistry.getInstance().email.sendEmail(
         teacherEmail,
         emailPayload.subject,
         emailPayload.html,
@@ -176,7 +168,7 @@ export async function processMessageTask(
     } else {
       const phone = teacherPhone || log.teacherPhone;
       const whatsappPayload: WhatsAppPayload = buildWhatsAppPayload(phone, links, batchId);
-      const result = await WATIAdapter.sendTemplate(
+      const result = await AdapterRegistry.getInstance().messaging.sendTemplate(
         phone,
         whatsappPayload.templateName,
         whatsappPayload.params,
@@ -238,9 +230,7 @@ export function buildWhatsAppPayload(
   links: any[],
   batchId: string,
 ): WhatsAppPayload {
-  const linkList = links
-    .map((l: any, i: number) => `${i + 1}. ${l.url}`)
-    .join('\n');
+  const linkList = links.map((l: any, i: number) => `${i + 1}. ${l.url}`).join('\n');
 
   return {
     phone: teacherPhone,

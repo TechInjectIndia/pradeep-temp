@@ -2,7 +2,7 @@ import * as CommLogRepository from '../repositories/CommLogRepository';
 import * as FailedMessageRepository from '../repositories/FailedMessageRepository';
 import * as BatchErrorRepository from '../repositories/BatchErrorRepository';
 import * as BatchRepository from '../repositories/BatchRepository';
-import * as CloudTasksAdapter from '../infrastructure/cloudtasks/CloudTasksAdapter';
+import { AdapterRegistry } from '../adapters/AdapterRegistry';
 
 const WHATSAPP_QUEUE = 'whatsapp-messages';
 const EMAIL_QUEUE = 'email-messages';
@@ -11,17 +11,9 @@ const EMAIL_QUEUE = 'email-messages';
 // Error classification
 // ---------------------------------------------------------------------------
 
-const RETRYABLE_ERROR_TYPES = new Set([
-  'RATE_LIMIT',
-  'TIMEOUT',
-  'API_DOWN',
-]);
+const RETRYABLE_ERROR_TYPES = new Set(['RATE_LIMIT', 'TIMEOUT', 'API_DOWN']);
 
-const NON_RETRYABLE_ERROR_TYPES = new Set([
-  'INVALID_PHONE',
-  'INVALID_EMAIL',
-  'TEMPLATE_ERROR',
-]);
+const NON_RETRYABLE_ERROR_TYPES = new Set(['INVALID_PHONE', 'INVALID_EMAIL', 'TEMPLATE_ERROR']);
 
 /**
  * Classify an error into a known category.
@@ -29,22 +21,47 @@ const NON_RETRYABLE_ERROR_TYPES = new Set([
 export function classifyError(error: Error): string {
   const message = error.message.toLowerCase();
 
-  if (message.includes('rate limit') || message.includes('429') || message.includes('too many requests')) {
+  if (
+    message.includes('rate limit') ||
+    message.includes('429') ||
+    message.includes('too many requests')
+  ) {
     return 'RATE_LIMIT';
   }
-  if (message.includes('timeout') || message.includes('timed out') || message.includes('ETIMEDOUT')) {
+  if (
+    message.includes('timeout') ||
+    message.includes('timed out') ||
+    message.includes('ETIMEDOUT')
+  ) {
     return 'TIMEOUT';
   }
-  if (message.includes('invalid phone') || message.includes('not a valid whatsapp') || message.includes('phone number')) {
+  if (
+    message.includes('invalid phone') ||
+    message.includes('not a valid whatsapp') ||
+    message.includes('phone number')
+  ) {
     return 'INVALID_PHONE';
   }
-  if (message.includes('invalid email') || message.includes('email address') || message.includes('recipient')) {
+  if (
+    message.includes('invalid email') ||
+    message.includes('email address') ||
+    message.includes('recipient')
+  ) {
     return 'INVALID_EMAIL';
   }
-  if (message.includes('template') || message.includes('template_name') || message.includes('template not found')) {
+  if (
+    message.includes('template') ||
+    message.includes('template_name') ||
+    message.includes('template not found')
+  ) {
     return 'TEMPLATE_ERROR';
   }
-  if (message.includes('503') || message.includes('502') || message.includes('service unavailable') || message.includes('server error')) {
+  if (
+    message.includes('503') ||
+    message.includes('502') ||
+    message.includes('service unavailable') ||
+    message.includes('server error')
+  ) {
     return 'API_DOWN';
   }
 
@@ -185,7 +202,7 @@ export async function retryFromDLQ(
       isRetry: true,
     };
 
-    await CloudTasksAdapter.enqueueTask(queueName, payload);
+    await AdapterRegistry.getInstance().taskQueue.enqueueTask(queueName, payload);
 
     // Update records
     await FailedMessageRepository.update(failedMsgId, {

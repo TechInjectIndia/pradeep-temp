@@ -1,5 +1,11 @@
 import * as admin from 'firebase-admin';
-import { db, getDoc, setDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
+import {
+  db,
+  getDoc,
+  setDoc,
+  updateDoc,
+  queryDocs,
+} from '../infrastructure/firestore/FirestoreAdapter';
 
 const COLLECTION = 'batch_errors';
 
@@ -34,11 +40,10 @@ export async function update(errorId: string, data: Partial<Record<string, unkno
 
 export async function getByBatch(
   batchId: string,
-  filters?: { stage?: string; isRetryable?: boolean }
+  filters?: { stage?: string; isRetryable?: boolean },
 ) {
-  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> = [
-    { field: 'batchId', op: '==', value: batchId },
-  ];
+  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> =
+    [{ field: 'batchId', op: '==', value: batchId }];
 
   if (filters?.stage) {
     queryFilters.push({ field: 'stage', op: '==', value: filters.stage });

@@ -31,10 +31,7 @@ export interface ISearchPort {
    * @param query   - Free-text search query.
    * @param filters - Optional filter expression (provider-specific syntax).
    */
-  searchTeachers(
-    query: string,
-    filters?: string,
-  ): Promise<TeacherSearchResult[]>;
+  searchTeachers(query: string, filters?: string): Promise<TeacherSearchResult[]>;
 
   /**
    * Delete a teacher record by its ID.

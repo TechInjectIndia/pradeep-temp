@@ -1,4 +1,5 @@
-import { Request, Response } from 'firebase-functions/v2/https';
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
 import * as FailedMessageRepository from '../repositories/FailedMessageRepository';
 import * as DLQService from '../services/DLQService';
 
@@ -15,9 +16,8 @@ export async function listDLQ(req: Request, res: Response): Promise<void> {
   try {
     const batchId = req.query.batchId as string | undefined;
     const channel = req.query.channel as string | undefined;
-    const retryable = req.query.retryable !== undefined
-      ? req.query.retryable === 'true'
-      : undefined;
+    const retryable =
+      req.query.retryable !== undefined ? req.query.retryable === 'true' : undefined;
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
     const startAfter = req.query.startAfter as string | undefined;
 

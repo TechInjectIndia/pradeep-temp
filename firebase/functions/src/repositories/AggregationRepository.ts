@@ -1,14 +1,11 @@
 import * as admin from 'firebase-admin';
-import { db, getDoc, setDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
+import { getDoc, setDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
 
 const COLLECTION = 'temp_aggregation';
 
 const FieldValue = admin.firestore.FieldValue;
 
-export async function getOrCreate(
-  aggregationKey: string,
-  initialData: Record<string, unknown>
-) {
+export async function getOrCreate(aggregationKey: string, initialData: Record<string, unknown>) {
   const existing = await getDoc(COLLECTION, aggregationKey);
   if (existing) {
     return existing;

@@ -30,14 +30,21 @@ class MetricsCollector {
       this.histograms.set(key, []);
     }
     this.histograms.get(key)!.push(durationMs);
-    this.metrics.push({ name: `${name}_duration_ms`, value: durationMs, timestamp: Date.now(), labels });
+    this.metrics.push({
+      name: `${name}_duration_ms`,
+      value: durationMs,
+      timestamp: Date.now(),
+      labels,
+    });
   }
 
   getCounter(name: string): number {
     return this.counters.get(name) || 0;
   }
 
-  getHistogram(name: string): { count: number; min: number; max: number; avg: number; p95: number; p99: number } | null {
+  getHistogram(
+    name: string,
+  ): { count: number; min: number; max: number; avg: number; p95: number; p99: number } | null {
     const values = this.histograms.get(name);
     if (!values || values.length === 0) return null;
 
@@ -56,7 +63,7 @@ class MetricsCollector {
     const summary: Record<string, unknown> = {};
     summary.counters = Object.fromEntries(this.counters);
     const histSummary: Record<string, unknown> = {};
-    for (const [key, values] of this.histograms) {
+    for (const [key] of this.histograms) {
       histSummary[key] = this.getHistogram(key);
     }
     summary.histograms = histSummary;

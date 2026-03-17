@@ -35,9 +35,7 @@ export const onAggregationComplete = onDocumentUpdated(
 
     try {
       const result = await MessagingService.enqueueMessagesForBatch(batchId);
-      console.log(
-        `Enqueued ${result.totalMessages} messages for batch ${batchId}`,
-      );
+      console.log(`Enqueued ${result.totalMessages} messages for batch ${batchId}`);
     } catch (err) {
       console.error(
         `Failed to enqueue messages for batch ${batchId} (aggregation ${aggregationKey}):`,

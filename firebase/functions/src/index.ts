@@ -1,4 +1,10 @@
 import { onRequest } from 'firebase-functions/v2/https';
+import { registerProductionAdapters } from './adapters/registerProductionAdapters';
+
+// ---------------------------------------------------------------------------
+// Bootstrap: register production adapters before any request handling
+// ---------------------------------------------------------------------------
+registerProductionAdapters();
 
 // ---------------------------------------------------------------------------
 // Controllers
@@ -69,7 +75,10 @@ const workerOptions = { concurrency: 1 };
 
 // Specimen
 export const specimenUpload = onRequest(apiOptions, withCors(SpecimenController.uploadSpecimen));
-export const specimenCreateOrders = onRequest(apiOptions, withCors(SpecimenController.createOrders));
+export const specimenCreateOrders = onRequest(
+  apiOptions,
+  withCors(SpecimenController.createOrders),
+);
 
 // Batches
 export const batchesList = onRequest(apiOptions, withCors(BatchController.listBatches));
@@ -82,7 +91,10 @@ export const batchesRetryErrors = onRequest(apiOptions, withCors(BatchController
 
 // Duplicates
 export const duplicatesList = onRequest(apiOptions, withCors(DuplicateController.listDuplicates));
-export const duplicatesResolve = onRequest(apiOptions, withCors(DuplicateController.resolveDuplicate));
+export const duplicatesResolve = onRequest(
+  apiOptions,
+  withCors(DuplicateController.resolveDuplicate),
+);
 
 // Messages
 export const messagesResend = onRequest(apiOptions, withCors(MessageController.resendMessage));

@@ -12,11 +12,7 @@ export interface IEmailPort {
    * @param html    - Email body as HTML.
    * @returns An object containing the provider-assigned message ID.
    */
-  sendEmail(
-    to: string,
-    subject: string,
-    html: string,
-  ): Promise<{ messageId: string }>;
+  sendEmail(to: string, subject: string, html: string): Promise<{ messageId: string }>;
 
   /**
    * Verify the authenticity of an incoming webhook request.

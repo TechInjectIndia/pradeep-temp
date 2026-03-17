@@ -1,9 +1,4 @@
-import {
-  IMessagingPort,
-  IEmailPort,
-  ISearchPort,
-  ITaskQueuePort,
-} from '../ports';
+import { IMessagingPort, IEmailPort, ISearchPort, ITaskQueuePort } from '../ports';
 
 /**
  * Singleton registry that holds references to every infrastructure adapter.
@@ -60,18 +55,14 @@ export class AdapterRegistry {
 
   get email(): IEmailPort {
     if (!this._email) {
-      throw new Error(
-        'EmailPort has not been registered. Call registerEmail() at startup.',
-      );
+      throw new Error('EmailPort has not been registered. Call registerEmail() at startup.');
     }
     return this._email;
   }
 
   get search(): ISearchPort {
     if (!this._search) {
-      throw new Error(
-        'SearchPort has not been registered. Call registerSearch() at startup.',
-      );
+      throw new Error('SearchPort has not been registered. Call registerSearch() at startup.');
     }
     return this._search;
   }

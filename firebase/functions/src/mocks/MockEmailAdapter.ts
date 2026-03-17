@@ -18,7 +18,7 @@ export class MockEmailAdapter implements IEmailPort {
 
   async sendEmail(to: string, subject: string, html: string): Promise<{ messageId: string }> {
     if (this.latencyMs > 0) {
-      await new Promise<void>(resolve => setTimeout(resolve, this.latencyMs));
+      await new Promise<void>((resolve) => setTimeout(resolve, this.latencyMs));
     }
 
     this.emailCounter++;
@@ -36,10 +36,23 @@ export class MockEmailAdapter implements IEmailPort {
     return true;
   }
 
-  getSentEmails(): MockEmailLog[] { return [...this.sentEmails]; }
-  getEmailCount(): number { return this.sentEmails.length; }
-  reset(): void { this.sentEmails = []; this.emailCounter = 0; }
-  setFailureMode(fail: boolean): void { this.shouldFail = fail; }
-  setFailureRate(rate: number): void { this.failureRate = rate; }
-  setLatency(ms: number): void { this.latencyMs = ms; }
+  getSentEmails(): MockEmailLog[] {
+    return [...this.sentEmails];
+  }
+  getEmailCount(): number {
+    return this.sentEmails.length;
+  }
+  reset(): void {
+    this.sentEmails = [];
+    this.emailCounter = 0;
+  }
+  setFailureMode(fail: boolean): void {
+    this.shouldFail = fail;
+  }
+  setFailureRate(rate: number): void {
+    this.failureRate = rate;
+  }
+  setLatency(ms: number): void {
+    this.latencyMs = ms;
+  }
 }

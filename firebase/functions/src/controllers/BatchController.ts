@@ -1,4 +1,5 @@
-import { Request, Response } from 'firebase-functions/v2/https';
+import { Request } from 'firebase-functions/v2/https';
+import { Response } from 'express';
 import * as BatchRepository from '../repositories/BatchRepository';
 import * as BatchErrorRepository from '../repositories/BatchErrorRepository';
 import * as BatchStateMachine from '../services/BatchStateMachine';
@@ -19,11 +20,7 @@ export async function listBatches(req: Request, res: Response): Promise<void> {
     const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
     const startAfter = req.query.startAfter as string | undefined;
 
-    const batches = await BatchRepository.list(
-      status ? { status } : undefined,
-      limit,
-      startAfter,
-    );
+    const batches = await BatchRepository.list(status ? { status } : undefined, limit, startAfter);
 
     res.status(200).json({ batches, count: batches.length });
   } catch (err) {
@@ -46,7 +43,7 @@ export async function getBatch(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const batchId = req.params.batchId || (req.query.batchId as string);
+    const batchId = (req.params.batchId || req.query.batchId) as string;
 
     if (!batchId) {
       res.status(400).json({ error: 'batchId is required' });
@@ -189,7 +186,7 @@ export async function getBatchErrors(req: Request, res: Response): Promise<void>
   }
 
   try {
-    const batchId = req.params.batchId || (req.query.batchId as string);
+    const batchId = (req.params.batchId || req.query.batchId) as string;
 
     if (!batchId) {
       res.status(400).json({ error: 'batchId is required' });
@@ -197,9 +194,8 @@ export async function getBatchErrors(req: Request, res: Response): Promise<void>
     }
 
     const stage = req.query.stage as string | undefined;
-    const retryable = req.query.retryable !== undefined
-      ? req.query.retryable === 'true'
-      : undefined;
+    const retryable =
+      req.query.retryable !== undefined ? req.query.retryable === 'true' : undefined;
 
     const errors = await BatchErrorRepository.getByBatch(batchId, {
       stage,
@@ -251,7 +247,8 @@ export async function retryBatchErrors(req: Request, res: Response): Promise<voi
       batchId,
       stage,
       retryableCount: retryableErrors.length,
-      message: 'Retryable errors identified. Specific retry logic per stage is handled by the corresponding service.',
+      message:
+        'Retryable errors identified. Specific retry logic per stage is handled by the corresponding service.',
     });
   } catch (err) {
     console.error('retryBatchErrors error:', err);

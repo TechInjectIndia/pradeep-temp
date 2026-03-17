@@ -16,9 +16,13 @@ export class MockMessagingAdapter implements IMessagingPort {
   private latencyMs = 0;
   private messageCounter = 0;
 
-  async sendTemplate(phone: string, templateName: string, params: Record<string, string>): Promise<{ messageId: string }> {
+  async sendTemplate(
+    phone: string,
+    templateName: string,
+    params: Record<string, string>,
+  ): Promise<{ messageId: string }> {
     if (this.latencyMs > 0) {
-      await new Promise<void>(resolve => setTimeout(resolve, this.latencyMs));
+      await new Promise<void>((resolve) => setTimeout(resolve, this.latencyMs));
     }
 
     this.messageCounter++;
@@ -37,10 +41,23 @@ export class MockMessagingAdapter implements IMessagingPort {
   }
 
   // Test helpers
-  getSentMessages(): MockMessageLog[] { return [...this.sentMessages]; }
-  getMessageCount(): number { return this.sentMessages.length; }
-  reset(): void { this.sentMessages = []; this.messageCounter = 0; }
-  setFailureMode(fail: boolean): void { this.shouldFail = fail; }
-  setFailureRate(rate: number): void { this.failureRate = rate; }
-  setLatency(ms: number): void { this.latencyMs = ms; }
+  getSentMessages(): MockMessageLog[] {
+    return [...this.sentMessages];
+  }
+  getMessageCount(): number {
+    return this.sentMessages.length;
+  }
+  reset(): void {
+    this.sentMessages = [];
+    this.messageCounter = 0;
+  }
+  setFailureMode(fail: boolean): void {
+    this.shouldFail = fail;
+  }
+  setFailureRate(rate: number): void {
+    this.failureRate = rate;
+  }
+  setLatency(ms: number): void {
+    this.latencyMs = ms;
+  }
 }

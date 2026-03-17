@@ -12,7 +12,7 @@ interface WATISendTemplateResponse {
 export async function sendTemplate(
   phone: string,
   templateName: string,
-  params: Record<string, string>
+  params: Record<string, string>,
 ): Promise<{ messageId: string }> {
   const { apiUrl, apiKey } = config.wati;
 
@@ -34,14 +34,12 @@ export async function sendTemplate(
         broadcast_name: `auto_${Date.now()}`,
         parameters,
       }),
-    }
+    },
   );
 
   if (!response.ok) {
     const errorBody = await response.text();
-    throw new Error(
-      `WATI API error (${response.status}): ${errorBody}`
-    );
+    throw new Error(`WATI API error (${response.status}): ${errorBody}`);
   }
 
   const data = (await response.json()) as WATISendTemplateResponse;
@@ -56,23 +54,14 @@ export async function sendTemplate(
 /**
  * Verify the authenticity of a WATI webhook request using HMAC-SHA256.
  */
-export function verifyWebhookSignature(
-  body: string,
-  signature: string
-): boolean {
+export function verifyWebhookSignature(body: string, signature: string): boolean {
   const { webhookSecret } = config.wati;
 
   if (!webhookSecret) {
     throw new Error('WATI webhook secret is not configured');
   }
 
-  const expected = crypto
-    .createHmac('sha256', webhookSecret)
-    .update(body)
-    .digest('hex');
+  const expected = crypto.createHmac('sha256', webhookSecret).update(body).digest('hex');
 
-  return crypto.timingSafeEqual(
-    Buffer.from(signature),
-    Buffer.from(expected)
-  );
+  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
 }

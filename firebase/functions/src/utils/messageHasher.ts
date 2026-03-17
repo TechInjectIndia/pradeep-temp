@@ -3,7 +3,7 @@
  * Uses SHA-256 to produce a deterministic hash from message parameters.
  */
 
-import * as crypto from "crypto";
+import * as crypto from 'crypto';
 
 /**
  * Generate a SHA-256 hash for a message, based on the teacher phone,
@@ -20,7 +20,7 @@ export function generateMessageHash(
   productIds: string[],
 ): string {
   const sortedProducts = [...productIds].sort();
-  const payload = `${sortedProducts.join(",")}|${teacherPhone}|${batchId}`;
+  const payload = `${sortedProducts.join(',')}|${teacherPhone}|${batchId}`;
 
-  return crypto.createHash("sha256").update(payload, "utf8").digest("hex");
+  return crypto.createHash('sha256').update(payload, 'utf8').digest('hex');
 }

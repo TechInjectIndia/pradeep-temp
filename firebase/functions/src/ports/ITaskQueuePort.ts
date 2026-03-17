@@ -10,9 +10,5 @@ export interface ITaskQueuePort {
    * @param delaySeconds - Optional delay (in seconds) before the task is dispatched.
    * @returns The provider-assigned task identifier / resource name.
    */
-  enqueueTask(
-    queueName: string,
-    payload: object,
-    delaySeconds?: number,
-  ): Promise<string>;
+  enqueueTask(queueName: string, payload: object, delaySeconds?: number): Promise<string>;
 }

@@ -14,7 +14,7 @@ const client = new CloudTasksClient();
 export async function enqueueTask(
   queueName: string,
   payload: object,
-  delaySeconds?: number
+  delaySeconds?: number,
 ): Promise<string> {
   const { project, location, serviceUrl } = config.cloudTasks;
 

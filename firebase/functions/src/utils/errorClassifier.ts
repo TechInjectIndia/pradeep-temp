@@ -8,13 +8,13 @@
 // ---------------------------------------------------------------------------
 
 export type ErrorType =
-  | "RATE_LIMIT"
-  | "TIMEOUT"
-  | "INVALID_PHONE"
-  | "INVALID_EMAIL"
-  | "TEMPLATE_ERROR"
-  | "API_DOWN"
-  | "UNKNOWN";
+  | 'RATE_LIMIT'
+  | 'TIMEOUT'
+  | 'INVALID_PHONE'
+  | 'INVALID_EMAIL'
+  | 'TEMPLATE_ERROR'
+  | 'API_DOWN'
+  | 'UNKNOWN';
 
 // ---------------------------------------------------------------------------
 // Pattern definitions
@@ -22,27 +22,15 @@ export type ErrorType =
 
 const ERROR_PATTERNS: Array<{ type: ErrorType; patterns: RegExp[] }> = [
   {
-    type: "RATE_LIMIT",
-    patterns: [
-      /rate.?limit/i,
-      /too many requests/i,
-      /429/,
-      /throttl/i,
-      /quota.?exceed/i,
-    ],
+    type: 'RATE_LIMIT',
+    patterns: [/rate.?limit/i, /too many requests/i, /429/, /throttl/i, /quota.?exceed/i],
   },
   {
-    type: "TIMEOUT",
-    patterns: [
-      /timeout/i,
-      /timed?\s*out/i,
-      /ETIMEDOUT/,
-      /ESOCKETTIMEDOUT/,
-      /deadline.?exceeded/i,
-    ],
+    type: 'TIMEOUT',
+    patterns: [/timeout/i, /timed?\s*out/i, /ETIMEDOUT/, /ESOCKETTIMEDOUT/, /deadline.?exceeded/i],
   },
   {
-    type: "INVALID_PHONE",
+    type: 'INVALID_PHONE',
     patterns: [
       /invalid.?phone/i,
       /phone.?number.?invalid/i,
@@ -51,7 +39,7 @@ const ERROR_PATTERNS: Array<{ type: ErrorType; patterns: RegExp[] }> = [
     ],
   },
   {
-    type: "INVALID_EMAIL",
+    type: 'INVALID_EMAIL',
     patterns: [
       /invalid.?email/i,
       /email.?invalid/i,
@@ -61,16 +49,11 @@ const ERROR_PATTERNS: Array<{ type: ErrorType; patterns: RegExp[] }> = [
     ],
   },
   {
-    type: "TEMPLATE_ERROR",
-    patterns: [
-      /template/i,
-      /message.?template/i,
-      /template.?not.?found/i,
-      /invalid.?template/i,
-    ],
+    type: 'TEMPLATE_ERROR',
+    patterns: [/template/i, /message.?template/i, /template.?not.?found/i, /invalid.?template/i],
   },
   {
-    type: "API_DOWN",
+    type: 'API_DOWN',
     patterns: [
       /ECONNREFUSED/,
       /ECONNRESET/,
@@ -89,12 +72,7 @@ const ERROR_PATTERNS: Array<{ type: ErrorType; patterns: RegExp[] }> = [
 // Retryable error types
 // ---------------------------------------------------------------------------
 
-const RETRYABLE_TYPES: Set<ErrorType> = new Set([
-  "RATE_LIMIT",
-  "API_DOWN",
-  "TIMEOUT",
-  "UNKNOWN",
-]);
+const RETRYABLE_TYPES: Set<ErrorType> = new Set(['RATE_LIMIT', 'API_DOWN', 'TIMEOUT', 'UNKNOWN']);
 
 // ---------------------------------------------------------------------------
 // Public API
@@ -104,7 +82,7 @@ const RETRYABLE_TYPES: Set<ErrorType> = new Set([
  * Classify an Error by inspecting its message against known patterns.
  */
 export function classifyError(error: Error): ErrorType {
-  const message = error.message || "";
+  const message = error.message || '';
 
   for (const entry of ERROR_PATTERNS) {
     for (const pattern of entry.patterns) {
@@ -114,7 +92,7 @@ export function classifyError(error: Error): ErrorType {
     }
   }
 
-  return "UNKNOWN";
+  return 'UNKNOWN';
 }
 
 /**
@@ -145,7 +123,7 @@ export function getRetryAfterTime(error: Error & { retryAfter?: number | string 
   }
 
   // Try to extract seconds from the error message (e.g. "retry after 30 seconds")
-  const messageMatch = (error.message || "").match(/retry.?after\s+(\d+)/i);
+  const messageMatch = (error.message || '').match(/retry.?after\s+(\d+)/i);
   if (messageMatch) {
     const seconds = parseInt(messageMatch[1], 10);
     if (seconds > 0) {

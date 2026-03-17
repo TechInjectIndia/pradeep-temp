@@ -24,9 +24,20 @@ export class MockTaskQueueAdapter implements ITaskQueuePort {
   }
 
   // Test helpers
-  getTasks(): MockTask[] { return [...this.tasks]; }
-  getTasksByQueue(queueName: string): MockTask[] { return this.tasks.filter(t => t.queueName === queueName); }
-  getTaskCount(): number { return this.tasks.length; }
-  reset(): void { this.tasks = []; this.taskCounter = 0; }
-  setFailureMode(fail: boolean): void { this.shouldFail = fail; }
+  getTasks(): MockTask[] {
+    return [...this.tasks];
+  }
+  getTasksByQueue(queueName: string): MockTask[] {
+    return this.tasks.filter((t) => t.queueName === queueName);
+  }
+  getTaskCount(): number {
+    return this.tasks.length;
+  }
+  reset(): void {
+    this.tasks = [];
+    this.taskCounter = 0;
+  }
+  setFailureMode(fail: boolean): void {
+    this.shouldFail = fail;
+  }
 }

@@ -1,5 +1,11 @@
 import * as admin from 'firebase-admin';
-import { db, getDoc, setDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
+import {
+  db,
+  getDoc,
+  setDoc,
+  updateDoc,
+  queryDocs,
+} from '../infrastructure/firestore/FirestoreAdapter';
 
 const COLLECTION = 'failed_messages';
 
@@ -35,9 +41,10 @@ export async function update(failedMessageId: string, data: Partial<Record<strin
 export async function list(
   filters?: { batchId?: string; isRetryable?: boolean; channel?: string },
   limit?: number,
-  startAfter?: string
+  startAfter?: string,
 ) {
-  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> = [];
+  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> =
+    [];
 
   if (filters?.batchId) {
     queryFilters.push({ field: 'batchId', op: '==', value: filters.batchId });

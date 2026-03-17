@@ -48,12 +48,7 @@ function jaroSimilarity(s1: string, s2: string): number {
     k++;
   }
 
-  return (
-    (matches / s1.length +
-      matches / s2.length +
-      (matches - transpositions / 2) / matches) /
-    3
-  );
+  return (matches / s1.length + matches / s2.length + (matches - transpositions / 2) / matches) / 3;
 }
 
 /**
@@ -117,20 +112,35 @@ export function calculateSchoolSimilarity(school1: string, school2: string): num
  * Returns a 4-character Soundex code (e.g. "R163" for "Robert").
  */
 export function generatePhoneticKey(name: string): string {
-  const cleaned = name.trim().toUpperCase().replace(/[^A-Z]/g, "");
-  if (cleaned.length === 0) return "";
+  const cleaned = name
+    .trim()
+    .toUpperCase()
+    .replace(/[^A-Z]/g, '');
+  if (cleaned.length === 0) return '';
 
   const codeMap: Record<string, string> = {
-    B: "1", F: "1", P: "1", V: "1",
-    C: "2", G: "2", J: "2", K: "2", Q: "2", S: "2", X: "2", Z: "2",
-    D: "3", T: "3",
-    L: "4",
-    M: "5", N: "5",
-    R: "6",
+    B: '1',
+    F: '1',
+    P: '1',
+    V: '1',
+    C: '2',
+    G: '2',
+    J: '2',
+    K: '2',
+    Q: '2',
+    S: '2',
+    X: '2',
+    Z: '2',
+    D: '3',
+    T: '3',
+    L: '4',
+    M: '5',
+    N: '5',
+    R: '6',
   };
 
   let soundex = cleaned[0];
-  let lastCode = codeMap[cleaned[0]] || "0";
+  let lastCode = codeMap[cleaned[0]] || '0';
 
   for (let i = 1; i < cleaned.length && soundex.length < 4; i++) {
     const code = codeMap[cleaned[i]];
@@ -138,12 +148,12 @@ export function generatePhoneticKey(name: string): string {
       soundex += code;
     }
     // H and W are ignored but do not break coding of surrounding letters
-    if (cleaned[i] !== "H" && cleaned[i] !== "W") {
-      lastCode = code || "0";
+    if (cleaned[i] !== 'H' && cleaned[i] !== 'W') {
+      lastCode = code || '0';
     }
   }
 
-  return soundex.padEnd(4, "0");
+  return soundex.padEnd(4, '0');
 }
 
 /**

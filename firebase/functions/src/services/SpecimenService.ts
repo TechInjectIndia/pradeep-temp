@@ -2,7 +2,7 @@ import * as TeacherRawRepository from '../repositories/TeacherRawRepository';
 import * as OrderRepository from '../repositories/OrderRepository';
 import * as AggregationRepository from '../repositories/AggregationRepository';
 import * as BatchRepository from '../repositories/BatchRepository';
-import * as CloudTasksAdapter from '../infrastructure/cloudtasks/CloudTasksAdapter';
+import { AdapterRegistry } from '../adapters/AdapterRegistry';
 import { config } from '../config';
 
 const SPECIMEN_ORDERS_QUEUE = 'specimen-orders';
@@ -17,9 +17,7 @@ const SPECIMEN_ORDERS_QUEUE = 'specimen-orders';
  *
  * Returns the number of tasks enqueued.
  */
-export async function createOrdersForBatch(
-  batchId: string,
-): Promise<{ ordersToCreate: number }> {
+export async function createOrdersForBatch(batchId: string): Promise<{ ordersToCreate: number }> {
   const rawTeachers = await TeacherRawRepository.getByBatchId(batchId);
 
   // Only consider resolved records that have a teacher_master link
@@ -29,7 +27,7 @@ export async function createOrdersForBatch(
 
   let enqueued = 0;
   for (const record of resolved) {
-    await CloudTasksAdapter.enqueueTask(SPECIMEN_ORDERS_QUEUE, {
+    await AdapterRegistry.getInstance().taskQueue.enqueueTask(SPECIMEN_ORDERS_QUEUE, {
       teacherRecordId: record.id,
       batchId,
     });
@@ -48,10 +46,7 @@ export async function processOrderCreation(
   batchId: string,
 ): Promise<void> {
   // Guard: check if order already exists (idempotency)
-  const existingOrders = await OrderRepository.getByTeacherAndBatch(
-    teacherRecordId,
-    batchId,
-  );
+  const existingOrders = await OrderRepository.getByTeacherAndBatch(teacherRecordId, batchId);
   if (existingOrders.length > 0) {
     console.log(
       `Order already exists for teacher ${teacherRecordId} in batch ${batchId}, skipping`,
@@ -124,9 +119,7 @@ export async function processOrderCreation(
  * Check whether all expected links have been added to an aggregation record.
  * If complete, marks it as such.
  */
-export async function checkAggregationCompletion(
-  aggregationKey: string,
-): Promise<boolean> {
+export async function checkAggregationCompletion(aggregationKey: string): Promise<boolean> {
   const aggregation = await AggregationRepository.getById(aggregationKey);
   if (!aggregation) return false;
 
