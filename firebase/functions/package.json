@@ -1,0 +1,30 @@
+{
+  "name": "@vsds/functions",
+  "version": "1.0.0",
+  "private": true,
+  "main": "lib/index.js",
+  "scripts": {
+    "build": "tsc",
+    "serve": "npm run build && firebase emulators:start --only functions",
+    "deploy": "firebase deploy --only functions"
+  },
+  "engines": {
+    "node": "18"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.0.0",
+    "firebase-functions": "^5.0.0",
+    "@google-cloud/tasks": "^5.0.0",
+    "algoliasearch": "^4.22.0",
+    "resend": "^3.0.0",
+    "xlsx": "^0.18.5",
+    "zod": "^3.22.0",
+    "crypto-js": "^4.2.0",
+    "natural": "^6.10.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^18.0.0",
+    "@types/crypto-js": "^4.2.0"
+  }
+}

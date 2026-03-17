@@ -1,0 +1,80 @@
+export enum BatchStatus {
+  UPLOADED = 'UPLOADED',
+  RESOLVING = 'RESOLVING',
+  ORDERING = 'ORDERING',
+  QUEUED = 'QUEUED',
+  DISPATCHING = 'DISPATCHING',
+  COMPLETE = 'COMPLETE',
+  PARTIAL_FAILURE = 'PARTIAL_FAILURE',
+  PAUSED = 'PAUSED',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum ResolutionStatus {
+  PENDING = 'PENDING',
+  RESOLVED = 'RESOLVED',
+  FAILED = 'FAILED',
+}
+
+export enum Channel {
+  WHATSAPP = 'WHATSAPP',
+  EMAIL = 'EMAIL',
+}
+
+export enum CommLogStatus {
+  QUEUED = 'QUEUED',
+  SENT = 'SENT',
+  FAILED = 'FAILED',
+  DLQ = 'DLQ',
+  CANCELLED = 'CANCELLED',
+}
+
+export enum DeliveryStatus {
+  SENT = 'SENT',
+  DELIVERED = 'DELIVERED',
+  READ = 'READ',
+  FAILED = 'FAILED',
+}
+
+export enum ErrorType {
+  VALIDATION = 'VALIDATION',
+  API_FAILURE = 'API_FAILURE',
+  TIMEOUT = 'TIMEOUT',
+  RATE_LIMIT = 'RATE_LIMIT',
+  UNKNOWN = 'UNKNOWN',
+}
+
+export enum DLQErrorType {
+  RATE_LIMIT = 'RATE_LIMIT',
+  INVALID_PHONE = 'INVALID_PHONE',
+  INVALID_EMAIL = 'INVALID_EMAIL',
+  API_DOWN = 'API_DOWN',
+  TIMEOUT = 'TIMEOUT',
+  TEMPLATE_ERROR = 'TEMPLATE_ERROR',
+  UNKNOWN = 'UNKNOWN',
+}
+
+export enum DuplicateResolution {
+  PENDING = 'PENDING',
+  MERGED = 'MERGED',
+  KEPT_SEPARATE = 'KEPT_SEPARATE',
+}
+
+export enum BatchErrorStage {
+  RESOLUTION = 'RESOLUTION',
+  ORDER_CREATION = 'ORDER_CREATION',
+  AGGREGATION = 'AGGREGATION',
+  MESSAGING = 'MESSAGING',
+}
+
+export enum ErrorResolution {
+  RETRIED_SUCCESS = 'RETRIED_SUCCESS',
+  MANUALLY_RESOLVED = 'MANUALLY_RESOLVED',
+  SKIPPED = 'SKIPPED',
+}
+
+export enum DLQResolution {
+  RETRIED_SUCCESS = 'RETRIED_SUCCESS',
+  SKIPPED = 'SKIPPED',
+  PHONE_INVALID = 'PHONE_INVALID',
+}

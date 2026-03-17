@@ -1,0 +1,203 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "teachers_master",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "phoneticNameKey", "order": "ASCENDING" },
+        { "fieldPath": "city", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "teachers_master",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "updatedAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "teachers_raw",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "resolutionStatus", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "specimen_batches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdBy", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "specimen_batches",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "orderType", "order": "ASCENDING" },
+        { "fieldPath": "batchId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "orderType", "order": "ASCENDING" },
+        { "fieldPath": "teacherPhone", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "orders",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "orderType", "order": "ASCENDING" },
+        { "fieldPath": "isFulfillmentComplete", "order": "ASCENDING" },
+        { "fieldPath": "batchId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "temp_aggregation",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "isComplete", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "comm_log",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "status", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "comm_log",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "status", "order": "ASCENDING" },
+        { "fieldPath": "batchId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "teacher_communications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "teacherId", "order": "ASCENDING" },
+        { "fieldPath": "batchId", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "teacher_communications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "deliveryStatus", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "teacher_communications",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "channel", "order": "ASCENDING" },
+        { "fieldPath": "deliveryStatus", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "possible_duplicates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "resolution", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "possible_duplicates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "resolution", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "possible_duplicates",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "confidenceScore", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "batch_errors",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "stage", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "batch_errors",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "isRetryable", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "batch_errors",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "stage", "order": "ASCENDING" },
+        { "fieldPath": "errorType", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "batch_errors",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "failed_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "isRetryable", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "failed_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "channel", "order": "ASCENDING" },
+        { "fieldPath": "lastErrorType", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "failed_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isRetryable", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "failed_messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "batchId", "order": "ASCENDING" },
+        { "fieldPath": "resolution", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

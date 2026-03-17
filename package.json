@@ -1,0 +1,16 @@
+{
+  "name": "vsds-platform",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "firebase/functions",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run build --workspaces",
+    "lint": "npm run lint --workspaces --if-present"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
