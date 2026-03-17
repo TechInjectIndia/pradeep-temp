@@ -14,73 +14,112 @@ const mockDLQEntries: DLQEntry[] = [
     teacherName: "Priya Sharma",
     channel: "WHATSAPP",
     attempts: 3,
-    lastError: "WhatsApp API: User not found",
-    retryable: false,
+    lastError: "WhatsApp API rate limit exceeded - retry after 60s",
+    retryable: true,
     status: "PENDING",
-    createdAt: "2024-01-15T10:55:00Z",
+    createdAt: "2024-01-15T10:50:00Z",
     lastAttemptAt: "2024-01-15T11:05:00Z",
   },
   {
     id: "dlq-002",
     batchId: "BATCH-2024-001",
-    teacherPhone: "+919876543211",
-    teacherName: "Rajesh Kumar",
+    teacherPhone: "+919876543213",
+    teacherName: "Amit Singh",
     channel: "WHATSAPP",
-    attempts: 2,
-    lastError: "Rate limit exceeded",
-    retryable: true,
-    status: "PENDING",
-    createdAt: "2024-01-15T10:56:00Z",
-    lastAttemptAt: "2024-01-15T11:02:00Z",
+    attempts: 5,
+    lastError: "Message delivery failed: recipient number not on WhatsApp",
+    retryable: false,
+    status: "ABANDONED",
+    createdAt: "2024-01-15T10:52:00Z",
+    lastAttemptAt: "2024-01-15T12:30:00Z",
   },
   {
     id: "dlq-003",
     batchId: "BATCH-2024-002",
     teacherPhone: "+919876543215",
-    teacherName: "Kavitha Rao",
+    teacherName: "Kavita Reddy",
     channel: "SMS",
-    attempts: 5,
-    lastError: "SMS gateway: Invalid number format",
-    retryable: false,
-    status: "ABANDONED",
-    createdAt: "2024-01-14T09:30:00Z",
+    attempts: 2,
+    lastError: "SMS gateway timeout after 30s",
+    retryable: true,
+    status: "PENDING",
+    createdAt: "2024-01-14T09:45:00Z",
     lastAttemptAt: "2024-01-14T10:15:00Z",
   },
   {
     id: "dlq-004",
-    batchId: "BATCH-2024-001",
+    batchId: "BATCH-2024-003",
     teacherPhone: "+919876543216",
-    teacherName: "Deepak Verma",
+    teacherName: "Vikram Joshi",
     channel: "EMAIL",
     attempts: 1,
-    lastError: "SMTP connection timeout",
-    retryable: true,
-    status: "PENDING",
-    createdAt: "2024-01-15T11:00:00Z",
-    lastAttemptAt: "2024-01-15T11:00:00Z",
-  },
-  {
-    id: "dlq-005",
-    batchId: "BATCH-2024-003",
-    teacherPhone: "+919876543217",
-    teacherName: "Lakshmi Nair",
-    channel: "WHATSAPP",
-    attempts: 3,
-    lastError: "Template message rejected",
+    lastError: "SMTP connection refused: mail server unreachable",
     retryable: true,
     status: "RETRYING",
     createdAt: "2024-01-14T08:20:00Z",
+    lastAttemptAt: "2024-01-14T08:25:00Z",
+  },
+  {
+    id: "dlq-005",
+    batchId: "BATCH-2024-001",
+    teacherPhone: "+919876543217",
+    teacherName: "Anita Gupta",
+    channel: "WHATSAPP",
+    attempts: 3,
+    lastError: "Template message rejected by WhatsApp Business API",
+    retryable: false,
+    status: "PENDING",
+    createdAt: "2024-01-15T10:55:00Z",
+    lastAttemptAt: "2024-01-15T11:20:00Z",
+  },
+  {
+    id: "dlq-006",
+    batchId: "BATCH-2024-002",
+    teacherPhone: "+919876543218",
+    teacherName: "Deepak Verma",
+    channel: "SMS",
+    attempts: 4,
+    lastError: "DND (Do Not Disturb) enabled for this number",
+    retryable: false,
+    status: "ABANDONED",
+    createdAt: "2024-01-14T09:50:00Z",
+    lastAttemptAt: "2024-01-14T11:00:00Z",
+  },
+  {
+    id: "dlq-007",
+    batchId: "BATCH-2024-003",
+    teacherPhone: "+919876543219",
+    teacherName: "Sanjay Mehta",
+    channel: "WHATSAPP",
+    attempts: 2,
+    lastError: "Media upload failed: image too large",
+    retryable: true,
+    status: "PENDING",
+    createdAt: "2024-01-14T08:22:00Z",
     lastAttemptAt: "2024-01-14T08:45:00Z",
+  },
+  {
+    id: "dlq-008",
+    batchId: "BATCH-2024-001",
+    teacherPhone: "+919876543220",
+    teacherName: "Ritu Agarwal",
+    channel: "EMAIL",
+    attempts: 1,
+    lastError: "Invalid email address: bounce notification received",
+    retryable: false,
+    status: "PENDING",
+    createdAt: "2024-01-15T11:00:00Z",
+    lastAttemptAt: "2024-01-15T11:02:00Z",
   },
 ];
 
 const channels: MessageChannel[] = ["WHATSAPP", "SMS", "EMAIL"];
 
 export default function DLQPage() {
-  const [page, setPage] = useState(1);
   const [batchFilter, setBatchFilter] = useState("");
   const [channelFilter, setChannelFilter] = useState<MessageChannel | "">("");
   const [retryableOnly, setRetryableOnly] = useState(false);
+  const [page, setPage] = useState(1);
 
   let filtered = mockDLQEntries;
   if (batchFilter) {
@@ -102,15 +141,17 @@ export default function DLQPage() {
 
   const handleRetryAll = () => {
     // TODO: retryDLQ.mutate({ retryAll: true })
-    alert("Retrying all retryable entries");
+    alert("Retrying all retryable DLQ entries");
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dead Letter Queue</h1>
+        <h1 className="text-2xl font-bold text-gray-900">
+          Dead Letter Queue
+        </h1>
         <p className="mt-1 text-sm text-gray-500">
-          View and manage failed message deliveries
+          Review and retry failed message deliveries
         </p>
       </div>
 
@@ -158,7 +199,7 @@ export default function DLQPage() {
             }}
             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-          Retryable only
+          Retryable Only
         </label>
 
         <span className="text-sm text-gray-500">
@@ -166,6 +207,7 @@ export default function DLQPage() {
         </span>
       </div>
 
+      {/* DLQ Table */}
       <DLQTable
         entries={filtered}
         total={filtered.length}
