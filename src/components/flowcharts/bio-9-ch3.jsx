@@ -44,8 +44,6 @@ const DEPTH_STYLES = [
 const DATA = [
   {
     id: "s1",
-    icon: "🧬",
-    page: "3/58",
     accent: "#c0126a",
     title: "Reproduction",
     detail: "It is the production of new generation of individuals of the same species that are physically independent of their parents.",
@@ -53,8 +51,6 @@ const DATA = [
   },
   {
     id: "s2",
-    icon: "🔬",
-    page: "3/58–3/59",
     accent: "#1565c0",
     title: "I. Asexual Reproduction",
     detail: "In asexual reproduction, new individuals are formed by any means other than the fusion of sex gametes, by single parent.",
@@ -111,8 +107,6 @@ const DATA = [
   },
   {
     id: "s3",
-    icon: "🌱",
-    page: "3/59",
     accent: "#2e7d32",
     title: "Vegetative Propagation",
     children: [
@@ -162,8 +156,6 @@ const DATA = [
   },
   {
     id: "s4",
-    icon: "🌸",
-    page: "3/58–3/60",
     accent: "#c77000",
     title: "II. Sexual Reproduction",
     detail: "Production of new individuals by the fusion of two gametes (one from male parent and other from female parent) to form zygote which develops into new organism.",
@@ -288,8 +280,6 @@ const DATA = [
   },
   {
     id: "s5",
-    icon: "🛡️",
-    page: "3/59–3/61",
     accent: "#6a1b9a",
     title: "Population Control",
     detail: "Birth control is the regulation of conception by preventive measures or devices to control the number of offsprings.",
@@ -323,8 +313,6 @@ const DATA = [
   },
   {
     id: "s6",
-    icon: "⚠️",
-    page: "3/59–3/61",
     accent: "#b71c1c",
     title: "Sexually Transmitted Diseases (STDs)",
     detail: "These are the infectious diseases which are spread from an infected person to a healthy person by sexual contact. Also called venereal diseases.",
@@ -338,8 +326,6 @@ const DATA = [
   },
   {
     id: "s7",
-    icon: "🏛️",
-    page: "3/61",
     accent: "#00695c",
     title: "Government Schemes to Improve Maternal Health & Declining Sex Ratio",
     children: [
@@ -357,8 +343,6 @@ const DATA = [
   },
   {
     id: "s8",
-    icon: "🧪",
-    page: "3/61",
     accent: "#4a148c",
     title: "Assisted Reproduction Technologies (ART)",
     detail: "Advanced medical techniques used to assist reproduction.",
@@ -462,7 +446,6 @@ export default function ReproductionFlowchart() {
 
   const expandAll   = () => setCtxVal(v => ({ version:v.version+1, mode:"expand" }));
   const collapseAll = () => setCtxVal(v => ({ version:v.version+1, mode:"collapse" }));
-
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
 
   const body = { fontFamily:"'EB Garamond',Georgia,serif", fontSize:15, lineHeight:1.58, color:"#1a1a1a" };
@@ -508,9 +491,7 @@ export default function ReproductionFlowchart() {
                 whiteSpace:"nowrap" }}
               onMouseEnter={e => e.currentTarget.style.background=`${s.accent}28`}
               onMouseLeave={e => e.currentTarget.style.background=`${s.accent}15`}>
-              <span style={{ fontSize:14 }}>{s.icon}</span>
               <span>{s.title.split(" ").slice(0,3).join(" ")}</span>
-              <span style={{ fontSize:10, opacity:.6, fontWeight:400 }}>{s.page}</span>
             </button>
           ))}
           <div style={{ marginLeft:"auto", display:"flex", gap:7 }}>
@@ -533,27 +514,13 @@ export default function ReproductionFlowchart() {
         <div style={{ maxWidth:880, margin:"0 auto", padding:"28px 24px 56px" }}>
           {DATA.map(section => (
             <div key={section.id} id={section.id} style={{ marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontFamily:"'Merriweather Sans',Arial,sans-serif",
-                  fontSize:10.5, fontWeight:700, letterSpacing:1.5,
-                  color:section.accent, textTransform:"uppercase", opacity:.7 }}>
-                  Page {section.page}
-                </span>
-                <div style={{ flex:1, height:1, background:`${section.accent}25` }} />
-              </div>
               <TreeNode node={section} depth={0} accent={section.accent} />
             </div>
           ))}
         </div>
 
-        {/* FOOTER */}
-        <div style={{ textAlign:"center", padding:"16px 20px",
-          borderTop:"1px solid #e8e8e8", background:"#fff",
-          fontFamily:"'Merriweather Sans',Arial,sans-serif",
-          fontSize:11, color:"#bbb", letterSpacing:1.5, textTransform:"uppercase" }}>
-          Pradeep&apos;s Publications
-        </div>
       </div>
     </ExpandCtx.Provider>
   );
 }
+

@@ -41,89 +41,10 @@ const DEPTH_STYLES = [
     ff:"'EB Garamond',Georgia,serif" }),
 ];
 
-function TreeNode({ node, depth=0, accent, isLast=false }) {
-  const { mode } = useContext(ExpandCtx);
-  const hasKids = !!node.children?.length;
-  const [localOpen, setLocalOpen] = useState(depth === 0);
-  const open =
-    mode === "expand" ? true : mode === "collapse" ? false : localOpen;
-
-  const ds = (DEPTH_STYLES[Math.min(depth, DEPTH_STYLES.length-1)])(accent);
-
-  const arrowStyle = {
-    fontSize:10, minWidth:14, textAlign:"center", flexShrink:0,
-    color: depth===0 ? "rgba(255,255,255,.8)" : accent,
-    display:"inline-block",
-    transform: hasKids && open ? "rotate(90deg)" : "rotate(0deg)",
-    transition:"transform .2s",
-    marginTop: depth===0 ? 3 : 2,
-    opacity: hasKids ? 1 : 0,
-  };
-
-  return (
-    <div style={{ position:"relative", marginBottom: depth===0?22:depth===1?8:5 }}>
-      {depth > 0 && <>
-        <div style={{ position:"absolute", left:-21, top:0,
-          height: isLast ? "calc(50% + 1px)" : "100%",
-          width:2, background:`${accent}44` }} />
-        <div style={{ position:"absolute", left:-21, top:"50%",
-          width:17, height:2, marginTop:-1, background:`${accent}44` }} />
-      </>}
-
-      <div
-        className="fc-node"
-        onClick={() => hasKids && setLocalOpen((o) => !o)}
-        style={{
-          display:"flex", alignItems:"flex-start", gap:8,
-          background:ds.bg, color:ds.fg,
-          fontWeight:ds.fw, fontSize:ds.fs, fontFamily:ds.ff,
-          borderRadius:ds.radius, padding:ds.px,
-          border:ds.border ?? "none",
-          boxShadow:ds.shadow ?? "none",
-          cursor:hasKids ? "pointer" : "default",
-          userSelect:"none",
-        }}
-      >
-        <span style={arrowStyle}>▶</span>
-        <div style={{ flex:1 }}>
-          <div style={{ lineHeight:1.35 }}>{node.title}</div>
-          {node.subtitle && (
-            <div style={{ fontSize:"0.8em", fontStyle:"italic",
-              opacity:.72, fontWeight:400, marginTop:2 }}>{node.subtitle}</div>
-          )}
-          {node.detail && (
-            <div style={{ fontSize:"0.92em", fontWeight:400, fontStyle:"normal",
-              color: depth===0 ? "rgba(255,255,255,.92)" : "#1a1a1a",
-              marginTop:6, lineHeight:1.65, whiteSpace:"pre-line",
-              fontFamily:"'EB Garamond',Georgia,serif", letterSpacing:"0.01em" }}>
-              {node.detail}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {hasKids && open && (
-        <div className="fc-kids" style={{ marginLeft:28, marginTop:6 }}>
-          {node.children.map((child, i) => (
-            <TreeNode key={child.id} node={child} depth={depth+1}
-              accent={accent} isLast={i===node.children.length-1} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ═══════════════════════════════════════════════════════════
-   DATA — every box from the 5-page Bird&apos;s-Eye View flowchart
-   ═══════════════════════════════════════════════════════════ */
-
 const DATA = [
   /* ── S1: TISSUES — Introduction ── */
   {
     id: "s1",
-    icon: "🧬",
-    page: "2/61",
     accent: "#c0126a",
     title: "Tissues — Introduction",
     detail: "A group or collection of similar or dissimilar cells that perform a common function and have a common origin.",
@@ -144,8 +65,6 @@ const DATA = [
   /* ── S2: MERISTEMATIC TISSUES ── */
   {
     id: "s2",
-    icon: "🌱",
-    page: "2/61",
     accent: "#2e7d32",
     title: "Meristematic Tissues",
     detail: "• Located at specific locations.\n• These remain in continuous state of division.\n• These help to increase the length and the girth of the plant.",
@@ -171,8 +90,6 @@ const DATA = [
   /* ── S3: PERMANENT TISSUES (Plant) ── */
   {
     id: "s3",
-    icon: "🌿",
-    page: "2/61–2/62",
     accent: "#1565c0",
     title: "Permanent Tissues",
     detail: "• Originate from meristems and become permanent at fixed positions in plant body.\n• The cells have lost the power of division.\n• They may be living or dead.",
@@ -222,8 +139,6 @@ const DATA = [
   /* ── S4: ANIMAL TISSUES ── */
   {
     id: "s4",
-    icon: "🔬",
-    page: "2/63–2/65",
     accent: "#6a1b9a",
     title: "Animal Tissues",
     detail: "• These perform specific functions.\n• Types — Four types of tissues.",
@@ -340,8 +255,6 @@ const DATA = [
   /* ── S5: BLOOD COUNTS & MUSCULOSKELETAL SYSTEM ── */
   {
     id: "s5",
-    icon: "🩸",
-    page: "2/65",
     accent: "#00695c",
     title: "Blood Counts & Musculoskeletal System",
     children: [
@@ -364,9 +277,78 @@ const DATA = [
   },
 ];
 
-/* ═══════════════════════════════════════════════════════════
-   MAIN COMPONENT
-   ═══════════════════════════════════════════════════════════ */
+function TreeNode({ node, depth=0, accent, isLast=false }) {
+  const { mode } = useContext(ExpandCtx);
+  const hasKids = !!node.children?.length;
+  const [localOpen, setLocalOpen] = useState(depth === 0);
+  const open =
+    mode === "expand" ? true : mode === "collapse" ? false : localOpen;
+
+  const ds = (DEPTH_STYLES[Math.min(depth, DEPTH_STYLES.length-1)])(accent);
+
+  const arrowStyle = {
+    fontSize:10, minWidth:14, textAlign:"center", flexShrink:0,
+    color: depth===0 ? "rgba(255,255,255,.8)" : accent,
+    display:"inline-block",
+    transform: hasKids && open ? "rotate(90deg)" : "rotate(0deg)",
+    transition:"transform .2s",
+    marginTop: depth===0 ? 3 : 2,
+    opacity: hasKids ? 1 : 0,
+  };
+
+  return (
+    <div style={{ position:"relative", marginBottom: depth===0?22:depth===1?8:5 }}>
+      {depth > 0 && <>
+        <div style={{ position:"absolute", left:-21, top:0,
+          height: isLast ? "calc(50% + 1px)" : "100%",
+          width:2, background:`${accent}44` }} />
+        <div style={{ position:"absolute", left:-21, top:"50%",
+          width:17, height:2, marginTop:-1, background:`${accent}44` }} />
+      </>}
+
+      <div
+        className="fc-node"
+        onClick={() => hasKids && setLocalOpen((o) => !o)}
+        style={{
+          display:"flex", alignItems:"flex-start", gap:8,
+          background:ds.bg, color:ds.fg,
+          fontWeight:ds.fw, fontSize:ds.fs, fontFamily:ds.ff,
+          borderRadius:ds.radius, padding:ds.px,
+          border:ds.border ?? "none",
+          boxShadow:ds.shadow ?? "none",
+          cursor:hasKids ? "pointer" : "default",
+          userSelect:"none",
+        }}
+      >
+        <span style={arrowStyle}>▶</span>
+        <div style={{ flex:1 }}>
+          <div style={{ lineHeight:1.35 }}>{node.title}</div>
+          {node.subtitle && (
+            <div style={{ fontSize:"0.8em", fontStyle:"italic",
+              opacity:.72, fontWeight:400, marginTop:2 }}>{node.subtitle}</div>
+          )}
+          {node.detail && (
+            <div style={{ fontSize:"0.92em", fontWeight:400, fontStyle:"normal",
+              color: depth===0 ? "rgba(255,255,255,.92)" : "#1a1a1a",
+              marginTop:6, lineHeight:1.65, whiteSpace:"pre-line",
+              fontFamily:"'EB Garamond',Georgia,serif", letterSpacing:"0.01em" }}>
+              {node.detail}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {hasKids && open && (
+        <div className="fc-kids" style={{ marginLeft:28, marginTop:6 }}>
+          {node.children.map((child, i) => (
+            <TreeNode key={child.id} node={child} depth={depth+1}
+              accent={accent} isLast={i===node.children.length-1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function TissuesFlowchart() {
   useSetup();
@@ -374,7 +356,6 @@ export default function TissuesFlowchart() {
 
   const expandAll   = () => setCtxVal(v => ({ version:v.version+1, mode:"expand" }));
   const collapseAll = () => setCtxVal(v => ({ version:v.version+1, mode:"collapse" }));
-
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
 
   const body = { fontFamily:"'EB Garamond',Georgia,serif", fontSize:15, lineHeight:1.58, color:"#1a1a1a" };
@@ -420,9 +401,7 @@ export default function TissuesFlowchart() {
                 whiteSpace:"nowrap" }}
               onMouseEnter={e => e.currentTarget.style.background=`${s.accent}28`}
               onMouseLeave={e => e.currentTarget.style.background=`${s.accent}15`}>
-              <span style={{ fontSize:14 }}>{s.icon}</span>
               <span>{s.title.split(" ").slice(0,3).join(" ")}</span>
-              <span style={{ fontSize:10, opacity:.6, fontWeight:400 }}>{s.page}</span>
             </button>
           ))}
           <div style={{ marginLeft:"auto", display:"flex", gap:7 }}>
@@ -445,27 +424,13 @@ export default function TissuesFlowchart() {
         <div style={{ maxWidth:880, margin:"0 auto", padding:"28px 24px 56px" }}>
           {DATA.map(section => (
             <div key={section.id} id={section.id} style={{ marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontFamily:"'Merriweather Sans',Arial,sans-serif",
-                  fontSize:10.5, fontWeight:700, letterSpacing:1.5,
-                  color:section.accent, textTransform:"uppercase", opacity:.7 }}>
-                  Page {section.page}
-                </span>
-                <div style={{ flex:1, height:1, background:`${section.accent}25` }} />
-              </div>
               <TreeNode node={section} depth={0} accent={section.accent} />
             </div>
           ))}
         </div>
 
-        {/* FOOTER */}
-        <div style={{ textAlign:"center", padding:"16px 20px",
-          borderTop:"1px solid #e8e8e8", background:"#fff",
-          fontFamily:"'Merriweather Sans',Arial,sans-serif",
-          fontSize:11, color:"#bbb", letterSpacing:1.5, textTransform:"uppercase" }}>
-          Pradeep&apos;s Publications
-        </div>
       </div>
     </ExpandCtx.Provider>
   );
 }
+

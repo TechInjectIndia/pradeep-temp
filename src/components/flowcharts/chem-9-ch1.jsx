@@ -41,82 +41,11 @@ const DEPTH_STYLES = [
     ff:"'EB Garamond',Georgia,serif" }),
 ];
 
-function TreeNode({ node, depth=0, accent, isLast=false }) {
-  const { mode } = useContext(ExpandCtx);
-  const hasKids = !!node.children?.length;
-  const [localOpen, setLocalOpen] = useState(depth === 0);
-  const open =
-    mode === "expand" ? true : mode === "collapse" ? false : localOpen;
-
-  const ds = (DEPTH_STYLES[Math.min(depth, DEPTH_STYLES.length - 1)])(accent);
-
-  const arrowStyle = {
-    fontSize:10, minWidth:14, textAlign:"center", flexShrink:0,
-    color: depth===0 ? "rgba(255,255,255,.8)" : accent,
-    display:"inline-block",
-    transform: hasKids && open ? "rotate(90deg)" : "rotate(0deg)",
-    transition:"transform .2s",
-    marginTop: depth===0 ? 3 : 2,
-    opacity: hasKids ? 1 : 0,
-  };
-
-  return (
-    <div style={{ position:"relative", marginBottom: depth===0?22:depth===1?8:5 }}>
-      {depth > 0 && <>
-        <div style={{ position:"absolute", left:-21, top:0,
-          height: isLast ? "calc(50% + 1px)" : "100%",
-          width:2, background:`${accent}44` }} />
-        <div style={{ position:"absolute", left:-21, top:"50%",
-          width:17, height:2, marginTop:-1, background:`${accent}44` }} />
-      </>}
-      <div
-        className="fc-node"
-        onClick={() => hasKids && setLocalOpen((o) => !o)}
-        style={{
-          display:"flex", alignItems:"flex-start", gap:8,
-          background:ds.bg, color:ds.fg,
-          fontWeight:ds.fw, fontSize:ds.fs, fontFamily:ds.ff,
-          borderRadius:ds.radius, padding:ds.px,
-          border:ds.border ?? "none",
-          boxShadow:ds.shadow ?? "none",
-          cursor:hasKids ? "pointer" : "default",
-          userSelect:"none",
-        }}
-      >
-        <span style={arrowStyle}>▶</span>
-        <div style={{ flex:1 }}>
-          <div style={{ lineHeight:1.35 }}>{node.title}</div>
-          {node.subtitle && (
-            <div style={{ fontSize:"0.8em", fontStyle:"italic",
-              opacity:.72, fontWeight:400, marginTop:2 }}>{node.subtitle}</div>
-          )}
-          {node.detail && (
-            <div style={{ fontSize:"0.92em", fontWeight:400, fontStyle:"normal",
-              color: depth===0 ? "rgba(255,255,255,.92)" : "#1a1a1a",
-              marginTop:6, lineHeight:1.65, whiteSpace:"pre-line",
-              fontFamily:"'EB Garamond',Georgia,serif", letterSpacing:"0.01em" }}>
-              {node.detail}
-            </div>
-          )}
-        </div>
-      </div>
-      {hasKids && open && (
-        <div className="fc-kids" style={{ marginLeft:28, marginTop:6 }}>
-          {node.children.map((child, i) => (
-            <TreeNode key={child.id} node={child} depth={depth+1}
-              accent={accent} isLast={i===node.children.length-1} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // ─── DATA ────────────────────────────────────────────────────────────────────
 
 const DATA = [
   {
-    id: "s1", icon: "🧪", page: "1/58", accent: "#c0126a",
+    id: "s1", accent: "#c0126a",
     title: "Classification of Matter",
     detail: "Everything around us is matter. Matter can be classified into Pure Substances and Mixtures.",
     children: [
@@ -152,7 +81,7 @@ const DATA = [
   },
 
   {
-    id: "s2", icon: "💧", page: "1/58–1/59", accent: "#1565c0",
+    id: "s2", accent: "#1565c0",
     title: "Solutions — Types & Classification",
     detail: "Solutions are homogeneous mixtures — particle size of both solute and solvent is less than 1 nm. There are nine types of solutions.",
     children: [
@@ -244,7 +173,7 @@ const DATA = [
   },
 
   {
-    id: "s3", icon: "⚖️", page: "1/60", accent: "#2e7d32",
+    id: "s3", accent: "#2e7d32",
     title: "Solubility & Concentration",
     detail: "Solubility: maximum amount of solute in grams which can be dissolved in 100 grams of the solvent at a given temperature to form a saturated solution.",
     children: [
@@ -290,7 +219,7 @@ const DATA = [
   },
 
   {
-    id: "s4", icon: "🔬", page: "1/61", accent: "#c77000",
+    id: "s4", accent: "#c77000",
     title: "Classification of Mixtures by Particle Size",
     detail: "On the basis of particle size of the solute and the solvent, mixtures are of three types.",
     children: [
@@ -316,7 +245,7 @@ const DATA = [
   },
 
   {
-    id: "s5", icon: "🌫️", page: "1/62", accent: "#6a1b9a",
+    id: "s5", accent: "#6a1b9a",
     title: "Properties & Applications of Colloidal Solutions",
     children: [
       {
@@ -385,7 +314,7 @@ const DATA = [
   },
 
   {
-    id: "s6", icon: "🔧", page: "1/63", accent: "#00695c",
+    id: "s6", accent: "#00695c",
     title: "Separation of Mixtures",
     detail: "Different methods are used depending on the nature of the mixture and the physical/chemical properties of its components.",
     children: [
@@ -441,125 +370,160 @@ const DATA = [
   }
 ];
 
-// ─── MAIN COMPONENT ──────────────────────────────────────────────────────────
+function TreeNode({ node, depth=0, accent, isLast=false }) {
+  const { mode } = useContext(ExpandCtx);
+  const hasKids = !!node.children?.length;
+  const [localOpen, setLocalOpen] = useState(depth === 0);
+  const open =
+    mode === "expand" ? true : mode === "collapse" ? false : localOpen;
+
+  const ds = (DEPTH_STYLES[Math.min(depth, DEPTH_STYLES.length-1)])(accent);
+
+  const arrowStyle = {
+    fontSize:10, minWidth:14, textAlign:"center", flexShrink:0,
+    color: depth===0 ? "rgba(255,255,255,.8)" : accent,
+    display:"inline-block",
+    transform: hasKids && open ? "rotate(90deg)" : "rotate(0deg)",
+    transition:"transform .2s",
+    marginTop: depth===0 ? 3 : 2,
+    opacity: hasKids ? 1 : 0,
+  };
+
+  return (
+    <div style={{ position:"relative", marginBottom: depth===0?22:depth===1?8:5 }}>
+      {depth > 0 && <>
+        <div style={{ position:"absolute", left:-21, top:0,
+          height: isLast ? "calc(50% + 1px)" : "100%",
+          width:2, background:`${accent}44` }} />
+        <div style={{ position:"absolute", left:-21, top:"50%",
+          width:17, height:2, marginTop:-1, background:`${accent}44` }} />
+      </>}
+
+      <div
+        className="fc-node"
+        onClick={() => hasKids && setLocalOpen((o) => !o)}
+        style={{
+          display:"flex", alignItems:"flex-start", gap:8,
+          background:ds.bg, color:ds.fg,
+          fontWeight:ds.fw, fontSize:ds.fs, fontFamily:ds.ff,
+          borderRadius:ds.radius, padding:ds.px,
+          border:ds.border ?? "none",
+          boxShadow:ds.shadow ?? "none",
+          cursor:hasKids ? "pointer" : "default",
+          userSelect:"none",
+        }}
+      >
+        <span style={arrowStyle}>▶</span>
+        <div style={{ flex:1 }}>
+          <div style={{ lineHeight:1.35 }}>{node.title}</div>
+          {node.subtitle && (
+            <div style={{ fontSize:"0.8em", fontStyle:"italic",
+              opacity:.72, fontWeight:400, marginTop:2 }}>{node.subtitle}</div>
+          )}
+          {node.detail && (
+            <div style={{ fontSize:"0.92em", fontWeight:400, fontStyle:"normal",
+              color: depth===0 ? "rgba(255,255,255,.92)" : "#1a1a1a",
+              marginTop:6, lineHeight:1.65, whiteSpace:"pre-line",
+              fontFamily:"'EB Garamond',Georgia,serif", letterSpacing:"0.01em" }}>
+              {node.detail}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {hasKids && open && (
+        <div className="fc-kids" style={{ marginLeft:28, marginTop:6 }}>
+          {node.children.map((child, i) => (
+            <TreeNode key={child.id} node={child} depth={depth+1}
+              accent={accent} isLast={i===node.children.length-1} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function Chem9Ch1Flowchart() {
   useSetup();
-  const [ctxVal, setCtxVal] = useState({ version: 0, mode: "default" });
+  const [ctxVal, setCtxVal] = useState({ version:0, mode:"default" });
 
-  const expandAll   = () => setCtxVal(v => ({ version: v.version + 1, mode: "expand" }));
-  const collapseAll = () => setCtxVal(v => ({ version: v.version + 1, mode: "collapse" }));
+  const expandAll   = () => setCtxVal(v => ({ version:v.version+1, mode:"expand" }));
+  const collapseAll = () => setCtxVal(v => ({ version:v.version+1, mode:"collapse" }));
+  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
 
-  const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-
-  const body = { fontFamily: "'EB Garamond',Georgia,serif", fontSize: 15, lineHeight: 1.58, color: "#1a1a1a" };
+  const body = { fontFamily:"'EB Garamond',Georgia,serif", fontSize:15, lineHeight:1.58, color:"#1a1a1a" };
 
   return (
     <ExpandCtx.Provider value={ctxVal}>
-      <div style={{ background: "#eae5e9", minHeight: "100vh", ...body }}>
+      <div style={{ background:"#eae5e9", minHeight:"100vh", ...body }}>
 
         {/* HEADER */}
-        <div style={{ background: "linear-gradient(135deg,#e8c0d8 0%,#d680b0 40%,#c0126a 100%)",
-          padding: "32px 40px 26px", textAlign: "center" }}>
-          <div style={{ display: "inline-block", background: "rgba(255,255,255,0.18)",
-            border: "1px solid rgba(255,255,255,0.4)",
-            fontFamily: "'Merriweather Sans',Arial,sans-serif",
-            fontWeight: 800, fontSize: 10, letterSpacing: 3,
-            color: "#fff", padding: "4px 16px", borderRadius: 3, marginBottom: 14,
-            textTransform: "uppercase" }}>
+        <div style={{ background:"linear-gradient(135deg,#e8c0d8 0%,#d680b0 40%,#c0126a 100%)",
+          padding:"32px 40px 26px", textAlign:"center" }}>
+          <div style={{ display:"inline-block", background:"rgba(255,255,255,0.18)",
+            border:"1px solid rgba(255,255,255,0.4)",
+            fontFamily:"'Merriweather Sans',Arial,sans-serif",
+            fontWeight:800, fontSize:10, letterSpacing:3,
+            color:"#fff", padding:"4px 16px", borderRadius:3, marginBottom:14,
+            textTransform:"uppercase" }}>
             Bird&apos;s-Eye View &nbsp;·&nbsp; Concept Flowchart
           </div>
-          <h1 style={{ fontFamily: "'Merriweather Sans',Arial,sans-serif", fontSize: 22,
-            fontWeight: 900, color: "#fff", margin: "0 0 8px",
-            letterSpacing: 1.5, textTransform: "uppercase", lineHeight: 1.25 }}>
+          <h1 style={{ fontFamily:"'Merriweather Sans',Arial,sans-serif", fontSize:22,
+            fontWeight:900, color:"#fff", margin:"0 0 8px",
+            letterSpacing:1.5, textTransform:"uppercase", lineHeight:1.25 }}>
             Exploring Mixtures and Their Separation
           </h1>
-          <div style={{ color: "rgba(255,255,255,.75)", fontSize: 13,
-            fontFamily: "'Merriweather Sans',Arial,sans-serif", letterSpacing: .5 }}>
+          <div style={{ color:"rgba(255,255,255,.75)", fontSize:13,
+            fontFamily:"'Merriweather Sans',Arial,sans-serif", letterSpacing:.5 }}>
             Pradeep&apos;s Science : Chemistry 9th
           </div>
         </div>
 
         {/* NAV BAR */}
-        <div style={{ background: "#fff", borderBottom: "1px solid #e8e8e8",
-          padding: "10px 24px", display: "flex", flexWrap: "wrap",
-          gap: 7, justifyContent: "center", alignItems: "center" }}>
+        <div style={{ background:"#fff", borderBottom:"1px solid #e8e8e8",
+          padding:"10px 24px", display:"flex", flexWrap:"wrap",
+          gap:7, justifyContent:"center", alignItems:"center" }}>
           {DATA.map(s => (
             <button key={s.id} className="fc-pill"
               onClick={() => scrollTo(s.id)}
-              style={{ display: "inline-flex", alignItems: "center", gap: 5,
-                background: `${s.accent}15`, color: s.accent,
-                border: `1.5px solid ${s.accent}55`, borderRadius: 30,
-                padding: "4px 13px", fontFamily: "'Merriweather Sans',Arial,sans-serif",
-                fontWeight: 700, fontSize: 11.5, letterSpacing: .3, cursor: "pointer",
-                whiteSpace: "nowrap" }}
-              onMouseEnter={e => e.currentTarget.style.background = `${s.accent}28`}
-              onMouseLeave={e => e.currentTarget.style.background = `${s.accent}15`}>
-              <span style={{ fontSize: 14 }}>{s.icon}</span>
-              <span>{s.title.split(" ").slice(0, 3).join(" ")}</span>
-              <span style={{ fontSize: 10, opacity: .6, fontWeight: 400 }}>{s.page}</span>
+              style={{ display:"inline-flex", alignItems:"center", gap:5,
+                background:`${s.accent}15`, color:s.accent,
+                border:`1.5px solid ${s.accent}55`, borderRadius:30,
+                padding:"4px 13px", fontFamily:"'Merriweather Sans',Arial,sans-serif",
+                fontWeight:700, fontSize:11.5, letterSpacing:.3, cursor:"pointer",
+                whiteSpace:"nowrap" }}
+              onMouseEnter={e => e.currentTarget.style.background=`${s.accent}28`}
+              onMouseLeave={e => e.currentTarget.style.background=`${s.accent}15`}>
+              <span>{s.title.split(" ").slice(0,3).join(" ")}</span>
             </button>
           ))}
-          <div style={{ marginLeft: "auto", display: "flex", gap: 7 }}>
+          <div style={{ marginLeft:"auto", display:"flex", gap:7 }}>
             <button className="fc-btn" onClick={expandAll}
-              style={{ background: PINK, color: "#fff", border: "none", cursor: "pointer",
-                borderRadius: 6, padding: "5px 13px", fontSize: 12,
-                fontFamily: "'Merriweather Sans',Arial,sans-serif", fontWeight: 700 }}>
+              style={{ background:PINK, color:"#fff", border:"none", cursor:"pointer",
+                borderRadius:6, padding:"5px 13px", fontSize:12,
+                fontFamily:"'Merriweather Sans',Arial,sans-serif", fontWeight:700 }}>
               Expand All
             </button>
             <button className="fc-btn" onClick={collapseAll}
-              style={{ background: "#fff", color: PINK, border: `1.5px solid ${PINK}`,
-                cursor: "pointer", borderRadius: 6, padding: "5px 13px", fontSize: 12,
-                fontFamily: "'Merriweather Sans',Arial,sans-serif", fontWeight: 700 }}>
+              style={{ background:"#fff", color:PINK, border:`1.5px solid ${PINK}`,
+                cursor:"pointer", borderRadius:6, padding:"5px 13px", fontSize:12,
+                fontFamily:"'Merriweather Sans',Arial,sans-serif", fontWeight:700 }}>
               Collapse All
             </button>
           </div>
         </div>
 
-        {/* LEGEND */}
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center",
-          margin: "16px auto", maxWidth: 880, padding: "12px 18px", background: "#fff",
-          borderRadius: 10, border: "1px solid #e0e0e0", fontSize: 12.5 }}>
-          <span style={{ fontWeight: 700, fontFamily: "'Merriweather Sans',Arial,sans-serif",
-            fontSize: 12, color: "#666", marginRight: 4 }}>Particle Size:</span>
-          {[
-            { label: "Solutions", desc: "< 1 nm", color: "#1565c0" },
-            { label: "Colloids", desc: "1–100 nm", color: "#6a1b9a" },
-            { label: "Suspensions", desc: "> 100 nm", color: "#c77000" },
-          ].map(p => (
-            <div key={p.label} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-              <div style={{ width: 10, height: 10, borderRadius: "50%", background: p.color }} />
-              <span style={{ fontWeight: 600, color: p.color }}>{p.label}</span>
-              <span style={{ color: "#888" }}>{p.desc}</span>
-            </div>
-          ))}
-        </div>
-
         {/* FLOWCHART TREE */}
-        <div style={{ maxWidth: 880, margin: "0 auto", padding: "28px 24px 56px" }}>
+        <div style={{ maxWidth:880, margin:"0 auto", padding:"28px 24px 56px" }}>
           {DATA.map(section => (
-            <div key={section.id} id={section.id} style={{ marginBottom: 6 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                <span style={{ fontFamily: "'Merriweather Sans',Arial,sans-serif",
-                  fontSize: 10.5, fontWeight: 700, letterSpacing: 1.5,
-                  color: section.accent, textTransform: "uppercase", opacity: .7 }}>
-                  Page {section.page}
-                </span>
-                <div style={{ flex: 1, height: 1, background: `${section.accent}25` }} />
-              </div>
+            <div key={section.id} id={section.id} style={{ marginBottom:6 }}>
               <TreeNode node={section} depth={0} accent={section.accent} />
             </div>
           ))}
         </div>
 
-        {/* FOOTER */}
-        <div style={{ textAlign: "center", padding: "16px 20px",
-          borderTop: "1px solid #e8e8e8", background: "#fff",
-          fontFamily: "'Merriweather Sans',Arial,sans-serif",
-          fontSize: 11, color: "#bbb", letterSpacing: 1.5, textTransform: "uppercase" }}>
-          Pradeep&apos;s Publications
-        </div>
       </div>
     </ExpandCtx.Provider>
   );
 }
+

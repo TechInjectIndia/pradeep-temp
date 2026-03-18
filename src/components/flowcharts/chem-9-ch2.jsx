@@ -5,12 +5,46 @@ import { useState, useEffect, createContext, useContext } from "react";
 const PINK = "#c0126a";
 const ExpandCtx = createContext({ version: 0, mode: "default" });
 
+function useSetup() {
+  useEffect(() => {
+    const font = document.createElement("link");
+    font.rel = "stylesheet";
+    font.href = "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Merriweather+Sans:wght@700;800;900&display=swap";
+    document.head.appendChild(font);
+    const css = document.createElement("style");
+    css.textContent = `
+      @keyframes fcSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+      .fc-kids { animation: fcSlide .18s ease-out; }
+      .fc-node { transition: filter .12s; }
+      .fc-node:hover { filter: brightness(.97); }
+      .fc-pill { transition: background .15s; }
+      .fc-btn { transition: opacity .12s; }
+      .fc-btn:hover { opacity: .82; }
+    `;
+    document.head.appendChild(css);
+    return () => { document.head.removeChild(font); document.head.removeChild(css); };
+  }, []);
+}
+
+const DEPTH_STYLES = [
+  (a) => ({ bg: a, fg:"#fff", fw:800, fs:16, radius:10,
+    px:"14px 20px", shadow:`0 4px 16px ${a}44`,
+    ff:"'Merriweather Sans',Arial,sans-serif" }),
+  (a) => ({ bg:"#fff", fg:a, fw:700, fs:14.5, radius:8,
+    px:"10px 16px", border:`2px solid ${a}`, shadow:"0 1px 6px rgba(0,0,0,.07)",
+    ff:"'Merriweather Sans',Arial,sans-serif" }),
+  (a) => ({ bg:"#fdf3f8", fg:"#111", fw:600, fs:14, radius:7,
+    px:"9px 14px", border:`1.5px solid ${a}55`,
+    ff:"'EB Garamond',Georgia,serif" }),
+  () => ({ bg:"#fff", fg:"#222", fw:400, fs:14, radius:5,
+    px:"8px 13px", border:"1px solid #ddd",
+    ff:"'EB Garamond',Georgia,serif" }),
+];
+
 /* ─── DATA ─── */
 const DATA = [
   {
     id: "s1",
-    icon: "⚛️",
-    page: "2/62",
     accent: "#c0126a",
     title: "Subatomic Particles",
     children: [
@@ -54,8 +88,6 @@ const DATA = [
   },
   {
     id: "s2",
-    icon: "🔬",
-    page: "2/62",
     accent: "#1565c0",
     title: "Study of Cathode Rays",
     children: [
@@ -73,8 +105,6 @@ const DATA = [
   },
   {
     id: "s3",
-    icon: "💡",
-    page: "2/63",
     accent: "#2e7d32",
     title: "Study of Anode Rays (Canal Rays)",
     children: [
@@ -92,8 +122,6 @@ const DATA = [
   },
   {
     id: "s4",
-    icon: "🎯",
-    page: "2/63",
     accent: "#c77000",
     title: "Rutherford's Scattering Experiment",
     subtitle: "Discovery of Nucleus",
@@ -133,8 +161,6 @@ const DATA = [
   },
   {
     id: "s5",
-    icon: "🪐",
-    page: "2/64",
     accent: "#6a1b9a",
     title: "Models of Atom",
     children: [
@@ -190,8 +216,6 @@ const DATA = [
   },
   {
     id: "s6",
-    icon: "🔢",
-    page: "2/64",
     accent: "#00695c",
     title: "Two Important Characteristics of Elements",
     children: [
@@ -236,8 +260,6 @@ const DATA = [
   },
   {
     id: "s7",
-    icon: "⚡",
-    page: "2/65–2/66",
     accent: "#b71c1c",
     title: "Electronic Configuration & Valency",
     children: [
@@ -294,8 +316,6 @@ const DATA = [
   },
   {
     id: "s8",
-    icon: "🧬",
-    page: "2/67",
     accent: "#4a148c",
     title: "Isotopes, Isobars & Related Terms",
     children: [
@@ -360,44 +380,6 @@ const DATA = [
   }
 ];
 
-/* ─── Hooks & Helpers ─── */
-function useSetup() {
-  useEffect(() => {
-    const font = document.createElement("link");
-    font.rel = "stylesheet";
-    font.href = "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Merriweather+Sans:wght@700;800;900&display=swap";
-    document.head.appendChild(font);
-    const css = document.createElement("style");
-    css.textContent = `
-      @keyframes fcSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-      .fc-kids { animation: fcSlide .18s ease-out; }
-      .fc-node { transition: filter .12s; }
-      .fc-node:hover { filter: brightness(.97); }
-      .fc-pill { transition: background .15s; }
-      .fc-btn { transition: opacity .12s; }
-      .fc-btn:hover { opacity: .82; }
-    `;
-    document.head.appendChild(css);
-    return () => { document.head.removeChild(font); document.head.removeChild(css); };
-  }, []);
-}
-
-const DEPTH_STYLES = [
-  (a) => ({ bg: a, fg:"#fff", fw:800, fs:16, radius:10,
-    px:"14px 20px", shadow:`0 4px 16px ${a}44`,
-    ff:"'Merriweather Sans',Arial,sans-serif" }),
-  (a) => ({ bg:"#fff", fg:a, fw:700, fs:14.5, radius:8,
-    px:"10px 16px", border:`2px solid ${a}`, shadow:"0 1px 6px rgba(0,0,0,.07)",
-    ff:"'Merriweather Sans',Arial,sans-serif" }),
-  (a) => ({ bg:"#fdf3f8", fg:"#111", fw:600, fs:14, radius:7,
-    px:"9px 14px", border:`1.5px solid ${a}55`,
-    ff:"'EB Garamond',Georgia,serif" }),
-  () => ({ bg:"#fff", fg:"#222", fw:400, fs:14, radius:5,
-    px:"8px 13px", border:"1px solid #ddd",
-    ff:"'EB Garamond',Georgia,serif" }),
-];
-
-/* ─── TreeNode ─── */
 function TreeNode({ node, depth=0, accent, isLast=false }) {
   const { mode } = useContext(ExpandCtx);
   const hasKids = !!node.children?.length;
@@ -471,14 +453,12 @@ function TreeNode({ node, depth=0, accent, isLast=false }) {
   );
 }
 
-/* ─── Main Export ─── */
 export default function StructureOfAtomFlowchart() {
   useSetup();
   const [ctxVal, setCtxVal] = useState({ version:0, mode:"default" });
 
   const expandAll   = () => setCtxVal(v => ({ version:v.version+1, mode:"expand" }));
   const collapseAll = () => setCtxVal(v => ({ version:v.version+1, mode:"collapse" }));
-
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
 
   const body = { fontFamily:"'EB Garamond',Georgia,serif", fontSize:15, lineHeight:1.58, color:"#1a1a1a" };
@@ -524,9 +504,7 @@ export default function StructureOfAtomFlowchart() {
                 whiteSpace:"nowrap" }}
               onMouseEnter={e => e.currentTarget.style.background=`${s.accent}28`}
               onMouseLeave={e => e.currentTarget.style.background=`${s.accent}15`}>
-              <span style={{ fontSize:14 }}>{s.icon}</span>
               <span>{s.title.split(" ").slice(0,3).join(" ")}</span>
-              <span style={{ fontSize:10, opacity:.6, fontWeight:400 }}>{s.page}</span>
             </button>
           ))}
           <div style={{ marginLeft:"auto", display:"flex", gap:7 }}>
@@ -549,27 +527,13 @@ export default function StructureOfAtomFlowchart() {
         <div style={{ maxWidth:880, margin:"0 auto", padding:"28px 24px 56px" }}>
           {DATA.map(section => (
             <div key={section.id} id={section.id} style={{ marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontFamily:"'Merriweather Sans',Arial,sans-serif",
-                  fontSize:10.5, fontWeight:700, letterSpacing:1.5,
-                  color:section.accent, textTransform:"uppercase", opacity:.7 }}>
-                  Page {section.page}
-                </span>
-                <div style={{ flex:1, height:1, background:`${section.accent}25` }} />
-              </div>
               <TreeNode node={section} depth={0} accent={section.accent} />
             </div>
           ))}
         </div>
 
-        {/* FOOTER */}
-        <div style={{ textAlign:"center", padding:"16px 20px",
-          borderTop:"1px solid #e8e8e8", background:"#fff",
-          fontFamily:"'Merriweather Sans',Arial,sans-serif",
-          fontSize:11, color:"#bbb", letterSpacing:1.5, textTransform:"uppercase" }}>
-          Pradeep&apos;s Publications
-        </div>
       </div>
     </ExpandCtx.Provider>
   );
 }
+

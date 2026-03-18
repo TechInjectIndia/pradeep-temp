@@ -46,8 +46,6 @@ const DEPTH_STYLES = [
 const DATA = [
   {
     id: "s1",
-    icon: "🌍",
-    page: "4/66",
     accent: "#c0126a",
     title: "Biodiversity and Classification",
     detail: "• Diversity means a variety of life forms found in a particular region.\n• At present, approximately 1.7 to 1.8 million types of living organisms are known to us.",
@@ -120,8 +118,6 @@ const DATA = [
   },
   {
     id: "s2",
-    icon: "🧬",
-    page: "4/66",
     accent: "#1565c0",
     title: "Different Ways of Expressing Biodiversity",
     detail: "Biodiversity can be expressed in four different ways:",
@@ -171,8 +167,6 @@ const DATA = [
   },
   {
     id: "s3",
-    icon: "👑",
-    page: "4/67",
     accent: "#2e7d32",
     title: "Classification Systems of Living Organisms",
     children: [
@@ -252,8 +246,6 @@ const DATA = [
   },
   {
     id: "s4",
-    icon: "🌿",
-    page: "4/69",
     accent: "#00695c",
     title: "Plant Kingdom",
     children: [
@@ -298,8 +290,6 @@ const DATA = [
   },
   {
     id: "s5",
-    icon: "🐾",
-    page: "4/68–4/72",
     accent: "#c77000",
     title: "Animal Kingdom",
     children: [
@@ -369,8 +359,6 @@ const DATA = [
   },
   {
     id: "s6",
-    icon: "🦴",
-    page: "4/72",
     accent: "#6a1b9a",
     title: "Sub-Phylum Vertebrata — Five Classes",
     children: [
@@ -420,8 +408,6 @@ const DATA = [
   },
   {
     id: "s7",
-    icon: "📛",
-    page: "4/73",
     accent: "#b71c1c",
     title: "Nomenclature",
     detail: "Naming a correct scientific name to an organism or a taxon is called nomenclature.",
@@ -435,8 +421,6 @@ const DATA = [
   },
   {
     id: "s8",
-    icon: "🦠",
-    page: "4/73",
     accent: "#4a148c",
     title: "Viruses",
     detail: "• Viruses are nucleoproteins, having nucleic acid molecule (DNA or RNA) enveloped in a protective protein coat.\n• These are considered a \"link between living and non-living\" because they are inert outside a host but use host cell machinery to replicate inside.",
@@ -449,8 +433,6 @@ const DATA = [
     ]
   }
 ];
-
-/* ─────────────── TreeNode ─────────────── */
 
 function TreeNode({ node, depth=0, accent, isLast=false }) {
   const { mode } = useContext(ExpandCtx);
@@ -525,15 +507,12 @@ function TreeNode({ node, depth=0, accent, isLast=false }) {
   );
 }
 
-/* ─────────────── Main ─────────────── */
-
 export default function BiodiversityClassificationFlowchart() {
   useSetup();
   const [ctxVal, setCtxVal] = useState({ version:0, mode:"default" });
 
   const expandAll   = () => setCtxVal(v => ({ version:v.version+1, mode:"expand" }));
   const collapseAll = () => setCtxVal(v => ({ version:v.version+1, mode:"collapse" }));
-
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
 
   const body = { fontFamily:"'EB Garamond',Georgia,serif", fontSize:15, lineHeight:1.58, color:"#1a1a1a" };
@@ -579,9 +558,7 @@ export default function BiodiversityClassificationFlowchart() {
                 whiteSpace:"nowrap" }}
               onMouseEnter={e => e.currentTarget.style.background=`${s.accent}28`}
               onMouseLeave={e => e.currentTarget.style.background=`${s.accent}15`}>
-              <span style={{ fontSize:14 }}>{s.icon}</span>
               <span>{s.title.split(" ").slice(0,3).join(" ")}</span>
-              <span style={{ fontSize:10, opacity:.6, fontWeight:400 }}>{s.page}</span>
             </button>
           ))}
           <div style={{ marginLeft:"auto", display:"flex", gap:7 }}>
@@ -604,27 +581,13 @@ export default function BiodiversityClassificationFlowchart() {
         <div style={{ maxWidth:880, margin:"0 auto", padding:"28px 24px 56px" }}>
           {DATA.map(section => (
             <div key={section.id} id={section.id} style={{ marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontFamily:"'Merriweather Sans',Arial,sans-serif",
-                  fontSize:10.5, fontWeight:700, letterSpacing:1.5,
-                  color:section.accent, textTransform:"uppercase", opacity:.7 }}>
-                  Page {section.page}
-                </span>
-                <div style={{ flex:1, height:1, background:`${section.accent}25` }} />
-              </div>
               <TreeNode node={section} depth={0} accent={section.accent} />
             </div>
           ))}
         </div>
 
-        {/* FOOTER */}
-        <div style={{ textAlign:"center", padding:"16px 20px",
-          borderTop:"1px solid #e8e8e8", background:"#fff",
-          fontFamily:"'Merriweather Sans',Arial,sans-serif",
-          fontSize:11, color:"#bbb", letterSpacing:1.5, textTransform:"uppercase" }}>
-          Pradeep&apos;s Publications
-        </div>
       </div>
     </ExpandCtx.Provider>
   );
 }
+

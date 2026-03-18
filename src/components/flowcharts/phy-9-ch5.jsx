@@ -5,11 +5,45 @@ import { useState, useEffect, createContext, useContext } from "react";
 const PINK = "#c0126a";
 const ExpandCtx = createContext({ version: 0, mode: "default" });
 
+function useSetup() {
+  useEffect(() => {
+    const font = document.createElement("link");
+    font.rel = "stylesheet";
+    font.href = "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Merriweather+Sans:wght@700;800;900&display=swap";
+    document.head.appendChild(font);
+    const css = document.createElement("style");
+    css.textContent = `
+      @keyframes fcSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+      .fc-kids { animation: fcSlide .18s ease-out; }
+      .fc-node { transition: filter .12s; }
+      .fc-node:hover { filter: brightness(.97); }
+      .fc-pill { transition: background .15s; }
+      .fc-btn { transition: opacity .12s; }
+      .fc-btn:hover { opacity: .82; }
+    `;
+    document.head.appendChild(css);
+    return () => { document.head.removeChild(font); document.head.removeChild(css); };
+  }, []);
+}
+
+const DEPTH_STYLES = [
+  (a) => ({ bg: a, fg:"#fff", fw:800, fs:16, radius:10,
+    px:"14px 20px", shadow:`0 4px 16px ${a}44`,
+    ff:"'Merriweather Sans',Arial,sans-serif" }),
+  (a) => ({ bg:"#fff", fg:a, fw:700, fs:14.5, radius:8,
+    px:"10px 16px", border:`2px solid ${a}`, shadow:"0 1px 6px rgba(0,0,0,.07)",
+    ff:"'Merriweather Sans',Arial,sans-serif" }),
+  (a) => ({ bg:"#fdf3f8", fg:"#111", fw:600, fs:14, radius:7,
+    px:"9px 14px", border:`1.5px solid ${a}55`,
+    ff:"'EB Garamond',Georgia,serif" }),
+  () => ({ bg:"#fff", fg:"#222", fw:400, fs:14, radius:5,
+    px:"8px 13px", border:"1px solid #ddd",
+    ff:"'EB Garamond',Georgia,serif" }),
+];
+
 const DATA = [
   {
     id: "s1",
-    icon: "☀️",
-    page: "5/51",
     accent: "#c0126a",
     title: "Atmosphere and Solar Energy",
     detail: "The envelope of gases surrounding the Earth and the energy it receives from the Sun govern weather, climate, and life itself.",
@@ -77,8 +111,6 @@ const DATA = [
   },
   {
     id: "s2",
-    icon: "🌍",
-    page: "5/51",
     accent: "#1565c0",
     title: "Earth as a System: Energy, Matter and Life",
     detail: "The Earth functions as an integrated system where energy transfer, matter cycling, and living organisms interact continuously.",
@@ -147,8 +179,6 @@ const DATA = [
   },
   {
     id: "s3",
-    icon: "🏠",
-    page: "5/51",
     accent: "#2e7d32",
     title: "Green House Effect",
     detail: "In the greenhouse effect, short-wave solar radiation passes through the atmosphere and reaches the Earth's surface where it gets absorbed. When the radiation is re-emitted by the Earth, it is now in the form of long wavelength infrared radiation, which does not easily pass through the atmosphere. Instead, this infrared radiation is absorbed by atmospheric gases such as CO₂, methane, and water vapour. As a result, the atmosphere heats up.",
@@ -167,8 +197,6 @@ const DATA = [
   },
   {
     id: "s4",
-    icon: "🔄",
-    page: "5/52",
     accent: "#c77000",
     title: "Biogeochemical Processes",
     detail: "Biogeochemical processes are the natural pathways through which essential chemical elements — such as water, carbon, nitrogen, oxygen, and phosphorus — circulate between living organisms (biotic) and the non-living environment (abiotic), including the atmosphere, hydrosphere, and geosphere. These are fundamental cycles in sustaining life on planet Earth by ensuring that matter is recycled and reused rather than being lost to the system.",
@@ -197,8 +225,6 @@ const DATA = [
   },
   {
     id: "s5",
-    icon: "🌧️",
-    page: "5/52",
     accent: "#6a1b9a",
     title: "Acid Rain",
     detail: "Rapid industrialization and excessive use of vehicles has given rise to the emission of gases such as carbon dioxide (CO₂), nitrogen dioxide (NO₂), nitric oxide (NO), sulfur dioxide (SO₂), and carbon monoxide (CO) etc.",
@@ -217,16 +243,12 @@ const DATA = [
   },
   {
     id: "s6",
-    icon: "🌡️",
-    page: "5/52",
     accent: "#00695c",
     title: "Global Warming",
     detail: "Global warming is the long-term rise in the average temperature of Earth's climate system. Human activities, such as the burning of fossil fuels (coal, oil, gas) release CO₂ into the atmosphere. This process causes severe environmental impacts, including melting of ice caps, rising sea levels, and extreme weather."
   },
   {
     id: "s7",
-    icon: "🏭",
-    page: "5/52",
     accent: "#b71c1c",
     title: "Human Impact on Earth",
     detail: "Human activities have altered Earth's systems and their interactions, leading to global environmental changes such as climate change, land-use change, and biodiversity loss.",
@@ -266,8 +288,6 @@ const DATA = [
   },
   {
     id: "s8",
-    icon: "🌱",
-    page: "5/52",
     accent: "#4a148c",
     title: "Creating a Positive Impact on the Environment",
     detail: "We can make choices that benefit the planet and help sustain Earth's ecosystems for future generations.",
@@ -289,42 +309,6 @@ const DATA = [
       }
     ]
   }
-];
-
-function useSetup() {
-  useEffect(() => {
-    const font = document.createElement("link");
-    font.rel = "stylesheet";
-    font.href = "https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Merriweather+Sans:wght@700;800;900&display=swap";
-    document.head.appendChild(font);
-    const css = document.createElement("style");
-    css.textContent = `
-      @keyframes fcSlide { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
-      .fc-kids { animation: fcSlide .18s ease-out; }
-      .fc-node { transition: filter .12s; }
-      .fc-node:hover { filter: brightness(.97); }
-      .fc-pill { transition: background .15s; }
-      .fc-btn { transition: opacity .12s; }
-      .fc-btn:hover { opacity: .82; }
-    `;
-    document.head.appendChild(css);
-    return () => { document.head.removeChild(font); document.head.removeChild(css); };
-  }, []);
-}
-
-const DEPTH_STYLES = [
-  (a) => ({ bg: a, fg:"#fff", fw:800, fs:16, radius:10,
-    px:"14px 20px", shadow:`0 4px 16px ${a}44`,
-    ff:"'Merriweather Sans',Arial,sans-serif" }),
-  (a) => ({ bg:"#fff", fg:a, fw:700, fs:14.5, radius:8,
-    px:"10px 16px", border:`2px solid ${a}`, shadow:"0 1px 6px rgba(0,0,0,.07)",
-    ff:"'Merriweather Sans',Arial,sans-serif" }),
-  (a) => ({ bg:"#fdf3f8", fg:"#111", fw:600, fs:14, radius:7,
-    px:"9px 14px", border:`1.5px solid ${a}55`,
-    ff:"'EB Garamond',Georgia,serif" }),
-  () => ({ bg:"#fff", fg:"#222", fw:400, fs:14, radius:5,
-    px:"8px 13px", border:"1px solid #ddd",
-    ff:"'EB Garamond',Georgia,serif" }),
 ];
 
 function TreeNode({ node, depth=0, accent, isLast=false }) {
@@ -406,7 +390,6 @@ export default function EarthAsASystemFlowchart() {
 
   const expandAll   = () => setCtxVal(v => ({ version:v.version+1, mode:"expand" }));
   const collapseAll = () => setCtxVal(v => ({ version:v.version+1, mode:"collapse" }));
-
   const scrollTo = (id) => document.getElementById(id)?.scrollIntoView({ behavior:"smooth", block:"start" });
 
   const body = { fontFamily:"'EB Garamond',Georgia,serif", fontSize:15, lineHeight:1.58, color:"#1a1a1a" };
@@ -452,9 +435,7 @@ export default function EarthAsASystemFlowchart() {
                 whiteSpace:"nowrap" }}
               onMouseEnter={e => e.currentTarget.style.background=`${s.accent}28`}
               onMouseLeave={e => e.currentTarget.style.background=`${s.accent}15`}>
-              <span style={{ fontSize:14 }}>{s.icon}</span>
               <span>{s.title.split(" ").slice(0,3).join(" ")}</span>
-              <span style={{ fontSize:10, opacity:.6, fontWeight:400 }}>{s.page}</span>
             </button>
           ))}
           <div style={{ marginLeft:"auto", display:"flex", gap:7 }}>
@@ -477,27 +458,13 @@ export default function EarthAsASystemFlowchart() {
         <div style={{ maxWidth:880, margin:"0 auto", padding:"28px 24px 56px" }}>
           {DATA.map(section => (
             <div key={section.id} id={section.id} style={{ marginBottom:6 }}>
-              <div style={{ display:"flex", alignItems:"center", gap:8, marginBottom:6 }}>
-                <span style={{ fontFamily:"'Merriweather Sans',Arial,sans-serif",
-                  fontSize:10.5, fontWeight:700, letterSpacing:1.5,
-                  color:section.accent, textTransform:"uppercase", opacity:.7 }}>
-                  Page {section.page}
-                </span>
-                <div style={{ flex:1, height:1, background:`${section.accent}25` }} />
-              </div>
               <TreeNode node={section} depth={0} accent={section.accent} />
             </div>
           ))}
         </div>
 
-        {/* FOOTER */}
-        <div style={{ textAlign:"center", padding:"16px 20px",
-          borderTop:"1px solid #e8e8e8", background:"#fff",
-          fontFamily:"'Merriweather Sans',Arial,sans-serif",
-          fontSize:11, color:"#bbb", letterSpacing:1.5, textTransform:"uppercase" }}>
-          Pradeep&apos;s Publications
-        </div>
       </div>
     </ExpandCtx.Provider>
   );
 }
+
