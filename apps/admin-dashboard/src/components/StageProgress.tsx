@@ -14,12 +14,12 @@ export default function StageProgress({ stage, batchId }: Props) {
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-sm">
-        <span className="font-medium text-gray-700">{stage.stage}</span>
-        <span className="text-gray-500">
+        <span className="font-medium text-foreground">{stage.stage}</span>
+        <span className="text-muted-foreground">
           {stage.completed}/{stage.total} ({percentage}%)
         </span>
       </div>
-      <div className="h-2.5 w-full rounded-full bg-gray-200">
+      <div className="h-2.5 w-full rounded-full bg-muted-foreground/20">
         <div
           className={clsx(
             "h-2.5 rounded-full transition-all duration-500",
@@ -27,7 +27,7 @@ export default function StageProgress({ stage, batchId }: Props) {
               ? "bg-green-500"
               : percentage > 0
               ? "bg-blue-500"
-              : "bg-gray-300"
+              : "bg-muted-foreground/30"
           )}
           style={{ width: `${percentage}%` }}
         />

@@ -3,6 +3,14 @@ import { Response } from 'express';
 import * as FailedMessageRepository from '../repositories/FailedMessageRepository';
 import * as DLQService from '../services/DLQService';
 
+const MAX_PAGE_SIZE = 100;
+
+function parseSafeInt(value: unknown, defaultVal: number, max: number): number {
+  const n = typeof value === 'string' ? parseInt(value, 10) : defaultVal;
+  if (isNaN(n) || n < 1) return defaultVal;
+  return Math.min(n, max);
+}
+
 // ---------------------------------------------------------------------------
 // GET /dlq
 // ---------------------------------------------------------------------------
@@ -16,23 +24,30 @@ export async function listDLQ(req: Request, res: Response): Promise<void> {
   try {
     const batchId = req.query.batchId as string | undefined;
     const channel = req.query.channel as string | undefined;
-    const retryable =
-      req.query.retryable !== undefined ? req.query.retryable === 'true' : undefined;
-    const limit = req.query.limit ? parseInt(req.query.limit as string, 10) : 20;
-    const startAfter = req.query.startAfter as string | undefined;
+    const retryableOnly = req.query.retryableOnly === 'true' ? true : undefined;
+    const pageSize = parseSafeInt(req.query.pageSize, 20, MAX_PAGE_SIZE);
+    const page = parseSafeInt(req.query.page, 1, 100_000);
+    const offset = (page - 1) * pageSize;
 
     const filters: { batchId?: string; channel?: string; isRetryable?: boolean } = {};
     if (batchId) filters.batchId = batchId;
     if (channel) filters.channel = channel;
-    if (retryable !== undefined) filters.isRetryable = retryable;
+    if (retryableOnly !== undefined) filters.isRetryable = retryableOnly;
 
-    const messages = await FailedMessageRepository.list(
-      Object.keys(filters).length > 0 ? filters : undefined,
-      limit,
-      startAfter,
-    );
+    const hasFilters = Object.keys(filters).length > 0;
 
-    res.status(200).json({ messages, count: messages.length });
+    const [data, total] = await Promise.all([
+      FailedMessageRepository.list(hasFilters ? filters : undefined, pageSize, undefined, offset),
+      FailedMessageRepository.count(hasFilters ? filters : undefined),
+    ]);
+
+    res.status(200).json({
+      data,
+      total,
+      page,
+      pageSize,
+      totalPages: Math.ceil(total / pageSize),
+    });
   } catch (err) {
     console.error('listDLQ error:', err);
     res.status(500).json({
@@ -53,24 +68,21 @@ export async function retryDLQ(req: Request, res: Response): Promise<void> {
   }
 
   try {
-    const { messageIds, batchId } = req.body;
+    const { ids, retryAll } = req.body;
 
-    // Either retry specific messages by ID, or all retryable for a batch
-    if (messageIds && Array.isArray(messageIds) && messageIds.length > 0) {
-      const result = await DLQService.retryFromDLQ(messageIds);
-      res.status(200).json(result);
+    let result: { enqueued: number; skipped: number };
+
+    if (retryAll === true) {
+      result = await DLQService.retryAll();
+    } else if (Array.isArray(ids) && ids.length > 0) {
+      const safeIds = ids.filter((id) => typeof id === 'string' && id.length <= 128);
+      result = await DLQService.retryFromDLQ(safeIds);
+    } else {
+      res.status(400).json({ error: 'Provide ids (string[]) or retryAll (true)' });
       return;
     }
 
-    if (batchId && typeof batchId === 'string') {
-      const result = await DLQService.retryAllForBatch(batchId);
-      res.status(200).json({ batchId, ...result });
-      return;
-    }
-
-    res.status(400).json({
-      error: 'Either messageIds (array) or batchId (string) is required',
-    });
+    res.status(200).json({ retriedCount: result.enqueued, skippedCount: result.skipped });
   } catch (err) {
     console.error('retryDLQ error:', err);
     res.status(500).json({

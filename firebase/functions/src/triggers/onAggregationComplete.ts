@@ -1,5 +1,6 @@
 import { onDocumentUpdated } from 'firebase-functions/v2/firestore';
 import * as MessagingService from '../services/MessagingService';
+import * as BatchLogRepository from '../repositories/BatchLogRepository';
 
 /**
  * Firestore trigger: listens on temp_aggregation/{aggregationKey} for updates.
@@ -34,7 +35,19 @@ export const onAggregationComplete = onDocumentUpdated(
     );
 
     try {
+      await BatchLogRepository.append(batchId, {
+        step: 'aggregation',
+        message: 'Aggregation complete, enqueuing messages',
+        detail: `aggregationKey: ${aggregationKey}`,
+        metadata: { aggregationKey },
+      });
       const result = await MessagingService.enqueueMessagesForBatch(batchId);
+      await BatchLogRepository.append(batchId, {
+        step: 'aggregation',
+        message: 'Messages enqueued',
+        detail: `${result.totalMessages} messages queued for delivery`,
+        metadata: { totalMessages: result.totalMessages },
+      });
       console.log(`Enqueued ${result.totalMessages} messages for batch ${batchId}`);
     } catch (err) {
       console.error(

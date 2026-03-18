@@ -1,5 +1,7 @@
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import * as BatchRepository from '../repositories/BatchRepository';
+import * as BatchLogRepository from '../repositories/BatchLogRepository';
 import { db } from '../infrastructure/firestore/FirestoreAdapter';
 
 // ---------------------------------------------------------------------------
@@ -8,6 +10,7 @@ import { db } from '../infrastructure/firestore/FirestoreAdapter';
 
 export const BatchStatus = {
   CREATED: 'CREATED',
+  UPLOADED: 'UPLOADED',
   VALIDATING: 'VALIDATING',
   RESOLVING: 'RESOLVING',
   ORDERING: 'ORDERING',
@@ -19,11 +22,9 @@ export const BatchStatus = {
   FAILED: 'FAILED',
 } as const;
 
-/**
- * Map of each status to the set of statuses it may transition into.
- */
 export const VALID_TRANSITIONS: Record<string, string[]> = {
   [BatchStatus.CREATED]: [BatchStatus.VALIDATING, BatchStatus.CANCELLED],
+  [BatchStatus.UPLOADED]: [BatchStatus.VALIDATING, BatchStatus.CANCELLED],
   [BatchStatus.VALIDATING]: [BatchStatus.RESOLVING, BatchStatus.FAILED, BatchStatus.CANCELLED],
   [BatchStatus.RESOLVING]: [
     BatchStatus.ORDERING,
@@ -51,41 +52,36 @@ export const VALID_TRANSITIONS: Record<string, string[]> = {
     BatchStatus.CANCELLED,
   ],
   [BatchStatus.PARTIAL_FAILURE]: [BatchStatus.MESSAGING, BatchStatus.CANCELLED],
-  // Terminal states have no outgoing transitions
   [BatchStatus.COMPLETE]: [],
   [BatchStatus.CANCELLED]: [],
   [BatchStatus.FAILED]: [BatchStatus.CREATED],
 };
 
-const FieldValue = admin.firestore.FieldValue;
 
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
 /**
- * Transition a batch to the target status.
- *
- * Validates the transition against VALID_TRANSITIONS and performs the update
- * inside a Firestore transaction to prevent race conditions.
+ * Transition a batch to the target status inside a Firestore transaction.
  */
 export async function transitionBatch(
   batchId: string,
   targetStatus: string,
   trigger: string,
+  extraFields?: Record<string, unknown>,
 ): Promise<void> {
   const batchRef = db.collection('specimen_batches').doc(batchId);
+  let fromStatus = '';
 
   await db.runTransaction(async (transaction: admin.firestore.Transaction) => {
     const snap = await transaction.get(batchRef);
-    if (!snap.exists) {
-      throw new Error(`Batch ${batchId} not found`);
-    }
+    if (!snap.exists) throw new Error(`Batch ${batchId} not found`);
 
     const data = snap.data()!;
     const currentStatus: string = data.status;
+    fromStatus = currentStatus;
 
-    // Validate the transition
     const allowed = VALID_TRANSITIONS[currentStatus];
     if (!allowed || !allowed.includes(targetStatus)) {
       throw new Error(
@@ -107,55 +103,98 @@ export async function transitionBatch(
       statusChangedAt: now,
       statusHistory: FieldValue.arrayUnion(historyEntry),
       updatedAt: now,
+      ...(extraFields || {}),
+    });
+  });
+
+  BatchLogRepository.append(batchId, {
+    step: 'batch_advanced',
+    message: `Batch advanced: ${fromStatus} → ${targetStatus}`,
+    detail: `Trigger: ${trigger}`,
+    metadata: { from: fromStatus, to: targetStatus, trigger },
+  }).catch((e) => console.error('BatchLog append failed:', e));
+}
+
+/**
+ * Pause a batch atomically — stores pausedFromStage in the same transaction
+ * as the status transition to prevent partial updates.
+ */
+export async function pauseBatch(batchId: string): Promise<void> {
+  const batchRef = db.collection('specimen_batches').doc(batchId);
+
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(batchRef);
+    if (!snap.exists) throw new Error(`Batch ${batchId} not found`);
+
+    const data = snap.data()!;
+    const currentStatus: string = data.status;
+
+    const allowed = VALID_TRANSITIONS[currentStatus];
+    if (!allowed || !allowed.includes(BatchStatus.PAUSED)) {
+      throw new Error(
+        `Invalid batch transition: ${currentStatus} -> PAUSED (batch ${batchId})`,
+      );
+    }
+
+    const now = FieldValue.serverTimestamp();
+    tx.update(batchRef, {
+      status: BatchStatus.PAUSED,
+      previousStatus: currentStatus,
+      pausedFromStage: currentStatus, // stored atomically — no split-brain
+      pausedAt: new Date().toISOString(),
+      statusChangedAt: now,
+      statusHistory: FieldValue.arrayUnion({
+        from: currentStatus,
+        to: BatchStatus.PAUSED,
+        trigger: 'manual_pause',
+        timestamp: new Date().toISOString(),
+      }),
+      updatedAt: now,
     });
   });
 }
 
 /**
- * Pause a batch, recording the stage it was paused at.
- */
-export async function pauseBatch(batchId: string): Promise<void> {
-  const batch = await BatchRepository.getById(batchId);
-  if (!batch) {
-    throw new Error(`Batch ${batchId} not found`);
-  }
-
-  const currentStatus: string = (batch as any).status;
-
-  await transitionBatch(batchId, BatchStatus.PAUSED, 'manual_pause');
-
-  // Store the stage the batch was paused at so we can resume later
-  await BatchRepository.update(batchId, {
-    pausedAt: new Date().toISOString(),
-    pausedFromStage: currentStatus,
-  });
-}
-
-/**
- * Resume a paused batch, returning it to the stage it was in before pausing.
+ * Resume a paused batch, returning it to the stage it was paused from.
  */
 export async function resumeBatch(batchId: string): Promise<void> {
-  const batch = await BatchRepository.getById(batchId);
-  if (!batch) {
-    throw new Error(`Batch ${batchId} not found`);
-  }
+  const batchRef = db.collection('specimen_batches').doc(batchId);
 
-  const batchData = batch as any;
-  if (batchData.status !== BatchStatus.PAUSED) {
-    throw new Error(`Batch ${batchId} is not paused (current status: ${batchData.status})`);
-  }
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(batchRef);
+    if (!snap.exists) throw new Error(`Batch ${batchId} not found`);
 
-  const resumeToStage: string = batchData.pausedFromStage;
-  if (!resumeToStage) {
-    throw new Error(`Batch ${batchId} has no recorded pausedFromStage`);
-  }
+    const data = snap.data()!;
+    if (data.status !== BatchStatus.PAUSED) {
+      throw new Error(`Batch ${batchId} is not paused (current status: ${data.status})`);
+    }
 
-  await transitionBatch(batchId, resumeToStage, 'manual_resume');
+    const resumeToStage: string = data.pausedFromStage;
+    if (!resumeToStage) {
+      throw new Error(`Batch ${batchId} has no recorded pausedFromStage`);
+    }
 
-  await BatchRepository.update(batchId, {
-    resumedAt: new Date().toISOString(),
-    pausedAt: null,
-    pausedFromStage: null,
+    const allowed = VALID_TRANSITIONS[BatchStatus.PAUSED];
+    if (!allowed.includes(resumeToStage)) {
+      throw new Error(`Cannot resume batch ${batchId} to stage ${resumeToStage}`);
+    }
+
+    const now = FieldValue.serverTimestamp();
+    tx.update(batchRef, {
+      status: resumeToStage,
+      previousStatus: BatchStatus.PAUSED,
+      pausedFromStage: FieldValue.delete(),
+      pausedAt: FieldValue.delete(),
+      resumedAt: new Date().toISOString(),
+      statusChangedAt: now,
+      statusHistory: FieldValue.arrayUnion({
+        from: BatchStatus.PAUSED,
+        to: resumeToStage,
+        trigger: 'manual_resume',
+        timestamp: new Date().toISOString(),
+      }),
+      updatedAt: now,
+    });
   });
 }
 
@@ -163,33 +202,18 @@ export async function resumeBatch(batchId: string): Promise<void> {
  * Cancel a batch, optionally recording a reason.
  */
 export async function cancelBatch(batchId: string, reason?: string): Promise<void> {
-  await transitionBatch(batchId, BatchStatus.CANCELLED, 'manual_cancel');
-
-  const updates: Record<string, unknown> = {
+  await transitionBatch(batchId, BatchStatus.CANCELLED, 'manual_cancel', {
     cancelledAt: new Date().toISOString(),
-  };
-  if (reason) {
-    updates.cancelReason = reason;
-  }
-
-  await BatchRepository.update(batchId, updates);
+    ...(reason ? { cancelReason: reason } : {}),
+  });
 }
 
 /**
- * Inspect batch stats and advance to the next logical state if conditions
- * are met.
- *
- * Progression rules:
- *   RESOLVING  -> ORDERING    when all raw teachers are resolved
- *   ORDERING   -> MESSAGING   when all orders are created
- *   MESSAGING  -> COMPLETE    when all messages are delivered (no failures)
- *   MESSAGING  -> PARTIAL_FAILURE when all messages processed but some failed
+ * Inspect batch stats and advance to the next logical state if conditions are met.
  */
 export async function checkAndAdvanceBatch(batchId: string): Promise<void> {
   const batch = await BatchRepository.getById(batchId);
-  if (!batch) {
-    throw new Error(`Batch ${batchId} not found`);
-  }
+  if (!batch) throw new Error(`Batch ${batchId} not found`);
 
   const batchData = batch as any;
   const status: string = batchData.status;
@@ -235,7 +259,6 @@ export async function checkAndAdvanceBatch(batchId: string): Promise<void> {
     }
 
     default:
-      // No automatic advancement for other states
       break;
   }
 }

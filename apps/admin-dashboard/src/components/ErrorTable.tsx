@@ -15,6 +15,7 @@ interface Props {
   onFilterRetryable: (retryable: boolean | undefined) => void;
   onRetryAll: () => void;
   isLoading?: boolean;
+  isRetrying?: boolean;
   selectedStage?: BatchStage;
   selectedRetryable?: boolean;
 }
@@ -31,6 +32,7 @@ export default function ErrorTable({
   onFilterRetryable,
   onRetryAll,
   isLoading,
+  isRetrying,
   selectedStage,
   selectedRetryable,
 }: Props) {
@@ -42,7 +44,7 @@ export default function ErrorTable({
       render: (row) => (
         <div>
           <p className="font-medium">{row.teacherName}</p>
-          <p className="text-xs text-gray-400">{row.teacherPhone}</p>
+          <p className="text-xs text-muted-foreground/70">{row.teacherPhone}</p>
         </div>
       ),
     },
@@ -65,7 +67,7 @@ export default function ErrorTable({
             "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
             row.retryable
               ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-500"
+              : "bg-muted text-muted-foreground"
           )}
         >
           {row.retryable ? "Yes" : "No"}
@@ -86,7 +88,7 @@ export default function ErrorTable({
               e.target.value ? (e.target.value as BatchStage) : undefined
             )
           }
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-lg border border-border bg-card px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="">All Stages</option>
           {stages.map((s) => (
@@ -103,7 +105,7 @@ export default function ErrorTable({
               e.target.value === "" ? undefined : e.target.value === "true"
             )
           }
-          className="rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="rounded-lg border border-border bg-card px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="">All</option>
           <option value="true">Retryable Only</option>
@@ -114,10 +116,10 @@ export default function ErrorTable({
 
         <button
           onClick={onRetryAll}
-          disabled={retryableCount === 0}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={retryableCount === 0 || isRetrying}
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Retry All Retryable ({retryableCount})
+          {isRetrying ? "Retrying…" : `Retry All Retryable (${retryableCount})`}
         </button>
       </div>
 

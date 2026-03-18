@@ -1,7 +1,25 @@
 import { Request } from 'firebase-functions/v2/https';
 import { Response } from 'express';
 import * as CommLogRepository from '../repositories/CommLogRepository';
+import * as MessageSendLogRepository from '../repositories/MessageSendLogRepository';
+import * as AggregationRepository from '../repositories/AggregationRepository';
 import { AdapterRegistry } from '../adapters/AdapterRegistry';
+
+/** Map comm_log entry to message log format (fallback when message_send_log is empty) */
+function commLogToMessageLog(c: any): Record<string, unknown> {
+  return {
+    id: c.id,
+    batchId: c.batchId,
+    teacherName: c.teacherName,
+    teacherPhone: c.teacherPhone,
+    teacherEmail: c.teacherEmail,
+    channel: c.channel || 'whatsapp',
+    status: c.status === 'delivered' ? 'delivered' : c.status === 'failed' ? 'failed' : 'sent',
+    sentAt: c.deliveredAt || c.createdAt,
+    messageBody: c.messageBody,
+    subject: c.subject,
+  };
+}
 
 const WHATSAPP_QUEUE = 'whatsapp-messages';
 const EMAIL_QUEUE = 'email-messages';
@@ -43,10 +61,18 @@ export async function resendMessage(req: Request, res: Response): Promise<void> 
     const channel: string = log.channel || 'whatsapp';
     const queueName = channel === 'email' ? EMAIL_QUEUE : WHATSAPP_QUEUE;
 
+    let books = log.books || '';
+    if (!books && log.aggregationKey) {
+      const agg = await AggregationRepository.getById(log.aggregationKey);
+      if (agg) books = (agg as any).books || '';
+    }
+
     const payload = {
       messageId: log.id,
       teacherPhone: log.teacherPhone,
       teacherEmail: log.teacherEmail,
+      teacherName: log.teacherName,
+      books,
       batchId: log.batchId,
       channel,
       attemptNumber: (log.attemptCount || 0) + 1,
@@ -70,6 +96,61 @@ export async function resendMessage(req: Request, res: Response): Promise<void> 
     console.error('resendMessage error:', err);
     res.status(500).json({
       error: 'Failed to resend message',
+      details: err instanceof Error ? err.message : String(err),
+    });
+  }
+}
+
+// ---------------------------------------------------------------------------
+// GET /messages/logs — query message send logs (batch, teacher, frequency)
+// ---------------------------------------------------------------------------
+
+export async function listMessageLogs(req: Request, res: Response): Promise<void> {
+  if (req.method !== 'GET') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
+  }
+
+  try {
+    const batchId = req.query.batchId as string | undefined;
+    const teacherPhone = req.query.teacherPhone as string | undefined;
+    const teacherEmail = req.query.teacherEmail as string | undefined;
+    const channel = req.query.channel as 'whatsapp' | 'email' | undefined;
+    const limit = Math.min(parseInt(req.query.limit as string, 10) || 100, 500);
+
+    if (batchId) {
+      let logs = await MessageSendLogRepository.getByBatchId(batchId, limit);
+      if (logs.length === 0) {
+        const commLogs = await CommLogRepository.getByBatchId(batchId);
+        logs = commLogs
+          .filter((c: any) => c.status && c.status !== 'skipped' && c.status !== 'dlq')
+          .map((c: any) => ({ ...commLogToMessageLog(c), id: c.id })) as any;
+      }
+      const summary = MessageSendLogRepository.aggregateByContact(logs);
+      res.status(200).json({ data: logs, total: logs.length, summary });
+      return;
+    }
+
+    if (teacherPhone) {
+      const logs = await MessageSendLogRepository.getByTeacherPhone(teacherPhone, limit);
+      res.status(200).json({ data: logs, total: logs.length });
+      return;
+    }
+
+    if (teacherEmail) {
+      const logs = await MessageSendLogRepository.getByTeacherEmail(teacherEmail, limit);
+      res.status(200).json({ data: logs, total: logs.length });
+      return;
+    }
+
+    // No filter: return recent logs with summary
+    const logs = await MessageSendLogRepository.getRecent({ limit, channel });
+    const summary = MessageSendLogRepository.aggregateByContact(logs);
+    res.status(200).json({ data: logs, total: logs.length, summary });
+  } catch (err) {
+    console.error('listMessageLogs error:', err);
+    res.status(500).json({
+      error: 'Failed to list message logs',
       details: err instanceof Error ? err.message : String(err),
     });
   }

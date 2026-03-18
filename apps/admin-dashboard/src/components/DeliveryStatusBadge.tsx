@@ -4,7 +4,7 @@ import type { DeliveryStatus } from "@/types";
 const config: Record<DeliveryStatus, { label: string; className: string }> = {
   PENDING: {
     label: "Pending",
-    className: "bg-gray-100 text-gray-600",
+    className: "bg-muted text-muted-foreground",
   },
   SENT: {
     label: "Sent",

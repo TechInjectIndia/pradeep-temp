@@ -1,3 +1,4 @@
+import { FieldValue } from 'firebase-admin/firestore';
 import * as admin from 'firebase-admin';
 import {
   db,
@@ -8,8 +9,6 @@ import {
 } from '../infrastructure/firestore/FirestoreAdapter';
 
 const COLLECTION = 'specimen_batches';
-
-const FieldValue = admin.firestore.FieldValue;
 
 export async function create(data: Record<string, unknown>) {
   const docRef = db.collection(COLLECTION).doc();
@@ -45,9 +44,20 @@ export async function incrementStat(batchId: string, field: string, value: numbe
   });
 }
 
-export async function list(filters?: { status?: string }, limit?: number, startAfter?: string) {
-  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> =
-    [];
+export async function count(filters?: { status?: string }): Promise<number> {
+  let query: admin.firestore.Query = db.collection(COLLECTION);
+  if (filters?.status) query = query.where('status', '==', filters.status);
+  const snap = await query.count().get();
+  return snap.data().count;
+}
+
+export async function list(
+  filters?: { status?: string },
+  limit?: number,
+  startAfter?: string,
+  offset?: number,
+) {
+  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> = [];
 
   if (filters?.status) {
     queryFilters.push({ field: 'status', op: '==', value: filters.status });
@@ -62,6 +72,7 @@ export async function list(filters?: { status?: string }, limit?: number, startA
     filters: queryFilters.length > 0 ? queryFilters : undefined,
     orderBy: { field: 'createdAt', direction: 'desc' },
     limit,
+    offset,
     startAfter: startAfterSnap,
   });
 }

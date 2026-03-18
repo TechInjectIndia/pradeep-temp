@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import {
   db,
   getDoc,
@@ -11,7 +12,6 @@ const COLLECTION = 'teachers_master';
 const PHONE_LOOKUP_COLLECTION = 'phone_lookup';
 const EMAIL_LOOKUP_COLLECTION = 'email_lookup';
 
-const FieldValue = admin.firestore.FieldValue;
 
 export async function getById(teacherId: string) {
   return getDoc(COLLECTION, teacherId);
@@ -69,16 +69,12 @@ export async function addEmail(teacherId: string, email: string) {
   await setDoc(EMAIL_LOOKUP_COLLECTION, email, { teacherId });
 }
 
-export async function listPaginated(limit: number, startAfter?: string) {
-  let startAfterSnap: admin.firestore.DocumentSnapshot | undefined;
-
-  if (startAfter) {
-    startAfterSnap = await db.collection(COLLECTION).doc(startAfter).get();
-  }
+export async function listPaginated(limit: number, page: number = 1) {
+  const offset = (page - 1) * limit;
 
   return queryDocs(COLLECTION, {
     orderBy: { field: 'createdAt', direction: 'desc' },
     limit,
-    startAfter: startAfterSnap,
+    offset: offset > 0 ? offset : undefined,
   });
 }

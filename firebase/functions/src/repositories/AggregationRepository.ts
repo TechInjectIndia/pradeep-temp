@@ -1,25 +1,32 @@
 import * as admin from 'firebase-admin';
-import { getDoc, setDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
+import { FieldValue } from 'firebase-admin/firestore';
+import { db, getDoc, updateDoc, queryDocs } from '../infrastructure/firestore/FirestoreAdapter';
 
 const COLLECTION = 'temp_aggregation';
 
-const FieldValue = admin.firestore.FieldValue;
 
+/**
+ * Atomically get or create an aggregation document.
+ * Uses a Firestore transaction to prevent concurrent duplicate creation.
+ */
 export async function getOrCreate(aggregationKey: string, initialData: Record<string, unknown>) {
-  const existing = await getDoc(COLLECTION, aggregationKey);
-  if (existing) {
-    return existing;
-  }
+  const docRef = db.collection(COLLECTION).doc(aggregationKey);
+  let result: Record<string, unknown> & { id: string };
 
-  const now = FieldValue.serverTimestamp();
-  const data = {
-    ...initialData,
-    createdAt: now,
-    updatedAt: now,
-  };
+  await db.runTransaction(async (tx) => {
+    const snap = await tx.get(docRef);
+    if (snap.exists) {
+      result = { id: snap.id, ...snap.data() } as Record<string, unknown> & { id: string };
+      return;
+    }
 
-  await setDoc(COLLECTION, aggregationKey, data);
-  return { id: aggregationKey, ...data };
+    const now = FieldValue.serverTimestamp();
+    const data = { ...initialData, createdAt: now, updatedAt: now };
+    tx.set(docRef, data);
+    result = { id: aggregationKey, ...data } as Record<string, unknown> & { id: string };
+  });
+
+  return result!;
 }
 
 export async function addLink(aggregationKey: string, link: object) {

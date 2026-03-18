@@ -71,12 +71,12 @@ export async function resolveDuplicate(
 }
 
 /**
- * List flagged duplicates with optional filters and pagination.
+ * List flagged duplicates with optional filters and page-based pagination.
  */
 export async function listDuplicates(
   filters?: { batchId?: string; resolution?: string },
   limit?: number,
-  startAfter?: string,
+  offset?: number,
 ) {
-  return DuplicateRepository.list(filters, limit, startAfter);
+  return DuplicateRepository.list(filters, limit, undefined, offset);
 }

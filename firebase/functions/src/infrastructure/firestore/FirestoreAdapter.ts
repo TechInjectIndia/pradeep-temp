@@ -1,7 +1,24 @@
 import * as admin from 'firebase-admin';
 
 if (!admin.apps.length) {
-  admin.initializeApp();
+  const credential = getCredential();
+  admin.initializeApp(credential ? { credential } : undefined);
+}
+
+function getCredential(): admin.credential.Credential | undefined {
+  const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  if (json) {
+    try {
+      const parsed = typeof json === 'string' ? JSON.parse(json) : json;
+      return admin.credential.cert(parsed as admin.ServiceAccount);
+    } catch (e) {
+      console.error('Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', e);
+    }
+  }
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS) {
+    return admin.credential.applicationDefault();
+  }
+  return undefined;
 }
 
 export const db = admin.firestore();
@@ -54,6 +71,7 @@ export interface QueryOptions {
   orderBy?: { field: string; direction?: 'asc' | 'desc' };
   limit?: number;
   startAfter?: admin.firestore.DocumentSnapshot;
+  offset?: number;
 }
 
 export async function queryDocs<T = admin.firestore.DocumentData>(
@@ -74,6 +92,10 @@ export async function queryDocs<T = admin.firestore.DocumentData>(
 
   if (options?.startAfter) {
     query = query.startAfter(options.startAfter);
+  }
+
+  if (options?.offset) {
+    query = query.offset(options.offset);
   }
 
   if (options?.limit) {

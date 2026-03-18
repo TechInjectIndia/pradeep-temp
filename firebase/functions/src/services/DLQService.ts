@@ -236,3 +236,18 @@ export async function retryAllForBatch(
 
   return retryFromDLQ(ids);
 }
+
+/**
+ * Retry all retryable failed messages across all batches (up to 500).
+ */
+export async function retryAll(): Promise<{ enqueued: number; skipped: number }> {
+  const retryable = await FailedMessageRepository.list({ isRetryable: true }, 500, undefined, 0);
+  const failed = retryable.filter((r: any) => r.status === 'failed');
+  const ids = failed.map((r: any) => r.id);
+
+  if (ids.length === 0) {
+    return { enqueued: 0, skipped: 0 };
+  }
+
+  return retryFromDLQ(ids);
+}

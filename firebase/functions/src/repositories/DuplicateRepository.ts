@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import {
   db,
   getDoc,
@@ -9,7 +10,15 @@ import {
 
 const COLLECTION = 'possible_duplicates';
 
-const FieldValue = admin.firestore.FieldValue;
+
+type Filters = { batchId?: string; resolution?: string };
+
+function buildQueryFilters(filters?: Filters) {
+  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> = [];
+  if (filters?.batchId) queryFilters.push({ field: 'batchId', op: '==', value: filters.batchId });
+  if (filters?.resolution) queryFilters.push({ field: 'resolution', op: '==', value: filters.resolution });
+  return queryFilters;
+}
 
 export async function create(data: Record<string, unknown>) {
   const docRef = db.collection(COLLECTION).doc();
@@ -38,21 +47,23 @@ export async function update(duplicateId: string, data: Partial<Record<string, u
   await updateDoc(COLLECTION, duplicateId, updateData);
 }
 
+export async function count(filters?: Filters): Promise<number> {
+  let query: admin.firestore.Query = db.collection(COLLECTION);
+  const queryFilters = buildQueryFilters(filters);
+  for (const f of queryFilters) {
+    query = query.where(f.field, f.op as admin.firestore.WhereFilterOp, f.value);
+  }
+  const snap = await query.count().get();
+  return snap.data().count;
+}
+
 export async function list(
-  filters?: { batchId?: string; resolution?: string },
+  filters?: Filters,
   limit?: number,
   startAfter?: string,
+  offset?: number,
 ) {
-  const queryFilters: Array<{ field: string; op: admin.firestore.WhereFilterOp; value: unknown }> =
-    [];
-
-  if (filters?.batchId) {
-    queryFilters.push({ field: 'batchId', op: '==', value: filters.batchId });
-  }
-
-  if (filters?.resolution) {
-    queryFilters.push({ field: 'resolution', op: '==', value: filters.resolution });
-  }
+  const queryFilters = buildQueryFilters(filters);
 
   let startAfterSnap: admin.firestore.DocumentSnapshot | undefined;
   if (startAfter) {
@@ -63,6 +74,7 @@ export async function list(
     filters: queryFilters.length > 0 ? queryFilters : undefined,
     orderBy: { field: 'createdAt', direction: 'desc' },
     limit,
+    offset,
     startAfter: startAfterSnap,
   });
 }

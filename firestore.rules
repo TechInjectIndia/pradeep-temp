@@ -64,5 +64,15 @@ service cloud.firestore {
     match /failed_messages/{msgId} {
       allow read, write: if false;
     }
+
+    // Batch logs - server-side only
+    match /batch_logs/{logId} {
+      allow read, write: if false;
+    }
+
+    // Message send log - server-side only
+    match /message_send_log/{logId} {
+      allow read, write: if false;
+    }
   }
 }

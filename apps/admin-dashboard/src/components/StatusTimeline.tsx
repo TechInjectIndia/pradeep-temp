@@ -15,7 +15,7 @@ const statusColor: Record<string, string> = {
   CANCELLED: "text-red-500",
   FAILED: "text-red-500",
   PAUSED: "text-yellow-500",
-  PENDING: "text-gray-400",
+  PENDING: "text-muted-foreground/70",
   RESOLVING: "text-indigo-500",
   CREATING_ORDERS: "text-purple-500",
   AGGREGATING: "text-cyan-500",
@@ -31,16 +31,18 @@ export default function StatusTimeline({ history }: Props) {
     <div className="flow-root">
       <ul className="-mb-8">
         {history.map((entry, idx) => {
-          const Icon = statusIcon[entry.status] || Loader;
-          const color = statusColor[entry.status] || "text-gray-400";
+          const status = entry.status ?? (entry as { to?: string }).to ?? "UNKNOWN";
+          const Icon = statusIcon[status] || Loader;
+          const color = statusColor[status] || "text-muted-foreground/70";
           const isLast = idx === history.length - 1;
+          const reason = entry.reason ?? (entry as { trigger?: string }).trigger;
 
           return (
             <li key={idx}>
               <div className="relative pb-8">
                 {!isLast && (
                   <span
-                    className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-gray-200"
+                    className="absolute left-4 top-4 -ml-px h-full w-0.5 bg-muted-foreground/20"
                     aria-hidden="true"
                   />
                 )}
@@ -49,14 +51,16 @@ export default function StatusTimeline({ history }: Props) {
                     <Icon className="h-5 w-5" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <div className="text-sm font-medium text-gray-900">
-                      {entry.status.replace(/_/g, " ")}
+                    <div className="text-sm font-medium text-foreground">
+                      {String(status).replace(/_/g, " ")}
                     </div>
-                    <p className="mt-0.5 text-xs text-gray-500">
-                      {new Date(entry.timestamp).toLocaleString()}
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {entry.timestamp
+                        ? new Date(entry.timestamp).toLocaleString()
+                        : "—"}
                     </p>
-                    {entry.reason && (
-                      <p className="mt-1 text-xs text-gray-600">{entry.reason}</p>
+                    {reason && (
+                      <p className="mt-1 text-xs text-muted-foreground">{reason}</p>
                     )}
                   </div>
                 </div>

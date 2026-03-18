@@ -2,6 +2,8 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
+import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 export default function Providers({ children }: { children: ReactNode }) {
   const [queryClient] = useState(
@@ -9,14 +11,36 @@ export default function Providers({ children }: { children: ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            staleTime: 30_000,
-            refetchOnWindowFocus: false,
+            // 10s stale time — balances freshness vs. request frequency for live batch data
+            staleTime: 10_000,
+            // Retry failed requests up to 2 times with exponential backoff
+            retry: 2,
+            retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 10_000),
+            // Refetch when window regains focus so admins always see current state
+            refetchOnWindowFocus: true,
+            // Refetch on reconnect after network loss
+            refetchOnReconnect: true,
+          },
+          mutations: {
+            retry: 0, // Don't retry mutations — avoid duplicate writes
           },
         },
       })
   );
 
   return (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange={false}>
+        {children}
+        <Toaster
+          position="top-right"
+          richColors
+          closeButton
+          toastOptions={{
+            duration: 4000,
+          }}
+        />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

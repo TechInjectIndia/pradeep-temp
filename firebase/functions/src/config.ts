@@ -3,6 +3,9 @@ export const config = {
     apiUrl: process.env.WATI_API_URL || '',
     apiKey: process.env.WATI_API_KEY || '',
     webhookSecret: process.env.WATI_WEBHOOK_SECRET || '',
+    channelNumber: process.env.WATI_CHANNEL_NUMBER || '', // WhatsApp business number for sending
+    /** Template name must exist in your WATI dashboard (create under Message Templates) */
+    templateName: process.env.WATI_TEMPLATE_NAME || 'specimen_links',
   },
   resend: {
     apiKey: process.env.RESEND_API_KEY || '',
@@ -24,5 +27,29 @@ export const config = {
     linkExpiryDays: 90,
     rawTeacherTTLDays: 90,
     aggregationTTLDays: 7,
+    /** Max messages per teacher per hour (0 = no limit) */
+    maxMessagesPerTeacherPerHour: parseInt(process.env.MAX_MESSAGES_PER_TEACHER_PER_HOUR || '0', 10) || 0,
+    /** Website URL to include in messages */
+    websiteUrl: process.env.APP_WEBSITE_URL || 'https://www.pradeeppublications.com',
   },
 };
+
+/**
+ * Validate that all required environment variables are set.
+ * Call this at startup to fail fast rather than at request time.
+ */
+export function validateConfig(): void {
+  const required: [string, string][] = [
+    ['WATI_API_URL', config.wati.apiUrl],
+    ['WATI_API_KEY', config.wati.apiKey],
+    ['RESEND_API_KEY', config.resend.apiKey],
+    ['GCP_PROJECT', config.cloudTasks.project],
+    ['CLOUD_FUNCTIONS_URL', config.cloudTasks.serviceUrl],
+  ];
+
+  const missing = required.filter(([, val]) => !val).map(([key]) => key);
+
+  if (missing.length > 0) {
+    throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+  }
+}

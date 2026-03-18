@@ -1,5 +1,6 @@
 import * as crypto from 'crypto';
 import { config } from '../../config';
+import { withRetry } from '../../utils/retry';
 
 interface WATISendTemplateResponse {
   result: boolean;
@@ -8,6 +9,7 @@ interface WATISendTemplateResponse {
 
 /**
  * Send a WhatsApp template message via the WATI API.
+ * Retries up to 3 times with exponential backoff on transient errors.
  */
 export async function sendTemplate(
   phone: string,
@@ -16,43 +18,60 @@ export async function sendTemplate(
 ): Promise<{ messageId: string }> {
   const { apiUrl, apiKey } = config.wati;
 
-  const parameters = Object.entries(params).map(([name, value]) => ({
-    name,
-    value,
-  }));
+  // WATI expects phone without + (e.g. 919997016578)
+  const whatsappNumber = phone.replace(/\D/g, '');
+  const parameters = Object.entries(params)
+    .filter(([, v]) => v != null && v !== '')
+    .map(([name, value]) => ({ name, value }));
 
-  const response = await fetch(
-    `${apiUrl}/api/v1/sendTemplateMessage/${encodeURIComponent(phone)}`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        template_name: templateName,
-        broadcast_name: `auto_${Date.now()}`,
-        parameters,
-      }),
+  return withRetry(
+    async () => {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 15_000);
+
+      try {
+        const response = await fetch(
+          `${apiUrl}/api/v2/sendTemplateMessage?whatsappNumber=${encodeURIComponent(whatsappNumber)}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              template_name: templateName,
+              broadcast_name: `auto_${Date.now()}`,
+              parameters,
+              ...(config.wati.channelNumber && {
+                channel_number: config.wati.channelNumber,
+              }),
+            }),
+            signal: controller.signal,
+          },
+        );
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorBody || response.statusText}`);
+        }
+
+        const data = (await response.json()) as WATISendTemplateResponse;
+        if (!data.result) {
+          throw new Error(`WATI template send failed: ${data.info || 'unknown error'}`);
+        }
+
+        return { messageId: data.info || '' };
+      } finally {
+        clearTimeout(timeout);
+      }
     },
+    { label: `WATI.sendTemplate(${phone})` },
   );
-
-  if (!response.ok) {
-    const errorBody = await response.text();
-    throw new Error(`WATI API error (${response.status}): ${errorBody}`);
-  }
-
-  const data = (await response.json()) as WATISendTemplateResponse;
-
-  if (!data.result) {
-    throw new Error(`WATI template send failed: ${data.info || 'unknown error'}`);
-  }
-
-  return { messageId: data.info || '' };
 }
 
 /**
  * Verify the authenticity of a WATI webhook request using HMAC-SHA256.
+ * Safely handles mismatched buffer lengths instead of throwing.
  */
 export function verifyWebhookSignature(body: string, signature: string): boolean {
   const { webhookSecret } = config.wati;
@@ -63,5 +82,10 @@ export function verifyWebhookSignature(body: string, signature: string): boolean
 
   const expected = crypto.createHmac('sha256', webhookSecret).update(body).digest('hex');
 
-  return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expected));
+  // timingSafeEqual throws if buffers have different lengths — check first
+  const sigBuf = Buffer.from(signature);
+  const expBuf = Buffer.from(expected);
+  if (sigBuf.length !== expBuf.length) return false;
+
+  return crypto.timingSafeEqual(sigBuf, expBuf);
 }

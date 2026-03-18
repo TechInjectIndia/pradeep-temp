@@ -1,4 +1,5 @@
 import * as admin from 'firebase-admin';
+import { FieldValue } from 'firebase-admin/firestore';
 import {
   db,
   getDoc,
@@ -9,7 +10,6 @@ import {
 
 const COLLECTION = 'orders';
 
-const FieldValue = admin.firestore.FieldValue;
 
 export async function create(data: Record<string, unknown>) {
   const docRef = db.collection(COLLECTION).doc();

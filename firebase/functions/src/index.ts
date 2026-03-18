@@ -1,9 +1,16 @@
+import * as path from 'path';
+// Load config.env (Firebase parses .env/.env.local and fails on long values; we use a custom file)
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+require('dotenv').config({ path: path.join(__dirname, '..', 'config.env') });
+
 import { onRequest } from 'firebase-functions/v2/https';
 import { registerProductionAdapters } from './adapters/registerProductionAdapters';
 
 // ---------------------------------------------------------------------------
-// Bootstrap: register production adapters before any request handling
+// Bootstrap: validate config and register production adapters before any request handling
 // ---------------------------------------------------------------------------
+import { validateConfig } from './config';
+validateConfig();
 registerProductionAdapters();
 
 // ---------------------------------------------------------------------------
@@ -16,6 +23,8 @@ import * as DuplicateController from './controllers/DuplicateController';
 import * as MessageController from './controllers/MessageController';
 import * as WebhookController from './controllers/WebhookController';
 import * as DLQController from './controllers/DLQController';
+import * as DashboardController from './controllers/DashboardController';
+import * as TeacherController from './controllers/TeacherController';
 
 // ---------------------------------------------------------------------------
 // Services (for worker handlers)
@@ -39,7 +48,7 @@ export { onBatchStateChange } from './triggers/onBatchStateChange';
 const CORS_HEADERS: Record<string, string> = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, Content-Disposition',
   'Access-Control-Max-Age': '3600',
 };
 
@@ -75,9 +84,21 @@ const workerOptions = { concurrency: 1 };
 
 // Specimen
 export const specimenUpload = onRequest(apiOptions, withCors(SpecimenController.uploadSpecimen));
+export const specimenUploadReviewed = onRequest(
+  apiOptions,
+  withCors(SpecimenController.uploadReviewed),
+);
 export const specimenCreateOrders = onRequest(
   apiOptions,
   withCors(SpecimenController.createOrders),
+);
+export const specimenGenerateLinks = onRequest(
+  apiOptions,
+  withCors(SpecimenController.generateLinks),
+);
+export const specimenBatchLinks = onRequest(
+  apiOptions,
+  withCors(SpecimenController.getBatchLinks),
 );
 
 // Batches
@@ -86,6 +107,8 @@ export const batchesGet = onRequest(apiOptions, withCors(BatchController.getBatc
 export const batchesPause = onRequest(apiOptions, withCors(BatchController.pauseBatch));
 export const batchesResume = onRequest(apiOptions, withCors(BatchController.resumeBatch));
 export const batchesCancel = onRequest(apiOptions, withCors(BatchController.cancelBatch));
+export const batchesCheckAdvance = onRequest(apiOptions, withCors(BatchController.checkAdvanceBatch));
+export const batchesLogs = onRequest(apiOptions, withCors(BatchController.getBatchLogs));
 export const batchesErrors = onRequest(apiOptions, withCors(BatchController.getBatchErrors));
 export const batchesRetryErrors = onRequest(apiOptions, withCors(BatchController.retryBatchErrors));
 
@@ -98,6 +121,7 @@ export const duplicatesResolve = onRequest(
 
 // Messages
 export const messagesResend = onRequest(apiOptions, withCors(MessageController.resendMessage));
+export const messagesLogs = onRequest(apiOptions, withCors(MessageController.listMessageLogs));
 
 // Webhooks (no CORS -- called by external services, not browsers)
 export const webhooksWati = onRequest(apiOptions, WebhookController.handleWATIWebhook);
@@ -106,6 +130,12 @@ export const webhooksResend = onRequest(apiOptions, WebhookController.handleRese
 // DLQ
 export const dlqList = onRequest(apiOptions, withCors(DLQController.listDLQ));
 export const dlqRetry = onRequest(apiOptions, withCors(DLQController.retryDLQ));
+
+// Dashboard
+export const dashboardStats = onRequest(apiOptions, withCors(DashboardController.getDashboardStats));
+
+// Teachers
+export const teachersList = onRequest(apiOptions, withCors(TeacherController.listTeachers));
 
 // ---------------------------------------------------------------------------
 // Cloud Task worker handlers
@@ -159,6 +189,8 @@ export const messagingWorker = onRequest(workerOptions, async (req, res) => {
   }
 
   const { messageId, teacherPhone, attemptNumber, ...rest } = req.body;
+
+  console.log(`messagingWorker: received messageId=${messageId} channel=${rest.channel} to=${teacherPhone || rest.teacherEmail}`);
 
   if (!messageId) {
     res.status(400).json({ error: 'messageId is required' });

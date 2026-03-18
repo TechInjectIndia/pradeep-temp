@@ -13,12 +13,13 @@
     "prettier": "prettier --check 'src/**/*.ts'",
     "prettier:fix": "prettier --write 'src/**/*.ts'",
     "test": "jest",
-    "test:stress": "ts-node src/testing/stressTest.ts"
+    "list-wati-templates": "node scripts/list-wati-templates.js"
   },
   "engines": {
     "node": "18"
   },
   "dependencies": {
+    "dotenv": "^16.4.5",
     "@google-cloud/tasks": "^5.0.0",
     "algoliasearch": "^4.22.0",
     "crypto-js": "^4.2.0",

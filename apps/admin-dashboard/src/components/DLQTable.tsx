@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import DataTable, { type Column } from "./DataTable";
-import DeliveryStatusBadge from "./DeliveryStatusBadge";
-import type { DLQEntry, MessageChannel } from "@/types";
+import type { DLQEntry } from "@/types";
 import { clsx } from "clsx";
 
 interface Props {
@@ -58,7 +57,8 @@ export default function DLQTable({
           type="checkbox"
           checked={selectedIds.has(row.id)}
           onChange={() => toggleSelect(row.id)}
-          className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+          aria-label={`Select entry ${row.id}`}
+          className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
           onClick={(e) => e.stopPropagation()}
         />
       ),
@@ -70,7 +70,7 @@ export default function DLQTable({
       render: (row) => (
         <div>
           <p className="font-medium">{row.teacherName}</p>
-          <p className="text-xs text-gray-400">{row.teacherPhone}</p>
+          <p className="text-xs text-muted-foreground/70">{row.teacherPhone}</p>
         </div>
       ),
     },
@@ -78,7 +78,7 @@ export default function DLQTable({
       key: "channel",
       header: "Channel",
       render: (row) => (
-        <span className="inline-flex rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-700">
+        <span className="inline-flex rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-foreground">
           {row.channel}
         </span>
       ),
@@ -102,7 +102,7 @@ export default function DLQTable({
             "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
             row.retryable
               ? "bg-green-100 text-green-700"
-              : "bg-gray-100 text-gray-500"
+              : "bg-muted text-muted-foreground"
           )}
         >
           {row.retryable ? "Yes" : "No"}
@@ -119,7 +119,7 @@ export default function DLQTable({
             row.status === "RESOLVED" && "bg-green-100 text-green-700",
             row.status === "PENDING" && "bg-yellow-100 text-yellow-700",
             row.status === "RETRYING" && "bg-blue-100 text-blue-700",
-            row.status === "ABANDONED" && "bg-gray-100 text-gray-500"
+            row.status === "ABANDONED" && "bg-muted text-muted-foreground"
           )}
         >
           {row.status}
@@ -133,12 +133,12 @@ export default function DLQTable({
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <label className="flex items-center gap-2 text-sm text-gray-600">
+        <label className="flex items-center gap-2 text-sm text-muted-foreground">
           <input
             type="checkbox"
             checked={selectedIds.size === entries.length && entries.length > 0}
             onChange={toggleAll}
-            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+            className="h-4 w-4 rounded border-border text-blue-600 focus:ring-blue-500"
           />
           Select All
         </label>
@@ -156,7 +156,7 @@ export default function DLQTable({
         <button
           onClick={onRetryAll}
           disabled={retryableCount === 0}
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           Retry All Retryable ({retryableCount})
         </button>
