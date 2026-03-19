@@ -4,8 +4,7 @@ import * as BatchErrorRepository from '../repositories/BatchErrorRepository';
 import * as BatchRepository from '../repositories/BatchRepository';
 import { AdapterRegistry } from '../adapters/AdapterRegistry';
 
-const WHATSAPP_QUEUE = 'whatsapp-messages';
-const EMAIL_QUEUE = 'email-messages';
+import { WHATSAPP_QUEUE, EMAIL_QUEUE } from '../constants/queues';
 
 // ---------------------------------------------------------------------------
 // Error classification

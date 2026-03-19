@@ -5,6 +5,7 @@ import {
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   queryDocs,
 } from '../infrastructure/firestore/FirestoreAdapter';
 
@@ -67,6 +68,55 @@ export async function addEmail(teacherId: string, email: string) {
     updatedAt: FieldValue.serverTimestamp(),
   });
   await setDoc(EMAIL_LOOKUP_COLLECTION, email, { teacherId });
+}
+
+/**
+ * Replace phones and emails arrays on a teacher and sync lookup collections.
+ * Removes lookups for values no longer in the arrays, adds lookups for new values.
+ */
+export async function replacePhonesAndEmails(
+  teacherId: string,
+  phones: string[],
+  emails: string[],
+): Promise<void> {
+  const existing = await getById(teacherId);
+  if (!existing) throw new Error(`Teacher ${teacherId} not found`);
+
+  const existingData = existing as Record<string, unknown>;
+  const oldPhones: string[] = (existingData.phones as string[]) || [];
+  const oldEmails: string[] = (existingData.emails as string[]) || [];
+
+  const oldPhoneSet = new Set(oldPhones);
+  const newPhoneSet = new Set(phones);
+  const oldEmailSet = new Set(oldEmails);
+  const newEmailSet = new Set(emails);
+
+  // Remove lookups for phones no longer in the array
+  for (const p of oldPhones) {
+    if (!newPhoneSet.has(p)) {
+      await deleteDoc(PHONE_LOOKUP_COLLECTION, p);
+    }
+  }
+  // Remove lookups for emails no longer in the array
+  for (const e of oldEmails) {
+    if (!newEmailSet.has(e)) {
+      await deleteDoc(EMAIL_LOOKUP_COLLECTION, e);
+    }
+  }
+  // Add lookups for new phones
+  for (const p of phones) {
+    await setDoc(PHONE_LOOKUP_COLLECTION, p, { teacherId });
+  }
+  // Add lookups for new emails
+  for (const e of emails) {
+    await setDoc(EMAIL_LOOKUP_COLLECTION, e, { teacherId });
+  }
+
+  await updateDoc(COLLECTION, teacherId, {
+    phones,
+    emails,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 }
 
 export async function listPaginated(limit: number, page: number = 1) {

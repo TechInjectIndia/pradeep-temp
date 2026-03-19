@@ -1,4 +1,3 @@
-import * as admin from 'firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
 import { db } from '../infrastructure/firestore/FirestoreAdapter';
 import * as TeacherRawRepository from '../repositories/TeacherRawRepository';
@@ -8,55 +7,226 @@ import * as BatchStateMachine from '../services/BatchStateMachine';
 import * as BatchLogRepository from '../repositories/BatchLogRepository';
 import { AdapterRegistry } from '../adapters/AdapterRegistry';
 import { config } from '../config';
+import type { OrderBook, OrderDocument, SingleOrderResult } from '../types/order';
 
-const SPECIMEN_ORDERS_QUEUE = 'specimen-orders';
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Convert a book title to a URL-safe slug.
+ * e.g. "Mathematics Class 10" → "mathematics-class-10"
+ */
+function toSlug(title: string): string {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')   // remove special chars
+    .replace(/\s+/g, '-')       // spaces → hyphens
+    .replace(/-+/g, '-')        // collapse multiple hyphens
+    .replace(/^-|-$/g, '');     // trim leading/trailing hyphens
+}
+
+function normalizePhone(phone: string): string {
+  return (phone || '').replace(/\D/g, '');
+}
 
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
+export interface CreateOrdersResult {
+  /** Total raw teacher records in this batch */
+  totalTeachers: number;
+  /** Teachers successfully resolved and eligible for an order */
+  resolvedTeachers: number;
+  /** Teachers skipped — resolution failed or no master ID assigned */
+  skippedTeachers: number;
+  /** Number of order-creation tasks actually enqueued */
+  ordersToCreate: number;
+}
+
 /**
- * Read resolved teachers for a batch and enqueue individual order-creation
- * tasks via Cloud Tasks. Tasks are enqueued concurrently in chunks.
+ * Create specimen orders for all resolved teachers in a batch.
+ *
+ * Flow:
+ *  1. Collect all resolved raw teachers and their books.
+ *  2. Build the Order API payload:
+ *       { batchId, teachers: { teacherRecordId: ["productId1", "productId2"] } }
+ *  3. Call the external Order API (or LocalOrderAdapter in emulator).
+ *     Response: { batchId, teachers: { teacherRecordId: { productId: "link" } } }
+ *  4. For each teacher, persist an OrderDocument to `orders` and populate
+ *     the `temp_aggregation` record with the returned links.
+ *  5. Mark aggregations complete and advance the batch state machine.
  */
-export async function createOrdersForBatch(batchId: string): Promise<{ ordersToCreate: number }> {
+export async function createOrdersForBatch(batchId: string): Promise<CreateOrdersResult> {
   const rawTeachers = await TeacherRawRepository.getByBatchId(batchId);
 
   const resolved = rawTeachers.filter(
     (r: any) => r.resolutionStatus === 'resolved' && r.teacherMasterId,
   );
+  const skipped = rawTeachers.length - resolved.length;
 
-  // Enqueue tasks in parallel chunks of 50 to avoid overwhelming Cloud Tasks
-  const CHUNK = 50;
-  for (let i = 0; i < resolved.length; i += CHUNK) {
-    const chunk = resolved.slice(i, i + CHUNK);
-    await Promise.all(
-      chunk.map((record: any) =>
-        AdapterRegistry.getInstance().taskQueue.enqueueTask(SPECIMEN_ORDERS_QUEUE, {
-          teacherRecordId: record.id,
-          batchId,
-        }),
-      ),
-    );
+  if (resolved.length === 0) {
+    return {
+      totalTeachers: rawTeachers.length,
+      resolvedTeachers: 0,
+      skippedTeachers: skipped,
+      ordersToCreate: 0,
+    };
   }
 
-  return { ordersToCreate: resolved.length };
+  // ── Step 1: Build the Order API payload ────────────────────────────────
+  // teachers: { teacherRecordId → productId[] }
+  const teachersPayload: Record<string, string[]> = {};
+
+  for (const record of resolved) {
+    const raw = record as any;
+    const bookTitles: string[] = (raw.books as string || '')
+      .split(/[,;]/)
+      .map((b: string) => b.trim())
+      .filter(Boolean);
+
+    if (bookTitles.length === 0) continue;
+
+    teachersPayload[record.id] = bookTitles.map(toSlug);
+  }
+
+  // ── Step 2: Call the Order API ──────────────────────────────────────────
+  const orderApi = AdapterRegistry.getInstance().orderApi;
+  const apiResponse = await orderApi.createOrders({ batchId, teachers: teachersPayload });
+
+  // ── Step 3: Persist orders and aggregations ─────────────────────────────
+  const teacherMap = new Map(resolved.map((r: any) => [r.id, r]));
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + config.app.linkExpiryDays);
+  const expiresAtIso = expiresAt.toISOString();
+  const now = FieldValue.serverTimestamp();
+
+  let ordersCreated = 0;
+
+  for (const [teacherRecordId, products] of Object.entries(apiResponse.teachers)) {
+    const raw = teacherMap.get(teacherRecordId) as any;
+    if (!raw) continue;
+
+    // Build typed book list — one entry per productId, single link from API response
+    const books: OrderBook[] = [];
+    for (const [productId, url] of Object.entries(products)) {
+      if (!url) continue;
+      const originalTitle =
+        (raw.books as string || '')
+          .split(/[,;]/)
+          .map((b: string) => b.trim())
+          .find((b: string) => toSlug(b) === productId) || productId;
+
+      books.push({ title: originalTitle, productId, specimenUrl: url, expiresAt: expiresAtIso });
+    }
+
+    if (books.length === 0) continue;
+
+    const orderId = `${teacherRecordId}_${batchId}`;
+    const orderRef = db.collection('orders').doc(orderId);
+
+    const orderDoc: OrderDocument = {
+      orderId,
+      batchId,
+      teacherRecordId,
+      teacherMasterId: raw.teacherMasterId || '',
+      teacherName: raw.name || '',
+      teacherPhone: normalizePhone(raw.phone || ''),
+      teacherEmail: (raw.email || '').toLowerCase().trim(),
+      school: raw.school || '',
+      city: raw.city || '',
+      books,
+      totalBooks: books.length,
+      sendWhatsApp: raw.sendWhatsApp === true,
+      sendEmail: raw.sendEmail !== false,
+      status: 'created',
+      expiresAt: expiresAtIso,
+    };
+
+    // Idempotent write — skip if order already exists
+    const existing = await orderRef.get();
+    if (!existing.exists) {
+      await orderRef.set({ ...orderDoc, createdAt: now, updatedAt: now });
+      ordersCreated++;
+    }
+
+    // Create / update aggregation with denormalized teacher details
+    const aggregationKey = `${raw.teacherMasterId}_${batchId}`;
+    await AggregationRepository.getOrCreate(aggregationKey, {
+      teacherMasterId: raw.teacherMasterId || '',
+      teacherRecordId,
+      batchId,
+      teacherName: orderDoc.teacherName,
+      teacherPhone: orderDoc.teacherPhone,
+      teacherEmail: orderDoc.teacherEmail,
+      books: raw.books || '',
+      sendWhatsApp: orderDoc.sendWhatsApp,
+      sendEmail: orderDoc.sendEmail,
+      expectedLinkCount: books.length,
+      linkCount: 0,
+      isComplete: false,
+    });
+
+    // Add each link to the aggregation
+    for (const book of books) {
+      await AggregationRepository.addLink(aggregationKey, {
+        orderId,
+        title: book.title,
+        productId: book.productId,
+        url: book.specimenUrl,
+        expiresAt: book.expiresAt,
+      });
+    }
+
+    await checkAggregationCompletion(aggregationKey);
+  }
+
+  // ── Step 4: Update batch stats and log ─────────────────────────────────
+  if (ordersCreated > 0) {
+    await BatchRepository.incrementStat(batchId, 'stats.ordersCreated', ordersCreated);
+  }
+
+  await BatchLogRepository.append(batchId, {
+    step: 'ordering_order_created',
+    message: `Orders created via Order API`,
+    detail: `${ordersCreated} new orders for ${resolved.length} resolved teachers`,
+    metadata: {
+      batchId,
+      ordersCreated,
+      totalTeachers: rawTeachers.length,
+      resolvedTeachers: resolved.length,
+      skippedTeachers: skipped,
+    },
+  });
+
+  await BatchStateMachine.checkAndAdvanceBatch(batchId);
+
+  return {
+    totalTeachers: rawTeachers.length,
+    resolvedTeachers: resolved.length,
+    skippedTeachers: skipped,
+    ordersToCreate: ordersCreated,
+  };
 }
 
 /**
  * Cloud Task worker handler — creates an order for a single teacher.
- * Uses a deterministic order ID for idempotency: concurrent retries
- * will attempt to set the same document, and the second write is a no-op.
+ *
+ * Order document is DENORMALIZED — stores teacher name/phone/email/school
+ * so downstream messaging can send without an extra Firestore fetch.
+ *
+ * Uses a deterministic order ID (`teacherRecordId_batchId`) for idempotency.
  */
 export async function processOrderCreation(
   teacherRecordId: string,
   batchId: string,
-): Promise<void> {
-  // Deterministic order ID — guarantees idempotency across retries
+): Promise<SingleOrderResult> {
   const orderId = `${teacherRecordId}_${batchId}`;
   const orderRef = db.collection('orders').doc(orderId);
 
-  // Atomic check-and-create inside a transaction to prevent duplicate orders
+  // Atomic reservation — prevents duplicate orders under concurrent retries
   let alreadyExists = false;
   await db.runTransaction(async (tx) => {
     const snap = await tx.get(orderRef);
@@ -64,19 +234,15 @@ export async function processOrderCreation(
       alreadyExists = true;
       return;
     }
-
-    // Fetch dependencies outside transaction read is fine here — we only
-    // need the order doc to not exist (the guard above).
-    // Actual data is fetched below after transaction exits.
-    tx.set(orderRef, { _placeholder: true }); // Reserve the slot
+    tx.set(orderRef, { _placeholder: true });
   });
 
   if (alreadyExists) {
     console.log(`Order ${orderId} already exists, skipping`);
-    return;
+    return { orderId, teacherRecordId, batchId, totalBooks: 0, books: [], outcome: 'skipped' };
   }
 
-  // Fetch data after the transaction (reads inside transactions have limits)
+  // Fetch after transaction (transaction reads are limited in size)
   const [rawTeacher, batch] = await Promise.all([
     TeacherRawRepository.getById(teacherRecordId),
     BatchRepository.getById(batchId),
@@ -85,62 +251,104 @@ export async function processOrderCreation(
   if (!rawTeacher) throw new Error(`Raw teacher record ${teacherRecordId} not found`);
   if (!batch) throw new Error(`Batch ${batchId} not found`);
 
-  const productIds: string[] = (batch as any).productIds || [];
-  const expiryDate = new Date();
-  expiryDate.setDate(expiryDate.getDate() + config.app.linkExpiryDays);
+  const raw = rawTeacher as any;
 
-  const links = productIds.map((productId) => ({
-    productId,
-    url: `https://specimens.example.com/view/${batchId}/${teacherRecordId}/${productId}`,
-    expiresAt: expiryDate.toISOString(),
-  }));
+  // ── Build typed book list ──────────────────────────────────────────────
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + config.app.linkExpiryDays);
+  const expiresAtIso = expiresAt.toISOString();
+  const base = (config.app.specimenBaseUrl || 'https://specimens.example.com').replace(/\/$/, '');
 
-  // Write the real order data (overwrite the placeholder)
-  const now = FieldValue.serverTimestamp();
-  await orderRef.set({
-    teacherRecordId,
-    teacherMasterId: (rawTeacher as any).teacherMasterId,
-    batchId,
-    productIds,
-    links,
-    status: 'created',
-    expiresAt: expiryDate.toISOString(),
-    createdAt: now,
-    updatedAt: now,
+  const bookTitles: string[] = (raw.books as string || '')
+    .split(/[,;]/)
+    .map((b: string) => b.trim())
+    .filter(Boolean);
+
+  const books: OrderBook[] = bookTitles.map((title) => {
+    const productId = toSlug(title);
+    return {
+      title,
+      productId,
+      specimenUrl: `${base}/view/${batchId}/${teacherRecordId}/${productId}`,
+      expiresAt: expiresAtIso,
+    };
   });
 
-  // Atomic get-or-create aggregation, then add all links
-  const aggregationKey = `${(rawTeacher as any).teacherMasterId}_${batchId}`;
+  // ── Build the full OrderDocument ──────────────────────────────────────
+  const orderDoc: OrderDocument = {
+    orderId,
+    batchId,
+    teacherRecordId,
+    teacherMasterId: raw.teacherMasterId || '',
+    teacherName: raw.name || '',
+    teacherPhone: normalizePhone(raw.phone || ''),
+    teacherEmail: (raw.email || '').toLowerCase().trim(),
+    school: raw.school || '',
+    city: raw.city || '',
+    books,
+    totalBooks: books.length,
+    sendWhatsApp: raw.sendWhatsApp === true,
+    sendEmail: raw.sendEmail !== false,   // default true if not set
+    status: 'created',
+    expiresAt: expiresAtIso,
+  };
+
+  // Overwrite the placeholder with the real order
+  const now = FieldValue.serverTimestamp();
+  await orderRef.set({ ...orderDoc, createdAt: now, updatedAt: now });
+
+  // ── Aggregation (one record per teacher per batch) ────────────────────
+  const aggregationKey = `${raw.teacherMasterId}_${batchId}`;
 
   await AggregationRepository.getOrCreate(aggregationKey, {
-    teacherMasterId: (rawTeacher as any).teacherMasterId,
+    teacherMasterId: raw.teacherMasterId || '',
     teacherRecordId,
     batchId,
-    expectedLinkCount: productIds.length,
+    teacherName: orderDoc.teacherName,
+    teacherPhone: orderDoc.teacherPhone,
+    teacherEmail: orderDoc.teacherEmail,
+    books: raw.books || '',
+    sendWhatsApp: orderDoc.sendWhatsApp,
+    sendEmail: orderDoc.sendEmail,
+    expectedLinkCount: books.length,
     linkCount: 0,
     isComplete: false,
   });
 
-  // Add links — arrayUnion + increment are already atomic Firestore ops
+  // Add each book link atomically
   await Promise.all(
-    links.map((link) =>
-      AggregationRepository.addLink(aggregationKey, { ...link, orderId }),
+    books.map((book) =>
+      AggregationRepository.addLink(aggregationKey, {
+        orderId,
+        title: book.title,
+        productId: book.productId,
+        url: book.specimenUrl,
+        expiresAt: book.expiresAt,
+      }),
     ),
   );
 
-  // Check if aggregation is now complete
   await checkAggregationCompletion(aggregationKey);
 
   await BatchRepository.incrementStat(batchId, 'stats.ordersCreated', 1);
 
   await BatchLogRepository.append(batchId, {
     step: 'ordering_order_created',
-    message: `Order created for teacher`,
-    detail: `teacherRecordId: ${teacherRecordId}, orderId: ${orderId}`,
-    metadata: { teacherRecordId, orderId, productCount: productIds.length },
+    message: `Order created for ${orderDoc.teacherName || 'teacher'}`,
+    detail: `${books.length} book(s): ${bookTitles.join(', ')}`,
+    metadata: {
+      orderId,
+      teacherRecordId,
+      teacherName: orderDoc.teacherName,
+      school: orderDoc.school,
+      totalBooks: books.length,
+      books: books.map((b) => ({ title: b.title, productId: b.productId })),
+    },
   });
 
   await BatchStateMachine.checkAndAdvanceBatch(batchId);
+
+  return { orderId, teacherRecordId, batchId, totalBooks: books.length, books, outcome: 'created' };
 }
 
 /**

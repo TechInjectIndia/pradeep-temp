@@ -8,6 +8,9 @@ import {
   resumeBatch,
   cancelBatch,
   checkAdvanceBatch,
+  retryResolution,
+  retryOrderCreation,
+  retryDispatching,
   retryBatchErrors,
 } from "@/services/api";
 import type { BatchListParams, BatchErrorParams } from "@/types";
@@ -93,6 +96,51 @@ export function useCheckAdvanceBatch() {
     },
     onError: (err: Error) => {
       toast.error(err.message || "Failed to refresh status");
+    },
+  });
+}
+
+export function useRetryResolution() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (batchId: string) => retryResolution(batchId),
+    onSuccess: (data) => {
+      toast.success(`Resolution complete — status: ${data.status}`);
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      queryClient.invalidateQueries({ queryKey: ["batch"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to retry resolution");
+    },
+  });
+}
+
+export function useRetryOrderCreation() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (batchId: string) => retryOrderCreation(batchId),
+    onSuccess: (data) => {
+      toast.success(`Enqueued ${data.ordersToCreate} order creation tasks`);
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      queryClient.invalidateQueries({ queryKey: ["batch"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to create orders");
+    },
+  });
+}
+
+export function useRetryDispatching() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (batchId: string) => retryDispatching(batchId),
+    onSuccess: (data) => {
+      toast.success(`Enqueued ${data.totalMessages} messaging tasks`);
+      queryClient.invalidateQueries({ queryKey: ["batches"] });
+      queryClient.invalidateQueries({ queryKey: ["batch"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to dispatch messages");
     },
   });
 }

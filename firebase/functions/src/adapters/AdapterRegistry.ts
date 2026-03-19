@@ -1,4 +1,4 @@
-import { IMessagingPort, IEmailPort, ISearchPort, ITaskQueuePort } from '../ports';
+import { IMessagingPort, IEmailPort, ISearchPort, ITaskQueuePort, IOrderPort } from '../ports';
 
 /**
  * Singleton registry that holds references to every infrastructure adapter.
@@ -13,6 +13,7 @@ export class AdapterRegistry {
   private _email: IEmailPort | null = null;
   private _search: ISearchPort | null = null;
   private _taskQueue: ITaskQueuePort | null = null;
+  private _orderApi: IOrderPort | null = null;
 
   // Prevent external instantiation.
   private constructor() {}
@@ -35,6 +36,7 @@ export class AdapterRegistry {
       AdapterRegistry.instance._email = null;
       AdapterRegistry.instance._search = null;
       AdapterRegistry.instance._taskQueue = null;
+      AdapterRegistry.instance._orderApi = null;
     }
     // Drop the singleton so the next `getInstance()` creates a fresh one.
     AdapterRegistry.instance = undefined as unknown as AdapterRegistry;
@@ -76,6 +78,15 @@ export class AdapterRegistry {
     return this._taskQueue;
   }
 
+  get orderApi(): IOrderPort {
+    if (!this._orderApi) {
+      throw new Error(
+        'OrderPort has not been registered. Call registerOrderApi() at startup.',
+      );
+    }
+    return this._orderApi;
+  }
+
   // ---------------------------------------------------------------------------
   // Registration methods
   // ---------------------------------------------------------------------------
@@ -94,5 +105,9 @@ export class AdapterRegistry {
 
   registerTaskQueue(adapter: ITaskQueuePort): void {
     this._taskQueue = adapter;
+  }
+
+  registerOrderApi(adapter: IOrderPort): void {
+    this._orderApi = adapter;
   }
 }

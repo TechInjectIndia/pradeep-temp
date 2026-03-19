@@ -4,6 +4,7 @@ import * as CommLogRepository from '../repositories/CommLogRepository';
 import * as MessageSendLogRepository from '../repositories/MessageSendLogRepository';
 import * as AggregationRepository from '../repositories/AggregationRepository';
 import { AdapterRegistry } from '../adapters/AdapterRegistry';
+import { WHATSAPP_QUEUE, EMAIL_QUEUE } from '../constants/queues';
 
 /** Map comm_log entry to message log format (fallback when message_send_log is empty) */
 function commLogToMessageLog(c: any): Record<string, unknown> {
@@ -20,9 +21,6 @@ function commLogToMessageLog(c: any): Record<string, unknown> {
     subject: c.subject,
   };
 }
-
-const WHATSAPP_QUEUE = 'whatsapp-messages';
-const EMAIL_QUEUE = 'email-messages';
 
 // ---------------------------------------------------------------------------
 // POST /messages/resend

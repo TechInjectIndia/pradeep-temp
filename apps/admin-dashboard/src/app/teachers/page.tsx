@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { Search } from "lucide-react";
+import { clsx } from "clsx";
 import DataTable, { type Column } from "@/components/DataTable";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import type { Teacher } from "@/types";
@@ -17,14 +18,56 @@ const columns: Column<Teacher>[] = [
   {
     key: "phone",
     header: "Phone",
-    render: (row) => (
-      <span className="font-mono text-sm">{row.phone || "—"}</span>
-    ),
+    render: (row) => {
+      const phones = row.phones?.length ? row.phones : row.phone ? [row.phone] : [];
+      return (
+        <div className="flex flex-wrap gap-1">
+          {phones.length === 0 ? (
+            <span className="text-muted-foreground">—</span>
+          ) : (
+            phones.map((p, i) => (
+              <span
+                key={i}
+                className={clsx(
+                  "font-mono text-sm",
+                  i === phones.length - 1 ? "font-medium text-foreground" : "text-muted-foreground"
+                )}
+              >
+                {p}
+                {i < phones.length - 1 ? "," : ""}
+              </span>
+            ))
+          )}
+        </div>
+      );
+    },
   },
   {
     key: "email",
     header: "Email",
-    render: (row) => <span className="text-sm">{row.email || "—"}</span>,
+    render: (row) => {
+      const emails = row.emails?.length ? row.emails : row.email ? [row.email] : [];
+      return (
+        <div className="flex flex-wrap gap-1">
+          {emails.length === 0 ? (
+            <span className="text-muted-foreground">—</span>
+          ) : (
+            emails.map((e, i) => (
+              <span
+                key={i}
+                className={clsx(
+                  "text-sm",
+                  i === emails.length - 1 ? "font-medium text-foreground" : "text-muted-foreground"
+                )}
+              >
+                {e}
+                {i < emails.length - 1 ? "," : ""}
+              </span>
+            ))
+          )}
+        </div>
+      );
+    },
   },
   { key: "school", header: "School" },
   { key: "city", header: "City" },

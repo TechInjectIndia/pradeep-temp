@@ -6,15 +6,12 @@ import * as AggregationRepository from '../repositories/AggregationRepository';
 import * as CommLogRepository from '../repositories/CommLogRepository';
 import * as CommunicationRepository from '../repositories/CommunicationRepository';
 import * as BatchRepository from '../repositories/BatchRepository';
-import * as TeacherRawRepository from '../repositories/TeacherRawRepository';
 import * as MessageSendLogRepository from '../repositories/MessageSendLogRepository';
 import * as BatchLogRepository from '../repositories/BatchLogRepository';
 import * as BatchStateMachine from '../services/BatchStateMachine';
 import { AdapterRegistry } from '../adapters/AdapterRegistry';
 import { config } from '../config';
-
-const WHATSAPP_QUEUE = 'whatsapp-messages';
-const EMAIL_QUEUE = 'email-messages';
+import { WHATSAPP_QUEUE, EMAIL_QUEUE } from '../constants/queues';
 
 function normalizePhoneForStorage(phone: string): string {
   return (phone || '').replace(/\D/g, '');
@@ -55,9 +52,11 @@ export async function enqueueMessagesForBatch(batchId: string): Promise<{ totalM
     return { totalMessages: 0 };
   }
 
+  // Teacher details are now denormalized onto the aggregation document by
+  // SpecimenService.processOrderCreation — no raw teacher fetch needed.
   let totalMessages = 0;
+  const logLevel = process.env.LOG_LEVEL || 'info';
 
-  // Process in parallel chunks of 20 to avoid overwhelming Firestore
   const CHUNK = 20;
   for (let i = 0; i < aggregations.length; i += CHUNK) {
     const chunk = aggregations.slice(i, i + CHUNK);
@@ -65,51 +64,28 @@ export async function enqueueMessagesForBatch(batchId: string): Promise<{ totalM
     const results = await Promise.allSettled(
       chunk.map(async (aggregation) => {
         const agg = aggregation as any;
-        let teacherPhone: string = agg.teacherPhone || '';
-        let teacherEmail: string = agg.teacherEmail || '';
-        let teacherName: string = agg.teacherName || '';
-        let books: string = agg.books || '';
 
-        // Default: when raw teacher not found, only send email (safer fallback)
-        let sendWhatsApp = false;
-        let sendEmail = true;
-        if (agg.teacherRecordId) {
-          const rawTeacher = await TeacherRawRepository.getById(agg.teacherRecordId);
-          if (rawTeacher) {
-            const r = rawTeacher as any;
-            if (!teacherPhone) teacherPhone = normalizePhoneForStorage(r.phone || '');
-            if (!teacherEmail) teacherEmail = (r.email || '').toLowerCase().trim();
-            if (!teacherName) teacherName = r.name || '';
-            if (!books) books = r.books || '';
-            // Respect channel preferences from reviewed upload - only send when explicitly true
-            sendWhatsApp = r.sendWhatsApp === true;
-            sendEmail = r.sendEmail === true;
-            // Legacy: if both undefined, default to both
-            if (r.sendWhatsApp === undefined && r.sendEmail === undefined) {
-              sendWhatsApp = true;
-              sendEmail = true;
-            }
-            await db.collection('temp_aggregation').doc(aggregation.id).update({
-              teacherPhone: teacherPhone || undefined,
-              teacherEmail: teacherEmail || undefined,
-              teacherName: teacherName || undefined,
-              books: books || undefined,
-              updatedAt: FieldValue.serverTimestamp(),
-            });
-          } else {
-            console.warn(`enqueueMessagesForBatch: raw teacher ${agg.teacherRecordId} not found, defaulting to email only`);
-          }
+        // Read teacher details directly from the aggregation doc (denormalized)
+        const teacherPhone: string = normalizePhoneForStorage(agg.teacherPhone || '');
+        const teacherEmail: string = (agg.teacherEmail || '').toLowerCase().trim();
+        const teacherName: string = agg.teacherName || '';
+        const books: string = agg.books || '';
+
+        // Channel preferences — stored on aggregation by order creation
+        let sendWhatsApp: boolean = agg.sendWhatsApp === true;
+        let sendEmail: boolean = agg.sendEmail === true;
+        // Backward compat: if aggregation predates channel fields, default both
+        if (agg.sendWhatsApp === undefined && agg.sendEmail === undefined) {
+          sendWhatsApp = true;
+          sendEmail = true;
         }
 
         const channelsToSend: Array<'whatsapp' | 'email'> = [];
         if (teacherPhone && sendWhatsApp) channelsToSend.push('whatsapp');
         if (teacherEmail && sendEmail) channelsToSend.push('email');
 
-        if (channelsToSend.length > 0) {
-          console.log(`enqueueMessagesForBatch: ${teacherName || 'teacher'} channelsToSend=[${channelsToSend.join(',')}] sendWA=${sendWhatsApp} sendEmail=${sendEmail}`);
-        }
-        if (channelsToSend.length === 0) {
-          console.log(`enqueueMessagesForBatch: skipping ${teacherName || 'teacher'} - no channel (phone=${!!teacherPhone} sendWA=${sendWhatsApp} email=${!!teacherEmail} sendEmail=${sendEmail})`);
+        if (channelsToSend.length === 0 && logLevel === 'debug') {
+          console.log(`enqueueMessagesForBatch: skip ${teacherName || 'teacher'} (phone=${!!teacherPhone} sendWA=${sendWhatsApp} sendEmail=${sendEmail})`);
         }
 
         for (const ch of channelsToSend) {

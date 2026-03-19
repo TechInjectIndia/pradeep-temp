@@ -35,23 +35,14 @@ export default function Sidebar({ open, onClose }: Props) {
 
   return (
     <>
-      {/* Mobile backdrop */}
-      {open && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
-          onClick={onClose}
-          aria-hidden="true"
-        />
-      )}
-
       <aside
         className={clsx(
           "fixed inset-y-0 left-0 z-50 flex w-64 flex-col bg-card border-r border-border transition-transform duration-200 ease-in-out",
-          open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+          open ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="flex h-14 items-center justify-between border-b border-border px-4 lg:h-16 lg:px-6">
+        <div className="flex h-14 items-center justify-between border-b border-border px-4 lg:px-6">
           <div className="flex items-center gap-3">
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
               V
@@ -60,7 +51,7 @@ export default function Sidebar({ open, onClose }: Props) {
           </div>
           <button
             onClick={onClose}
-            className="rounded-md p-1.5 text-muted-foreground/70 hover:text-gray-200 focus:outline-none lg:hidden"
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none transition-colors"
             aria-label="Close navigation"
           >
             <X className="h-5 w-5" />
@@ -78,7 +69,6 @@ export default function Sidebar({ open, onClose }: Props) {
               <Link
                 key={item.href}
                 href={item.href}
-                onClick={onClose}
                 className={clsx(
                   "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                   isActive

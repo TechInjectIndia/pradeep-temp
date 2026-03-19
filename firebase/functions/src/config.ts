@@ -31,6 +31,16 @@ export const config = {
     maxMessagesPerTeacherPerHour: parseInt(process.env.MAX_MESSAGES_PER_TEACHER_PER_HOUR || '0', 10) || 0,
     /** Website URL to include in messages */
     websiteUrl: process.env.APP_WEBSITE_URL || 'https://www.pradeeppublications.com',
+    /** Base URL for specimen links (view, generate-links) */
+    specimenBaseUrl: process.env.SPECIMEN_BASE_URL || process.env.APP_WEBSITE_URL || 'https://specimens.example.com',
+    /**
+     * External Order API endpoint (POST).
+     * Payload:  { batchId, teachers: Record<teacherId, Record<productId, count>> }
+     * Response: { batchId, teachers: Record<teacherId, Record<productId, link[]>> }
+     *
+     * Leave unset to use the local URL-generation fallback (emulator / dev).
+     */
+    orderApiUrl: process.env.ORDER_API_URL || '',
   },
 };
 

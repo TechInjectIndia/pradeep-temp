@@ -108,6 +108,10 @@ export const batchesPause = onRequest(apiOptions, withCors(BatchController.pause
 export const batchesResume = onRequest(apiOptions, withCors(BatchController.resumeBatch));
 export const batchesCancel = onRequest(apiOptions, withCors(BatchController.cancelBatch));
 export const batchesCheckAdvance = onRequest(apiOptions, withCors(BatchController.checkAdvanceBatch));
+export const batchesRetryResolution = onRequest(apiOptions, withCors(BatchController.retryResolution));
+export const batchesRetryOrderCreation = onRequest(apiOptions, withCors(BatchController.retryOrderCreation));
+export const batchesRetryDispatching = onRequest(apiOptions, withCors(BatchController.retryDispatching));
+export const batchesTeachers = onRequest(apiOptions, withCors(BatchController.getBatchTeachers));
 export const batchesLogs = onRequest(apiOptions, withCors(BatchController.getBatchLogs));
 export const batchesErrors = onRequest(apiOptions, withCors(BatchController.getBatchErrors));
 export const batchesRetryErrors = onRequest(apiOptions, withCors(BatchController.retryBatchErrors));
@@ -136,6 +140,8 @@ export const dashboardStats = onRequest(apiOptions, withCors(DashboardController
 
 // Teachers
 export const teachersList = onRequest(apiOptions, withCors(TeacherController.listTeachers));
+export const teachersCheckDuplicates = onRequest(apiOptions, withCors(TeacherController.checkDuplicates));
+export const teachersMerge = onRequest(apiOptions, withCors(TeacherController.mergeTeacher));
 
 // ---------------------------------------------------------------------------
 // Cloud Task worker handlers

@@ -85,7 +85,7 @@ export async function resolveDuplicate(req: Request, res: Response): Promise<voi
 
     res.status(200).json({
       duplicateId,
-      resolution: action === 'merge' ? 'merged' : 'kept_separate',
+      resolution: action === 'merge' ? 'MERGED' : 'KEPT_SEPARATE',
     });
   } catch (err) {
     console.error('resolveDuplicate error:', err);

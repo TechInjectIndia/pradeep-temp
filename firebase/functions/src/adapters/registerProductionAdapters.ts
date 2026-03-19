@@ -6,6 +6,8 @@ import * as ResendAdapter from '../infrastructure/resend/ResendAdapter';
 import * as AlgoliaAdapter from '../infrastructure/algolia/AlgoliaAdapter';
 import * as CloudTasksAdapter from '../infrastructure/cloudtasks/CloudTasksAdapter';
 import * as LocalTaskQueueAdapter from '../infrastructure/cloudtasks/LocalTaskQueueAdapter';
+import { ExternalOrderAdapter } from '../infrastructure/orderApi/ExternalOrderAdapter';
+import { LocalOrderAdapter } from '../infrastructure/orderApi/LocalOrderAdapter';
 import { config } from '../config';
 
 /**
@@ -51,4 +53,10 @@ export function registerProductionAdapters(): void {
   registry.registerTaskQueue({
     enqueueTask: isLocal ? LocalTaskQueueAdapter.enqueueTask : CloudTasksAdapter.enqueueTask,
   });
+
+  // Order API: use real external service when ORDER_API_URL is set, else generate URLs locally
+  const orderApiUrl = config.app.orderApiUrl;
+  registry.registerOrderApi(
+    orderApiUrl ? new ExternalOrderAdapter(orderApiUrl) : new LocalOrderAdapter(),
+  );
 }

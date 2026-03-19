@@ -5,8 +5,7 @@ import * as BatchLogRepository from '../repositories/BatchLogRepository';
 import { config } from '../config';
 import type { GenerateLinksRequest, GenerateLinksResponse } from '../types/specimen';
 
-const BASE_URL =
-  process.env.SPECIMEN_BASE_URL || config.app.websiteUrl || 'https://specimens.example.com';
+const BASE_URL = config.app.specimenBaseUrl || 'https://specimens.example.com';
 
 /**
  * Generate specimen links for teachers × products × quantity.

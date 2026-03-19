@@ -30,7 +30,7 @@ export async function flagDuplicate(
  * Resolve a flagged duplicate.
  *
  * Actions:
- *   - 'merge': merge the raw teacher into the candidate via TeacherService
+ *   - 'merge': merge the incoming teacher data into the candidate via TeacherService
  *   - 'keep_separate': mark as resolved with no merge
  */
 export async function resolveDuplicate(
@@ -45,26 +45,25 @@ export async function resolveDuplicate(
 
   const dup = duplicate as any;
 
-  if (dup.resolution !== 'pending') {
+  if (dup.resolution !== 'PENDING') {
     throw new Error(
       `Duplicate ${duplicateId} has already been resolved (resolution: ${dup.resolution})`,
     );
   }
 
   if (action === 'merge') {
-    // Perform the merge via TeacherService
-    // We need the raw teacher data; the duplicate record stores the IDs
+    const incoming = dup.incomingRecord || {};
     await TeacherService.mergeTeacher(dup.candidateTeacherId, {
-      name: dup.rawTeacherName || '',
-      phone: dup.rawTeacherPhone || '',
-      email: dup.rawTeacherEmail || '',
-      school: dup.rawTeacherSchool || '',
-      city: dup.rawTeacherCity || '',
+      name: incoming.name || '',
+      phone: incoming.phone || '',
+      email: incoming.email || '',
+      school: incoming.school || '',
+      city: incoming.city || '',
     });
   }
 
   await DuplicateRepository.update(duplicateId, {
-    resolution: action === 'merge' ? 'merged' : 'kept_separate',
+    resolution: action === 'merge' ? 'MERGED' : 'KEPT_SEPARATE',
     reviewedBy,
     resolvedAt: new Date().toISOString(),
   });
@@ -72,11 +71,34 @@ export async function resolveDuplicate(
 
 /**
  * List flagged duplicates with optional filters and page-based pagination.
+ * Maps raw Firestore documents to the shape expected by the frontend UI.
  */
 export async function listDuplicates(
   filters?: { batchId?: string; resolution?: string },
   limit?: number,
   offset?: number,
 ) {
-  return DuplicateRepository.list(filters, limit, undefined, offset);
+  const raw = await DuplicateRepository.list(filters, limit, undefined, offset);
+  return raw.map((doc: any) => ({
+    id: doc.id,
+    batchId: doc.batchId || '',
+    incomingRecord: doc.incomingRecord || {
+      name: '',
+      phone: '',
+      email: '',
+      school: '',
+      city: '',
+    },
+    existingRecord: doc.existingRecord || {
+      name: '',
+      phone: '',
+      email: '',
+      school: '',
+      city: '',
+    },
+    confidenceScore: typeof doc.confidenceScore === 'number' ? doc.confidenceScore : (doc.score || 0) / 100,
+    matchReasons: doc.matchReasons || doc.reasons || [],
+    resolution: doc.resolution || 'PENDING',
+    createdAt: doc.createdAt || '',
+  }));
 }

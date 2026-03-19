@@ -6,6 +6,21 @@ if (!admin.apps.length) {
 }
 
 function getCredential(): admin.credential.Credential | undefined {
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+
+  if (clientEmail && privateKey && projectId) {
+    const key = privateKey.replace(/\\n/g, '\n');
+    return admin.credential.cert({
+      projectId,
+      clientEmail,
+      privateKey: key,
+      clientId: process.env.FIREBASE_CLIENT_ID,
+      privateKeyId: process.env.FIREBASE_PRIVATE_KEY_ID,
+    } as admin.ServiceAccount);
+  }
+
   const json = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
   if (json) {
     try {

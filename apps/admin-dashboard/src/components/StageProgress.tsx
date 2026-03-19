@@ -24,9 +24,9 @@ export default function StageProgress({ stage, batchId }: Props) {
           className={clsx(
             "h-2.5 rounded-full transition-all duration-500",
             percentage === 100
-              ? "bg-green-500"
+              ? "bg-emerald-500"
               : percentage > 0
-              ? "bg-blue-500"
+              ? "bg-primary"
               : "bg-muted-foreground/30"
           )}
           style={{ width: `${percentage}%` }}
@@ -34,12 +34,12 @@ export default function StageProgress({ stage, batchId }: Props) {
       </div>
       {stage.failed > 0 && (
         <div className="flex items-center justify-between text-xs">
-          <span className="text-red-600">
+          <span className="text-destructive">
             {stage.failed} failed
           </span>
           <Link
             href={`/batches/${batchId}/errors?stage=${stage.stage}`}
-            className="text-blue-600 hover:text-blue-800 hover:underline"
+            className="text-primary hover:underline"
           >
             View errors
           </Link>

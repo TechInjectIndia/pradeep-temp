@@ -124,6 +124,10 @@ export interface Teacher {
   name: string;
   phone: string;
   email: string;
+  /** All phone numbers (last = primary for display) */
+  phones?: string[];
+  /** All email addresses (last = primary for display) */
+  emails?: string[];
   school: string;
   city: string;
   createdAt: string;
@@ -185,6 +189,8 @@ export interface ReviewedRow extends UploadRow {
   emailSelected?: string;
   /** Channel preference: both (default), whatsapp only, email only, none */
   channels: ChannelChoice;
+  /** When set, teacher already exists in DB (exact match) — skip resolution, use this ID */
+  existingTeacherId?: string;
 }
 
 // ---- Pagination ----

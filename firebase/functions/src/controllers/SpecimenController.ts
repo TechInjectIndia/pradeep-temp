@@ -149,6 +149,8 @@ interface ReviewedRowInput {
   phoneSelected?: string;
   emailSelected?: string;
   channels?: 'both' | 'whatsapp' | 'email' | 'none';
+  /** When set, teacher already exists in DB (exact match) — create pre-resolved raw record */
+  existingTeacherId?: string;
 }
 
 export async function uploadReviewed(req: Request, res: Response): Promise<void> {
@@ -172,8 +174,12 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
       phone: r.phoneSelected ?? r.phone ?? '',
       email: r.emailSelected ?? r.email ?? '',
     }));
-    const { valid, errors } = validateRows(normalizedForValidation as Array<Record<string, unknown>>);
-    if (valid.length === 0) {
+    const { errors } = validateRows(normalizedForValidation as Array<Record<string, unknown>>);
+    // Filter the normalized rows (which retain channels/phoneSelected/emailSelected) by removing invalid ones
+    const invalidRowNumbers = new Set(errors.map((e) => e.row));
+    const validNormalized = normalizedForValidation.filter((_, idx) => !invalidRowNumbers.has(idx + 2));
+
+    if (validNormalized.length === 0) {
       res.status(400).json({
         error: 'No valid rows found',
         validationErrors: errors,
@@ -181,16 +187,18 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
       return;
     }
 
+    const exactMatchCount = validNormalized.filter((r: any) => !!r.existingTeacherId).length;
+
     const batch = await BatchRepository.create({
       status: 'UPLOADED',
       fileName: 'reviewed-upload.json',
       totalRows: rows.length,
-      validRows: valid.length,
+      validRows: validNormalized.length,
       invalidRows: errors.length,
       validationErrors: errors.length > 0 ? errors : [],
       stats: {
-        totalTeachers: valid.length,
-        teachersResolved: 0,
+        totalTeachers: validNormalized.length,
+        teachersResolved: exactMatchCount,
         resolutionErrors: 0,
         ordersCreated: 0,
         messagesQueued: 0,
@@ -203,14 +211,16 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
     const batchId = batch.id;
 
     const channelCounts = { both: 0, whatsapp: 0, email: 0, none: 0 };
-    const rawRecords = valid.map((row: any) => {
+    const rawRecords = validNormalized.map((row: any) => {
       const channels = (row.channels || 'both') as 'both' | 'whatsapp' | 'email' | 'none';
       channelCounts[channels] = (channelCounts[channels] || 0) + 1;
       const phone = row.phoneSelected ?? row.phone ?? '';
       const email = row.emailSelected ?? row.email ?? '';
       const sendWhatsApp = channels === 'both' || channels === 'whatsapp';
       const sendEmail = channels === 'both' || channels === 'email';
-      return {
+      const existingTeacherId = row.existingTeacherId as string | undefined;
+      const isExactMatch = !!existingTeacherId;
+      const base = {
         batchId,
         name: row.name,
         phone,
@@ -218,10 +228,19 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
         school: row.school,
         city: row.city || '',
         books: row.books,
-        resolutionStatus: 'pending',
+        resolutionStatus: isExactMatch ? 'resolved' : 'pending',
         sendWhatsApp: channels !== 'none' && sendWhatsApp,
         sendEmail: channels !== 'none' && sendEmail,
       };
+      if (isExactMatch && existingTeacherId) {
+        return {
+          ...base,
+          teacherMasterId: existingTeacherId,
+          isNewTeacher: false,
+          resolutionConfidence: 100,
+        };
+      }
+      return base;
     });
 
     const created = await TeacherRawRepository.createBatch(rawRecords);
@@ -239,16 +258,16 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
     await AdminActivityLogRepository.append({
       type: 'batch_reviewed_upload',
       batchId,
-      teacherCount: valid.length,
-      message: `Uploaded ${valid.length} teachers (channels: ${JSON.stringify(channelCounts)})`,
+      teacherCount: validNormalized.length,
+      message: `Uploaded ${validNormalized.length} teachers (channels: ${JSON.stringify(channelCounts)})`,
       metadata: { channelCounts },
     }).catch((e) => console.error('AdminActivityLog append failed:', e));
 
     await BatchLogRepository.append(batchId, {
       step: 'upload',
       message: 'Batch uploaded (reviewed)',
-      detail: `${valid.length} teachers from reviewed data`,
-      metadata: { validRows: valid.length, invalidRows: errors.length },
+      detail: `${validNormalized.length} teachers from reviewed data`,
+      metadata: { validRows: validNormalized.length, invalidRows: errors.length },
     });
 
     await BatchStateMachine.transitionBatch(batchId, 'VALIDATING', 'upload_auto');
@@ -256,7 +275,7 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
 
     res.status(200).json({
       batchId,
-      teacherCount: valid.length,
+      teacherCount: validNormalized.length,
       teachers,
       status: 'RESOLVING',
       validationErrors: errors.length > 0 ? errors : undefined,
@@ -271,7 +290,30 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
 }
 
 // ---------------------------------------------------------------------------
-// POST /specimen/create-orders
+// POST /specimenCreateOrders
+//
+// Request payload:
+//   { "batchId": "<batch-id>" }
+//
+// Internally builds:
+//   { batchId, teachers: Record<teacherRecordId, Record<productId, count>> }
+// and calls the Order API (external or local emulator fallback).
+//
+// Success response (200):
+//   {
+//     "batchId": "...",
+//     "batchStatus": "ORDERING",
+//     "totalTeachers": 30,
+//     "resolvedTeachers": 28,
+//     "skippedTeachers": 2,
+//     "ordersCreated": 28,
+//     "message": "28 orders created via Order API"
+//   }
+//
+// Error responses:
+//   400 — batchId missing or invalid
+//   404 — batch not found
+//   500 — internal error
 // ---------------------------------------------------------------------------
 
 export async function createOrders(req: Request, res: Response): Promise<void> {
@@ -298,8 +340,12 @@ export async function createOrders(req: Request, res: Response): Promise<void> {
 
     res.status(200).json({
       batchId,
-      ordersToCreate: result.ordersToCreate,
-      status: (batch as any).status,
+      batchStatus: (batch as any).status,
+      totalTeachers: result.totalTeachers,
+      resolvedTeachers: result.resolvedTeachers,
+      skippedTeachers: result.skippedTeachers,
+      ordersCreated: result.ordersToCreate,
+      message: `${result.ordersToCreate} order${result.ordersToCreate !== 1 ? 's' : ''} created via Order API`,
     });
   } catch (err) {
     console.error('createOrders error:', err);
@@ -336,14 +382,15 @@ export async function generateLinks(req: Request, res: Response): Promise<void> 
     }
 
     const result = await LinkGenerationService.generateLinks({ batchId, teacherProducts });
-
     res.status(200).json(result);
   } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('not found')) {
+      res.status(404).json({ error: msg });
+      return;
+    }
     console.error('generateLinks error:', err);
-    res.status(500).json({
-      error: 'Failed to generate links',
-      details: err instanceof Error ? err.message : String(err),
-    });
+    res.status(500).json({ error: 'Failed to generate links', details: msg });
   }
 }
 
@@ -388,45 +435,36 @@ export async function getBatchLinks(req: Request, res: Response): Promise<void> 
  * Parse a multipart/form-data request and extract the first file as a Buffer.
  * Uses rawBody when available (production); buffers stream in emulator where rawBody may be empty.
  */
-function parseMultipartFile(req: Request): Promise<Buffer> {
-  return new Promise(async (resolve, reject) => {
-    const busboy = Busboy({ headers: req.headers });
-    const chunks: Buffer[] = [];
-    let fileName = '';
+async function parseMultipartFile(req: Request): Promise<Buffer> {
+  const busboy = Busboy({ headers: req.headers });
+  const chunks: Buffer[] = [];
+  let fileName = 'upload.xlsx';
 
-    busboy.on(
-      'file',
-      (_fieldname: string, file: NodeJS.ReadableStream, info: { filename: string }) => {
-        fileName = info.filename || 'upload.xlsx';
-        file.on('data', (data: Buffer) => {
-          chunks.push(data);
-        });
-      },
-    );
+  busboy.on(
+    'file',
+    (_fieldname: string, file: NodeJS.ReadableStream, info: { filename: string }) => {
+      fileName = info.filename || 'upload.xlsx';
+      file.on('data', (data: Buffer) => chunks.push(data));
+    },
+  );
 
+  const body = await getRequestBody(req);
+  return new Promise((resolve, reject) => {
     busboy.on('finish', () => {
       (req as any).fileName = fileName;
       resolve(Buffer.concat(chunks));
     });
-
-    busboy.on('error', (err: Error) => {
-      reject(err);
-    });
-
-    try {
-      let body: Buffer;
-      const rawBody = (req as any).rawBody;
-      if (rawBody && Buffer.isBuffer(rawBody) && rawBody.length > 0) {
-        body = rawBody;
-      } else {
-        // Emulator: rawBody often empty; buffer from stream
-        body = await streamToBuffer(req);
-      }
-      busboy.end(body);
-    } catch (err) {
-      reject(err);
-    }
+    busboy.on('error', reject);
+    busboy.end(body);
   });
+}
+
+async function getRequestBody(req: Request): Promise<Buffer> {
+  const rawBody = (req as any).rawBody;
+  if (rawBody && Buffer.isBuffer(rawBody) && rawBody.length > 0) {
+    return rawBody;
+  }
+  return streamToBuffer(req);
 }
 
 /** Read request body stream into a Buffer (for emulator when rawBody is empty). */

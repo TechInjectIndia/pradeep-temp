@@ -226,7 +226,7 @@ export async function checkAndAdvanceBatch(batchId: string): Promise<void> {
       const errors: number = stats.resolutionErrors || 0;
 
       if (totalTeachers > 0 && resolved + errors >= totalTeachers) {
-        await transitionBatch(batchId, BatchStatus.ORDERING, 'auto_advance_all_resolved');
+        await safeTransition(batchId, BatchStatus.ORDERING, 'auto_advance_all_resolved');
       }
       break;
     }
@@ -236,7 +236,7 @@ export async function checkAndAdvanceBatch(batchId: string): Promise<void> {
       const ordersCreated: number = stats.ordersCreated || 0;
 
       if (expectedOrders > 0 && ordersCreated >= expectedOrders) {
-        await transitionBatch(batchId, BatchStatus.MESSAGING, 'auto_advance_all_orders_created');
+        await safeTransition(batchId, BatchStatus.MESSAGING, 'auto_advance_all_orders_created');
       }
       break;
     }
@@ -250,9 +250,9 @@ export async function checkAndAdvanceBatch(batchId: string): Promise<void> {
 
       if (messagesQueued > 0 && totalProcessed >= messagesQueued) {
         if (messagesFailed === 0 && dlqMessages === 0) {
-          await transitionBatch(batchId, BatchStatus.COMPLETE, 'auto_advance_all_delivered');
+          await safeTransition(batchId, BatchStatus.COMPLETE, 'auto_advance_all_delivered');
         } else {
-          await transitionBatch(batchId, BatchStatus.PARTIAL_FAILURE, 'auto_advance_with_failures');
+          await safeTransition(batchId, BatchStatus.PARTIAL_FAILURE, 'auto_advance_with_failures');
         }
       }
       break;
@@ -260,5 +260,26 @@ export async function checkAndAdvanceBatch(batchId: string): Promise<void> {
 
     default:
       break;
+  }
+}
+
+/**
+ * Attempt a batch transition, silently ignoring "already advanced" errors.
+ * Multiple concurrent workers (order/messaging) each call checkAndAdvanceBatch
+ * after completing their task. Only the first one to hit the threshold should
+ * transition; the rest will find the batch already in the new state and must
+ * not throw.
+ */
+async function safeTransition(batchId: string, targetStatus: string, trigger: string): Promise<void> {
+  try {
+    await transitionBatch(batchId, targetStatus, trigger);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    if (msg.includes('Invalid batch transition')) {
+      // Another concurrent worker already advanced the state — this is expected.
+      console.log(`checkAndAdvanceBatch: transition to ${targetStatus} skipped (already advanced) for batch ${batchId}`);
+      return;
+    }
+    throw err;
   }
 }

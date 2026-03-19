@@ -148,6 +148,31 @@ export async function getBatch(batchId: string): Promise<BatchDetail> {
   return request<BatchDetail>(`/batchesGet?batchId=${batchId}`);
 }
 
+export interface BatchTeacherOrderItem {
+  productId: string;
+  title: string;
+  link: string;
+  expiresAt: string;
+  status?: "created" | "pending";
+}
+
+export interface BatchTeacherWithOrders {
+  teacherRecordId: string;
+  teacherName: string;
+  teacherPhone: string;
+  teacherEmail: string;
+  orders: BatchTeacherOrderItem[];
+}
+
+export async function getBatchTeachers(batchId: string): Promise<{
+  data: BatchTeacherWithOrders[];
+  total: number;
+}> {
+  return request<{ data: BatchTeacherWithOrders[]; total: number }>(
+    `/batchesTeachers?batchId=${batchId}`
+  );
+}
+
 export async function pauseBatch(batchId: string): Promise<void> {
   await request(`/batchesPause`, {
     method: "POST",
@@ -171,6 +196,27 @@ export async function cancelBatch(batchId: string, reason: string): Promise<void
 
 export async function checkAdvanceBatch(batchId: string): Promise<{ batchId: string; status: string }> {
   return request<{ batchId: string; status: string }>(`/batchesCheckAdvance`, {
+    method: "POST",
+    body: JSON.stringify({ batchId }),
+  });
+}
+
+export async function retryResolution(batchId: string): Promise<{ batchId: string; status: string }> {
+  return request<{ batchId: string; status: string }>(`/batchesRetryResolution`, {
+    method: "POST",
+    body: JSON.stringify({ batchId }),
+  });
+}
+
+export async function retryOrderCreation(batchId: string): Promise<{ batchId: string; ordersToCreate: number }> {
+  return request<{ batchId: string; ordersToCreate: number }>(`/batchesRetryOrderCreation`, {
+    method: "POST",
+    body: JSON.stringify({ batchId }),
+  });
+}
+
+export async function retryDispatching(batchId: string): Promise<{ batchId: string; totalMessages: number }> {
+  return request<{ batchId: string; totalMessages: number }>(`/batchesRetryDispatching`, {
     method: "POST",
     body: JSON.stringify({ batchId }),
   });
@@ -255,4 +301,47 @@ export async function retryDLQ(data: { ids?: string[]; retryAll?: boolean }): Pr
 
 export async function listTeachers(params: TeacherListParams = {}): Promise<PaginatedResponse<Teacher>> {
   return request<PaginatedResponse<Teacher>>(`/teachersList${toQueryString(params)}`);
+}
+
+export interface DBDuplicateMatch {
+  rowIndex: number;
+  row: { name: string; phone: string; email: string; school: string };
+  existingTeacher: {
+    id: string;
+    name: string;
+    phones: string[];
+    emails: string[];
+    school: string;
+    city: string;
+  };
+  /** 0–100 */
+  confidence: number;
+  matchReasons: string[];
+  /** True when name, email, phone all match — no merge needed, use existing record */
+  exactMatch?: boolean;
+}
+
+export async function checkDuplicatesAgainstDB(
+  rows: { name: string; phone: string; email: string; school: string }[]
+): Promise<DBDuplicateMatch[]> {
+  const res = await request<{ matches: DBDuplicateMatch[]; total: number }>(
+    `/teachersCheckDuplicates`,
+    {
+      method: "POST",
+      body: JSON.stringify({ rows }),
+    }
+  );
+  return res.matches;
+}
+
+export async function mergeTeacher(data: {
+  teacherId: string;
+  name?: string;
+  phones: string[];
+  emails: string[];
+}): Promise<void> {
+  await request(`/teachersMerge`, {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
 }
