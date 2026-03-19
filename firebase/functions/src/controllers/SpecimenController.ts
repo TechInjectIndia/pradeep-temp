@@ -79,7 +79,7 @@ export async function uploadSpecimen(req: Request, res: Response): Promise<void>
     const batchId = batch.id;
 
     // Create raw teacher records in bulk
-    const rawRecords = valid.map((row) => ({
+    const rawRecords = valid.map((row: any) => ({
       batchId,
       name: row.name,
       phone: row.phone,
@@ -88,6 +88,15 @@ export async function uploadSpecimen(req: Request, res: Response): Promise<void>
       city: row.city || '',
       books: row.books,
       resolutionStatus: 'pending',
+      recordId: row.recordId,
+      booksAssigned: row.booksAssigned,
+      teacherOwnerId: row.teacherOwnerId,
+      teacherOwner: row.teacherOwner,
+      firstName: row.firstName,
+      lastName: row.lastName,
+      institutionId: row.institutionId,
+      institutionName: row.institutionName,
+      salutation: row.salutation,
     }));
 
     const created = await TeacherRawRepository.createBatch(rawRecords);
@@ -149,8 +158,16 @@ interface ReviewedRowInput {
   phoneSelected?: string;
   emailSelected?: string;
   channels?: 'both' | 'whatsapp' | 'email' | 'none';
-  /** When set, teacher already exists in DB (exact match) — create pre-resolved raw record */
   existingTeacherId?: string;
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
 }
 
 export async function uploadReviewed(req: Request, res: Response): Promise<void> {
@@ -231,6 +248,15 @@ export async function uploadReviewed(req: Request, res: Response): Promise<void>
         resolutionStatus: isExactMatch ? 'resolved' : 'pending',
         sendWhatsApp: channels !== 'none' && sendWhatsApp,
         sendEmail: channels !== 'none' && sendEmail,
+        recordId: row.recordId,
+        booksAssigned: row.booksAssigned,
+        teacherOwnerId: row.teacherOwnerId,
+        teacherOwner: row.teacherOwner,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        institutionId: row.institutionId,
+        institutionName: row.institutionName,
+        salutation: row.salutation,
       };
       if (isExactMatch && existingTeacherId) {
         return {

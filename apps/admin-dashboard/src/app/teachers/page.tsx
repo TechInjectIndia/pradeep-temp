@@ -10,11 +10,15 @@ import { useTeachers } from "@/hooks/useTeachers";
 import { formatDate } from "@/utils/date";
 
 const columns: Column<Teacher>[] = [
+  { key: "recordId", header: "Record Id", mobileHidden: true },
   {
     key: "name",
-    header: "Name",
+    header: "Teacher Name",
     render: (row) => <span className="font-medium text-foreground">{row.name}</span>,
   },
+  { key: "salutation", header: "Salutation", mobileHidden: true },
+  { key: "firstName", header: "First Name", mobileHidden: true },
+  { key: "lastName", header: "Last Name", mobileHidden: true },
   {
     key: "phone",
     header: "Phone",
@@ -70,6 +74,11 @@ const columns: Column<Teacher>[] = [
     },
   },
   { key: "school", header: "School" },
+  { key: "institutionName", header: "Institution Name", mobileHidden: true },
+  { key: "institutionId", header: "Institution Id", mobileHidden: true },
+  { key: "booksAssigned", header: "Books Assigned", mobileHidden: true },
+  { key: "teacherOwner", header: "Teacher Owner", mobileHidden: true },
+  { key: "teacherOwnerId", header: "Teacher Owner Id", mobileHidden: true },
   { key: "city", header: "City" },
   {
     key: "createdAt",

@@ -38,11 +38,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main content — shifts right when sidebar is open */}
       <main
         className={clsx(
-          "flex-1 pt-14 transition-all duration-200 ease-in-out",
+          "min-w-0 flex-1 pt-14 transition-all duration-200 ease-in-out",
           sidebarOpen && "ml-64"
         )}
       >
-        <div className="px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
+        <div className="min-w-0 px-4 py-4 sm:px-6 sm:py-5 lg:px-8 lg:py-6">
           <ErrorBoundary>{children}</ErrorBoundary>
         </div>
       </main>

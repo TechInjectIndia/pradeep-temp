@@ -13,7 +13,7 @@ interface Props {
 export default function FileUploadZone({
   onFileSelect,
   onClear,
-  accept = ".xlsx,.xls,.csv",
+  accept = ".xlsx,.csv",
 }: Props) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -91,7 +91,7 @@ export default function FileUploadZone({
             : "Drag and drop your specimen file here"}
         </p>
         <p className="mt-1 text-xs text-muted-foreground">
-          or choose a file below. Accepts .xlsx, .xls, .csv
+          or choose a file below. Accepts .xlsx, .csv
         </p>
         {/* Native file input - label makes the whole button trigger file picker */}
         <label className="mt-4 inline-flex cursor-pointer rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">

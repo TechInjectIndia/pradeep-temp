@@ -11,20 +11,85 @@ import { useRouter } from "next/navigation";
 
 const STORAGE_LOGS_KEY = "upload_review_initial_logs";
 
-const TEMPLATE_HEADERS = ["name", "phone", "email", "school", "books"];
-const TEMPLATE_EXAMPLE: UploadRow = {
-  name: "Example Teacher",
-  phone: "+919876543210",
-  email: "teacher@school.com",
-  school: "School Name",
-  books: "Math 10, Science 10",
+const TEMPLATE_HEADERS = [
+  "Record Id", "Books Assigned", "Teacher Owner.id", "Teacher Owner",
+  "First Name", "Last Name", "Teacher Name", "Institution Name.id", "Institution Name",
+  "Email", "Phone", "Salutation",
+];
+const TEMPLATE_EXAMPLE: Record<string, string> = {
+  "Record Id": "REC001",
+  "Books Assigned": "Math 10, Science 10",
+  "Teacher Owner.id": "owner-1",
+  "Teacher Owner": "John Doe",
+  "First Name": "Example",
+  "Last Name": "Teacher",
+  "Teacher Name": "Example Teacher",
+  "Institution Name.id": "inst-1",
+  "Institution Name": "School Name",
+  "Email": "teacher@school.com",
+  "Phone": "+919876543210",
+  "Salutation": "Mr",
 };
 
+/** Converts Excel numeric/scientific-notation values to proper string (e.g. phone numbers). */
+function toNumericString(value: unknown): string {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "number") {
+    if (Number.isInteger(value)) return String(value);
+    return String(Math.floor(value));
+  }
+  const s = String(value ?? "").trim();
+  if (!s) return "";
+  if (/^\d*\.?\d+[eE][+-]?\d+$/.test(s)) {
+    const num = parseFloat(s);
+    if (!Number.isNaN(num)) return String(Math.floor(num));
+  }
+  return s;
+}
+
+/** Map Excel row to UploadRow using column aliases (Record Id, Teacher Name, Institution Name, etc.) */
+function mapRowToUploadRow(row: Record<string, unknown>): UploadRow {
+  const lower: Record<string, string> = {};
+  for (const [k, v] of Object.entries(row)) {
+    lower[k.trim().toLowerCase().replace(/\s+/g, " ")] = toNumericString(v ?? "").trim();
+  }
+  const get = (keys: string[]) => {
+    for (const k of keys) {
+      const v = lower[k];
+      if (v) return v;
+    }
+    return "";
+  };
+  const firstName = get(["first name", "firstname"]);
+  const lastName = get(["last name", "lastname"]);
+  const name = get(["name", "teacher name", "teachername"]) || [firstName, lastName].filter(Boolean).join(" ").trim();
+  const school = get(["school", "institution name", "institutionname", "instituition name"]);
+  const books = get(["books", "books assigned", "booksassigned"]);
+  return {
+    name: name || "",
+    phone: get(["phone"]) || "",
+    email: get(["email"]) || "",
+    school: school || "",
+    books: books || "",
+    recordId: get(["record id", "recordid"]) || undefined,
+    booksAssigned: get(["books assigned", "booksassigned"]) || undefined,
+    teacherOwnerId: get(["teacher owner.id", "teacher owner id", "teacherownerid"]) || undefined,
+    teacherOwner: get(["teacher owner", "teacherowner"]) || undefined,
+    firstName: firstName || undefined,
+    lastName: lastName || undefined,
+    institutionId: get(["institution name.id", "institution name id", "institutionid"]) || undefined,
+    institutionName: get(["institution name", "institutionname"]) || undefined,
+    salutation: get(["salutation"]) || undefined,
+  };
+}
+
 const previewColumns: Column<UploadRow>[] = [
-  { key: "name", header: "Name" },
+  { key: "recordId", header: "Record Id" },
+  { key: "name", header: "Teacher Name" },
+  { key: "salutation", header: "Salutation" },
   { key: "phone", header: "Phone" },
   { key: "email", header: "Email" },
-  { key: "school", header: "School" },
+  { key: "school", header: "Institution" },
   { key: "books", header: "Books" },
 ];
 
@@ -41,9 +106,9 @@ export default function UploadPage() {
   const handleFileSelect = useCallback((file: File) => {
     console.log("[Upload] handleFileSelect called:", file.name, file.size);
     const ext = file.name.split(".").pop()?.toLowerCase();
-    if (![".xlsx", ".xls", ".csv"].some((e) => ext === e.slice(1))) {
+    if (!["xlsx", "csv"].includes(ext ?? "")) {
       console.warn("[Upload] Invalid file type:", ext);
-      toast.error("Please upload an Excel (.xlsx, .xls) or CSV file");
+      toast.error("Please upload an Excel (.xlsx) or CSV (.csv) file");
       return;
     }
     setSelectedFile(file);
@@ -71,20 +136,11 @@ export default function UploadPage() {
           return;
         }
         const worksheet = workbook.Sheets[sheetName];
-        const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { defval: "" });
-        const json: UploadRow[] = raw.map((row) => {
-          const lower: Record<string, string> = {};
-          for (const [k, v] of Object.entries(row)) {
-            lower[k.trim().toLowerCase()] = String(v ?? "").trim();
-          }
-          return {
-            name: lower.name ?? "",
-            phone: lower.phone ?? "",
-            email: lower.email ?? "",
-            school: lower.school ?? "",
-            books: lower.books ?? "",
-          };
+        const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, {
+          defval: "",
+          raw: true, // Use raw numbers to avoid scientific notation (e.g. 9997016578 instead of "9.99702E+09")
         });
+        const json: UploadRow[] = raw.map((row) => mapRowToUploadRow(row));
         if (json.length === 0) {
           toast.error("No data rows found in file");
           return;
@@ -111,7 +167,7 @@ export default function UploadPage() {
   const handleDownloadTemplate = () => {
     const ws = XLSX.utils.aoa_to_sheet([
       TEMPLATE_HEADERS,
-      TEMPLATE_HEADERS.map((h) => (TEMPLATE_EXAMPLE as unknown as Record<string, string>)[h]),
+      TEMPLATE_HEADERS.map((h) => TEMPLATE_EXAMPLE[h] ?? ""),
     ]);
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "Teachers");
@@ -213,15 +269,17 @@ export default function UploadPage() {
           </div>
 
           {/* Preview Table */}
-          <div>
+          <div className="min-w-0 w-full">
             <h2 className="mb-4 text-lg font-semibold text-foreground">
               Preview
             </h2>
-            <DataTable
-              columns={previewColumns}
-              data={parsedRows}
-              keyExtractor={(row) => `${row.phone}|${row.email}`}
-            />
+            <div className="w-full overflow-x-auto">
+              <DataTable
+                columns={previewColumns}
+                data={parsedRows}
+                keyExtractor={(row) => `${row.phone}|${row.email}`}
+              />
+            </div>
           </div>
 
           {/* Actions */}

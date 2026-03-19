@@ -131,6 +131,16 @@ export interface Teacher {
   school: string;
   city: string;
   createdAt: string;
+  /** Extended fields (from CRM/Salesforce-style imports) */
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
 }
 
 // ---- Duplicates ----
@@ -152,6 +162,15 @@ export interface TeacherRecord {
   email: string;
   school: string;
   city: string;
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
 }
 
 // ---- DLQ ----
@@ -178,6 +197,15 @@ export interface UploadRow {
   email: string;
   school: string;
   books: string;
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
 }
 
 export type ChannelChoice = "both" | "whatsapp" | "email" | "none";

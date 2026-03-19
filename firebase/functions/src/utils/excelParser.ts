@@ -17,6 +17,58 @@ export interface ParsedRow {
   school: string;
   city?: string;
   books: string;
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
+}
+
+/** Column name aliases: canonical key -> [alternate header names to try] */
+const COLUMN_ALIASES: Record<string, string[]> = {
+  name: ['name', 'teacher name', 'teachername'],
+  phone: ['phone'],
+  email: ['email'],
+  school: ['school', 'institution name', 'institutionname', 'instituition name'],
+  city: ['city'],
+  books: ['books', 'books assigned', 'booksassigned'],
+  recordId: ['record id', 'recordid'],
+  teacherOwnerId: ['teacher owner.id', 'teacher owner id', 'teacherownerid'],
+  teacherOwner: ['teacher owner', 'teacherowner'],
+  firstName: ['first name', 'firstname'],
+  lastName: ['last name', 'lastname'],
+  institutionId: ['institution name.id', 'institution name id', 'institutionid'],
+  institutionName: ['institution name', 'institutionname'],
+  salutation: ['salutation'],
+};
+
+function normalizeHeader(h: string): string {
+  return h.trim().toLowerCase().replace(/\s+/g, ' ');
+}
+
+/**
+ * Converts Excel numeric/scientific-notation values to proper string.
+ * Excel stores long numbers (e.g. phone 9997016578) as numbers and may display
+ * them as "9.99702E+09" or "222E10". This fixes both raw numbers and such strings.
+ */
+function toNumericString(value: unknown): string {
+  if (value === null || value === undefined) return '';
+  if (typeof value === 'number') {
+    if (Number.isInteger(value)) return String(value);
+    return String(Math.floor(value));
+  }
+  const s = String(value ?? '').trim();
+  if (!s) return '';
+  // Match scientific notation: 9.99702E+09, 222E10, 9.99e-5
+  if (/^\d*\.?\d+[eE][+-]?\d+$/.test(s)) {
+    const num = parseFloat(s);
+    if (!Number.isNaN(num)) return String(Math.floor(num));
+  }
+  return s;
 }
 
 export interface ValidationError {
@@ -61,22 +113,46 @@ export function parseExcelBuffer(buffer: Buffer): Array<{
   const sheet = workbook.Sheets[sheetName];
   const rawRows: Record<string, unknown>[] = XLSX.utils.sheet_to_json(sheet, {
     defval: '',
+    raw: true, // Use raw numbers to avoid scientific notation (e.g. 9997016578 instead of "9.99702E+09")
   });
 
   return rawRows.map((raw) => {
-    // Build a lowercase-key map so column header casing doesn't matter
     const lowerMap: Record<string, string> = {};
     for (const [key, value] of Object.entries(raw)) {
-      lowerMap[key.trim().toLowerCase()] = String(value ?? '').trim();
+      lowerMap[normalizeHeader(key)] = toNumericString(value ?? '').trim();
     }
 
+    const get = (canonical: string): string => {
+      const aliases = COLUMN_ALIASES[canonical];
+      if (aliases) {
+        for (const a of aliases) {
+          const v = lowerMap[a];
+          if (v) return v;
+        }
+      }
+      return lowerMap[canonical] || '';
+    };
+
+    const school = get('school') || get('institutionName');
+    const books = get('books') || get('booksAssigned');
+    const name = get('name') || [get('firstName'), get('lastName')].filter(Boolean).join(' ').trim();
+
     return {
-      name: lowerMap['name'] || '',
-      phone: lowerMap['phone'] || '',
-      email: lowerMap['email'] || '',
-      school: lowerMap['school'] || '',
-      city: lowerMap['city'] || undefined,
-      books: lowerMap['books'] || '',
+      name: name || '',
+      phone: get('phone') || '',
+      email: get('email') || '',
+      school: school || '',
+      city: get('city') || undefined,
+      books: books || '',
+      recordId: get('recordId') || undefined,
+      booksAssigned: get('booksAssigned') || undefined,
+      teacherOwnerId: get('teacherOwnerId') || undefined,
+      teacherOwner: get('teacherOwner') || undefined,
+      firstName: get('firstName') || undefined,
+      lastName: get('lastName') || undefined,
+      institutionId: get('institutionId') || undefined,
+      institutionName: get('institutionName') || undefined,
+      salutation: get('salutation') || undefined,
     };
   });
 }

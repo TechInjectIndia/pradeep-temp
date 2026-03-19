@@ -13,6 +13,15 @@ interface TeacherSnapshot {
   email: string;
   school: string;
   city: string;
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -25,6 +34,15 @@ interface RawTeacherInput {
   email: string;
   school: string;
   city: string;
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
 }
 
 interface ResolveResult {
@@ -37,12 +55,22 @@ interface ResolveResult {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Normalize phone to E.164 (+91XXXXXXXXXX) for Indian numbers.
+ * Strips spaces, dashes, dots, etc. Treats 9997016578, 99997016578, +919997016578, 919997016578, 09997016578 as same.
+ */
 function normalizePhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10) return `+91${digits}`;
+  const digits = (phone || '').replace(/\D/g, '');
+  if (!digits) return '';
+  // 10 digits (Indian mobile 6-9): prepend 91
+  if (digits.length === 10 && /^[6-9]/.test(digits)) return `+91${digits}`;
+  // 12 digits starting with 91: add + prefix
   if (digits.length === 12 && digits.startsWith('91')) return `+${digits}`;
-  if (digits.length > 10 && !digits.startsWith('+')) return `+${digits}`;
-  return phone.startsWith('+') ? phone : `+${digits}`;
+  // 11 digits: 0XXXXXXXXXX (trunk) or 9XXXXXXXXXX (prefix) -> use last 10
+  if (digits.length === 11 && (digits.startsWith('0') || (digits.startsWith('9') && /^[6-9]/.test(digits[1]!)))) {
+    return `+91${digits.substring(1)}`;
+  }
+  return digits ? `+${digits}` : '';
 }
 
 function normalizeEmail(email: string): string {
@@ -72,13 +100,18 @@ function stringSimilarity(a: string, b: string): number {
 // Max raw score: name(40) + school_exact(30) + city(10) = 80
 const MAX_RAW_SCORE = 80;
 
+/** Normalize string for comparison: trim, collapse multiple spaces to single */
+function normalizeForCompare(s: string): string {
+  return (s || '').toLowerCase().trim().replace(/\s+/g, ' ');
+}
+
 /** True when row and existing teacher have same name, email, and phone (normalized) */
 function isExactMatch(
   row: { name: string; phone: string; email: string },
   existing: { name: string; phones: string[]; emails: string[] },
 ): boolean {
-  const rowName = row.name?.toLowerCase().trim() || '';
-  const existingName = (existing.name || '').toLowerCase().trim();
+  const rowName = normalizeForCompare(row.name);
+  const existingName = normalizeForCompare(existing.name);
   if (rowName !== existingName) return false;
 
   const rowPhone = normalizePhone(row.phone);
@@ -187,12 +220,22 @@ export async function resolveTeacher(rawTeacher: RawTeacherInput, batchId?: stri
 
         // Fetch existing teacher from Firestore for full display data
         const existingTeacher = await TeacherRepository.getById(bestCandidate.objectID).catch(() => null);
+        const existing = existingTeacher as Record<string, unknown> | null;
         const existingSnap: TeacherSnapshot = {
-          name: (existingTeacher as any)?.name || bestCandidate.name || '',
-          phone: ((existingTeacher as any)?.phones?.[0] || ''),
-          email: ((existingTeacher as any)?.emails?.[0] || ''),
-          school: (existingTeacher as any)?.school || bestCandidate.school || '',
-          city: (existingTeacher as any)?.city || bestCandidate.city || '',
+          name: (existing?.name as string) || bestCandidate.name || '',
+          phone: ((existing?.phones as string[])?.[0] || ''),
+          email: ((existing?.emails as string[])?.[0] || ''),
+          school: (existing?.school as string) || bestCandidate.school || '',
+          city: (existing?.city as string) || bestCandidate.city || '',
+          recordId: existing?.recordId as string | undefined,
+          booksAssigned: existing?.booksAssigned as string | undefined,
+          teacherOwnerId: existing?.teacherOwnerId as string | undefined,
+          teacherOwner: existing?.teacherOwner as string | undefined,
+          firstName: existing?.firstName as string | undefined,
+          lastName: existing?.lastName as string | undefined,
+          institutionId: existing?.institutionId as string | undefined,
+          institutionName: existing?.institutionName as string | undefined,
+          salutation: existing?.salutation as string | undefined,
         };
         const incomingSnap: TeacherSnapshot = {
           name: rawTeacher.name,
@@ -200,6 +243,15 @@ export async function resolveTeacher(rawTeacher: RawTeacherInput, batchId?: stri
           email: rawTeacher.email,
           school: rawTeacher.school,
           city: rawTeacher.city,
+          recordId: rawTeacher.recordId,
+          booksAssigned: rawTeacher.booksAssigned,
+          teacherOwnerId: rawTeacher.teacherOwnerId,
+          teacherOwner: rawTeacher.teacherOwner,
+          firstName: rawTeacher.firstName,
+          lastName: rawTeacher.lastName,
+          institutionId: rawTeacher.institutionId,
+          institutionName: rawTeacher.institutionName,
+          salutation: rawTeacher.salutation,
         };
 
         DuplicateRepository.create({
@@ -230,13 +282,24 @@ export async function createNewTeacher(data: RawTeacherInput): Promise<string> {
   if (data.phone) phones.push(normalizePhone(data.phone));
   if (data.email) emails.push(normalizeEmail(data.email));
 
-  const teacher = await TeacherRepository.create({
+  const teacherData: Record<string, unknown> = {
     name: data.name,
     phones,
     emails,
     school: data.school,
     city: data.city,
-  });
+  };
+  if (data.recordId) teacherData.recordId = data.recordId;
+  if (data.booksAssigned) teacherData.booksAssigned = data.booksAssigned;
+  if (data.teacherOwnerId) teacherData.teacherOwnerId = data.teacherOwnerId;
+  if (data.teacherOwner) teacherData.teacherOwner = data.teacherOwner;
+  if (data.firstName) teacherData.firstName = data.firstName;
+  if (data.lastName) teacherData.lastName = data.lastName;
+  if (data.institutionId) teacherData.institutionId = data.institutionId;
+  if (data.institutionName) teacherData.institutionName = data.institutionName;
+  if (data.salutation) teacherData.salutation = data.salutation;
+
+  const teacher = await TeacherRepository.create(teacherData);
 
   try {
     await AdapterRegistry.getInstance().search.indexTeacher({
@@ -284,6 +347,12 @@ export async function mergeTeacher(
   }
   if (incomingData.city && incomingData.city !== (existing as any).city) {
     updates.city = incomingData.city;
+  }
+  const optionalFields = ['recordId', 'booksAssigned', 'teacherOwnerId', 'teacherOwner', 'firstName', 'lastName', 'institutionId', 'institutionName', 'salutation'] as const;
+  for (const f of optionalFields) {
+    if (incomingData[f] !== undefined && incomingData[f] !== (existing as any)[f]) {
+      updates[f] = incomingData[f];
+    }
   }
   if (Object.keys(updates).length > 0) {
     ops.push(TeacherRepository.update(existingId, updates));
@@ -347,6 +416,15 @@ export async function resolveTeachersForBatch(batchId: string): Promise<void> {
           email: rawRecord.email,
           school: rawRecord.school,
           city: rawRecord.city,
+          recordId: rawRecord.recordId,
+          booksAssigned: rawRecord.booksAssigned,
+          teacherOwnerId: rawRecord.teacherOwnerId,
+          teacherOwner: rawRecord.teacherOwner,
+          firstName: rawRecord.firstName,
+          lastName: rawRecord.lastName,
+          institutionId: rawRecord.institutionId,
+          institutionName: rawRecord.institutionName,
+          salutation: rawRecord.salutation,
         }, batchId);
 
         await TeacherRawRepository.update(rawRecord.id, {

@@ -23,8 +23,19 @@ function normalize(s: string): string {
   return (s || "").toLowerCase().trim().replace(/\s+/g, " ");
 }
 
+/** Canonical form for phone comparison: 9997016578, +919997016578, 99997016578, 09997016578 → same key */
 function normalizePhone(s: string): string {
-  return (s || "").replace(/\D/g, "");
+  const digits = (s || "").replace(/\D/g, "");
+  if (!digits || digits.length < 5) return "";
+  // 10 digits (Indian mobile 6-9): use as-is
+  if (digits.length === 10 && /^[6-9]/.test(digits)) return digits;
+  // 12 digits starting with 91: use last 10
+  if (digits.length === 12 && digits.startsWith("91")) return digits.slice(2);
+  // 11 digits: 0XXXXXXXXXX or 9XXXXXXXXXX -> use last 10
+  if (digits.length === 11 && (digits.startsWith("0") || (digits.startsWith("9") && /^[6-9]/.test(digits[1] ?? "")))) {
+    return digits.slice(1);
+  }
+  return digits;
 }
 
 function normalizeEmail(s: string): string {

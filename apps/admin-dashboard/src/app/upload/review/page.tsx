@@ -57,7 +57,16 @@ interface ReviewRow {
   phoneSelected: string;
   emailSelected: string;
   channels: ChannelChoice;
-  mergedFrom?: number[]; // original indices if this was a merge
+  mergedFrom?: number[];
+  recordId?: string;
+  booksAssigned?: string;
+  teacherOwnerId?: string;
+  teacherOwner?: string;
+  firstName?: string;
+  lastName?: string;
+  institutionId?: string;
+  institutionName?: string;
+  salutation?: string;
 }
 
 function toReviewRow(row: UploadRow, id: string, idx?: number): ReviewRow {
@@ -76,6 +85,15 @@ function toReviewRow(row: UploadRow, id: string, idx?: number): ReviewRow {
     emailSelected: emails[0] || "",
     channels: "both",
     mergedFrom: idx !== undefined ? [idx] : undefined,
+    recordId: row.recordId,
+    booksAssigned: row.booksAssigned,
+    teacherOwnerId: row.teacherOwnerId,
+    teacherOwner: row.teacherOwner,
+    firstName: row.firstName,
+    lastName: row.lastName,
+    institutionId: row.institutionId,
+    institutionName: row.institutionName,
+    salutation: row.salutation,
   };
 }
 
@@ -218,6 +236,7 @@ export default function UploadReviewPage() {
   const handleMerge = useCallback(
     (group: MergeGroup) => {
       const merged = mergeRows(group.rows);
+      const first = group.rows[0] as UploadRow;
       addLog(
         "merged",
         `Merged ${group.rows.length} records (${group.reason})`,
@@ -237,6 +256,15 @@ export default function UploadReviewPage() {
         emailSelected: merged.emails[0] || "",
         channels: "both",
         mergedFrom: group.indices,
+        recordId: first?.recordId,
+        booksAssigned: first?.booksAssigned,
+        teacherOwnerId: first?.teacherOwnerId,
+        teacherOwner: first?.teacherOwner,
+        firstName: first?.firstName,
+        lastName: first?.lastName,
+        institutionId: first?.institutionId,
+        institutionName: first?.institutionName,
+        salutation: first?.salutation,
       };
       setRows((prev) => {
         const exclude = new Set(group.indices);
@@ -357,6 +385,15 @@ export default function UploadReviewPage() {
         emailSelected: r.emails.length > 1 ? r.emailSelected : undefined,
         channels: r.channels,
         existingTeacherId: exactMatch?.existingTeacher.id,
+        recordId: r.recordId,
+        booksAssigned: r.booksAssigned,
+        teacherOwnerId: r.teacherOwnerId,
+        teacherOwner: r.teacherOwner,
+        firstName: r.firstName,
+        lastName: r.lastName,
+        institutionId: r.institutionId,
+        institutionName: r.institutionName,
+        salutation: r.salutation,
       };
     });
   }, [rows, dbMatches, getRowIndices]);
@@ -422,13 +459,22 @@ export default function UploadReviewPage() {
   // Active merge modal
   const [mergeModalMatch, setMergeModalMatch] = useState<DBDuplicateMatch | null>(null);
 
+  /** Canonical phone for comparison: 9997016578, +919997016578, 99997016578, 09997016578 → same */
+  function phoneKey(phone: string): string {
+    const d = (phone || "").replace(/\D/g, "");
+    if (d.length === 10 && /^[6-9]/.test(d)) return d;
+    if (d.length === 12 && d.startsWith("91")) return d.slice(2);
+    if (d.length === 11 && (d.startsWith("0") || (d.startsWith("9") && /^[6-9]/.test(d[1] ?? "")))) return d.slice(1);
+    return d;
+  }
+
   /** Build merged phones: existing (deduped) + new at last index (= primary) */
   function buildMergedPhones(match: DBDuplicateMatch): string[] {
-    const newPhone = match.row.phone?.replace(/\D/g, "") || "";
+    const newKey = phoneKey(match.row.phone ?? "");
     const existing = (match.existingTeacher.phones || []).filter(
-      (p) => p.replace(/\D/g, "") !== newPhone
+      (p) => phoneKey(p) !== newKey
     );
-    return newPhone ? [...existing, match.row.phone] : existing;
+    return match.row.phone ? [...existing, match.row.phone] : existing;
   }
 
   /** Build merged emails: existing (deduped) + new at last index (= primary) */
