@@ -283,5 +283,8 @@ export async function processUpload(
     `Uploaded ${rows.length} teacher records from ${fileName}${resolvedCount > 0 ? ` (${resolvedCount} pre-resolved merges)` : ''}`
   );
 
+  // Auto-advance: kick off the pipeline immediately after upload
+  await BatchService.advance(batch.id, 'auto_upload_complete');
+
   return { batchId: batch.id, rowCount: rows.length };
 }

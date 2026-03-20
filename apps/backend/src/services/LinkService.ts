@@ -79,6 +79,13 @@ export class LinkService {
     const productIdToTitle = new Map(
       mappingRows.map((m) => [m.productId, m.productTitle])
     );
+    // productId → authors joined string
+    const productIdToAuthors = new Map(
+      mappingRows.map((m) => [
+        m.productId,
+        (m.authors as Array<{id: string; title: string}> ?? []).map((a) => a.title).join(', '),
+      ])
+    );
 
     // 5. Build the LMS API payload
     // teachers: { teacherRecordId: { name, email, phone, productIds } }
@@ -136,12 +143,16 @@ export class LinkService {
       if (!teacherLinks) continue;
 
       const bookLinkEntries: BookLink[] = Object.entries(teacherLinks).map(
-        ([productId, specimenUrl]) => ({
-          productId,
-          title: productIdToTitle.get(productId) ?? productId,
-          specimenUrl,
-          expiresAt: expiresAt.toISOString(),
-        })
+        ([productId, specimenUrl]) => {
+          const author = productIdToAuthors.get(productId) || undefined;
+          return {
+            productId,
+            title: productIdToTitle.get(productId) ?? productId,
+            author,
+            specimenUrl,
+            expiresAt: expiresAt.toISOString(),
+          };
+        }
       );
 
       updatePromises.push(

@@ -7,9 +7,10 @@ import { QUEUES, type WhatsAppMessageJob, type EmailMessageJob } from '@/queue/t
 import { config } from '@/config';
 import { db } from '@/db';
 import { commLog, failedMessages, messageSendLog, watiTemplates } from '@/db/schema';
-import { eq, gte, asc, desc } from 'drizzle-orm';
+import { eq, gte, asc, desc, and, count as drizzleCount } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { resolveParams } from '@/services/TemplateEngine';
+import { BatchService } from '@/services/BatchService';
 
 const MAX_RETRIES = 3;
 
@@ -171,6 +172,7 @@ async function handleMessage(
     const log = await db.query.commLog.findFirst({ where: eq(commLog.id, commLogId) });
     if (log?.status === 'CANCELLED') {
       console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} — cancelled, skipping`);
+      await checkBatchComplete(batchId);
       ack();
       return;
     }
@@ -199,6 +201,10 @@ async function handleMessage(
     });
 
     await sleep(1000); // 1 message per second rate limit
+
+    // Check if all messages for this batch are done → auto-advance to COMPLETE
+    await checkBatchComplete(batchId);
+
     ack();
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
@@ -232,6 +238,10 @@ async function handleMessage(
 
       console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} → DLQ after ${nextRetry} attempts`);
       await sleep(1000);
+
+      // Check if all messages for this batch are done → auto-advance to COMPLETE
+      await checkBatchComplete(batchId);
+
       ack(); // Ack from RabbitMQ — it's now in DB DLQ
     } else {
       // Republish with incremented retryCount instead of nack(true) to avoid infinite loop
@@ -242,6 +252,30 @@ async function handleMessage(
       console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} retry ${nextRetry}/${MAX_RETRIES} requeued`);
       ack(); // Ack original; new message with updated retryCount is now in queue
     }
+  }
+}
+
+// ─── Auto-advance to COMPLETE when all messages are processed ─────────────────
+
+async function checkBatchComplete(batchId: string) {
+  try {
+    const batch = await BatchService.getById(batchId);
+    if (!batch || batch.status !== 'MESSAGING') return;
+
+    // Count remaining QUEUED messages
+    const [result] = await db
+      .select({ total: drizzleCount() })
+      .from(commLog)
+      .where(and(eq(commLog.batchId, batchId), eq(commLog.status, 'QUEUED')));
+
+    const remaining = Number(result?.total ?? 0);
+    if (remaining === 0) {
+      await BatchService.advance(batchId, 'auto_messaging_complete');
+      console.log(`[messaging-worker] batch=${batchId} all messages processed → COMPLETE`);
+    }
+  } catch (err) {
+    // Another worker may have already advanced — safe to ignore
+    console.log(`[messaging-worker] batch=${batchId} checkBatchComplete:`, (err as Error).message);
   }
 }
 

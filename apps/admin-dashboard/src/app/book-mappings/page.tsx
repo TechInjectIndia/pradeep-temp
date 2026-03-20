@@ -26,6 +26,7 @@ interface SelectedProduct {
   productId: string;
   productTitle: string;
   notes: string;
+  authors: Array<{id: string; title: string}>;
 }
 
 interface EditFormState {
@@ -33,6 +34,7 @@ interface EditFormState {
   productId: string;
   productTitle: string;
   notes: string;
+  authors: Array<{id: string; title: string}>;
 }
 
 function BookMappingsTab() {
@@ -52,9 +54,12 @@ function BookMappingsTab() {
 
   // Edit modal (single product)
   const [editRow, setEditRow] = useState<BookMapping | null>(null);
-  const [editForm, setEditForm] = useState<EditFormState>({ bookCode: "", productId: "", productTitle: "", notes: "" });
+  const [editForm, setEditForm] = useState<EditFormState>({ bookCode: "", productId: "", productTitle: "", notes: "", authors: [] });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
+
+  // Author input state
+  const [authorInputs, setAuthorInputs] = useState<Record<string, string>>({});
 
   // Algolia search (shared for both modals)
   const [algoliaQuery, setAlgoliaQuery] = useState("");
@@ -124,7 +129,7 @@ function BookMappingsTab() {
     if (alreadyAdded) return;
     setSelectedProducts((prev) => [
       ...prev,
-      { productId: hit.objectID, productTitle: hit.title ?? hit.objectID, notes: "" },
+      { productId: hit.objectID, productTitle: hit.title ?? hit.objectID, notes: "", authors: Array.isArray(hit.authors) ? hit.authors : [] },
     ]);
     setAlgoliaQuery("");
     setAlgoliaHits([]);
@@ -142,7 +147,7 @@ function BookMappingsTab() {
     try {
       await Promise.all(
         selectedProducts.map((p) =>
-          createBookMapping({ bookCode: createBookCode.trim(), productId: p.productId, productTitle: p.productTitle, notes: p.notes })
+          createBookMapping({ bookCode: createBookCode.trim(), productId: p.productId, productTitle: p.productTitle, authors: p.authors, notes: p.notes })
         )
       );
       closeCreate();
@@ -158,7 +163,7 @@ function BookMappingsTab() {
 
   const openEdit = (row: BookMapping) => {
     setEditRow(row);
-    setEditForm({ bookCode: row.bookCode, productId: row.productId, productTitle: row.productTitle, notes: row.notes ?? "" });
+    setEditForm({ bookCode: row.bookCode, productId: row.productId, productTitle: row.productTitle, notes: row.notes ?? "", authors: row.authors ?? [] });
     setEditError(null);
     setAlgoliaQuery("");
     setAlgoliaHits([]);
@@ -175,7 +180,7 @@ function BookMappingsTab() {
     setEditSaving(true);
     setEditError(null);
     try {
-      await updateBookMapping(editRow.id, editForm);
+      await updateBookMapping(editRow.id, { ...editForm, authors: editForm.authors });
       closeEdit();
       load(page, search);
     } catch (e) {
@@ -297,8 +302,11 @@ function BookMappingsTab() {
                     <div key={row.id} className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
                       <div className="flex-1 min-w-0">
                         <span className="font-medium text-foreground truncate block">{row.productTitle}</span>
-                        <span className="font-mono text-xs text-muted-foreground">{row.productId}</span>
-                        {row.notes && <span className="ml-2 text-xs text-muted-foreground">· {row.notes}</span>}
+                        {row.authors && row.authors.length > 0 && (
+                          <span className="text-xs text-muted-foreground">by {row.authors.map((a) => a.title).join(", ")}</span>
+                        )}
+                        <span className="font-mono text-xs text-muted-foreground block">{row.productId}</span>
+                        {row.notes && <span className="text-xs text-muted-foreground">· {row.notes}</span>}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
                         <button onClick={() => openEdit(row)} className="rounded-md p-1.5 text-muted-foreground hover:bg-background hover:text-foreground transition-colors" title="Edit">
@@ -390,6 +398,52 @@ function BookMappingsTab() {
                             placeholder="Notes (optional)"
                             className="mt-1.5 w-full rounded-md border border-input bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
                           />
+                          {/* Authors */}
+                          {p.authors.length > 0 && (
+                            <div className="mt-1.5 flex flex-wrap gap-1">
+                              {p.authors.map((a) => (
+                                <span key={a.id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
+                                  {a.title}
+                                  <button
+                                    type="button"
+                                    onClick={() => setSelectedProducts((prev) => prev.map((x) => x.productId === p.productId ? { ...x, authors: x.authors.filter((au) => au.id !== a.id) } : x))}
+                                    className="ml-0.5 rounded-full hover:bg-primary/20 p-0.5"
+                                  >
+                                    <X className="h-2.5 w-2.5" />
+                                  </button>
+                                </span>
+                              ))}
+                            </div>
+                          )}
+                          <div className="mt-1.5 flex gap-1">
+                            <input
+                              value={authorInputs[p.productId] ?? ""}
+                              onChange={(e) => setAuthorInputs((prev) => ({ ...prev, [p.productId]: e.target.value }))}
+                              onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                  e.preventDefault();
+                                  const val = (authorInputs[p.productId] ?? "").trim();
+                                  if (!val) return;
+                                  setSelectedProducts((prev) => prev.map((x) => x.productId === p.productId ? { ...x, authors: [...x.authors, { id: Math.random().toString(36).slice(2), title: val }] } : x));
+                                  setAuthorInputs((prev) => ({ ...prev, [p.productId]: "" }));
+                                }
+                              }}
+                              placeholder="Author name"
+                              className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const val = (authorInputs[p.productId] ?? "").trim();
+                                if (!val) return;
+                                setSelectedProducts((prev) => prev.map((x) => x.productId === p.productId ? { ...x, authors: [...x.authors, { id: Math.random().toString(36).slice(2), title: val }] } : x));
+                                setAuthorInputs((prev) => ({ ...prev, [p.productId]: "" }));
+                              }}
+                              className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted transition-colors"
+                            >
+                              Add
+                            </button>
+                          </div>
                         </div>
                         <button onClick={() => removeProduct(p.productId)} className="mt-0.5 rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors shrink-0">
                           <X className="h-3.5 w-3.5" />
@@ -461,7 +515,7 @@ function BookMappingsTab() {
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <AlgoliaDropdown onSelect={(hit) => { setEditForm((f) => ({ ...f, productId: hit.objectID, productTitle: hit.title ?? hit.objectID })); setAlgoliaQuery(""); setAlgoliaHits([]); }} />
+                  <AlgoliaDropdown onSelect={(hit) => { setEditForm((f) => ({ ...f, productId: hit.objectID, productTitle: hit.title ?? hit.objectID, authors: Array.isArray(hit.authors) ? hit.authors : f.authors })); setAlgoliaQuery(""); setAlgoliaHits([]); }} />
                 </div>
               </div>
               <div>
@@ -475,6 +529,55 @@ function BookMappingsTab() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Notes</label>
                 <input value={editForm.notes} onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Optional notes" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              {/* Authors */}
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Authors</label>
+                {editForm.authors.length > 0 && (
+                  <div className="flex flex-wrap gap-1 mb-2">
+                    {editForm.authors.map((a) => (
+                      <span key={a.id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary">
+                        {a.title}
+                        <button
+                          type="button"
+                          onClick={() => setEditForm((f) => ({ ...f, authors: f.authors.filter((au) => au.id !== a.id) }))}
+                          className="ml-0.5 rounded-full hover:bg-primary/20 p-0.5"
+                        >
+                          <X className="h-2.5 w-2.5" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+                <div className="flex gap-2">
+                  <input
+                    value={authorInputs["__edit__"] ?? ""}
+                    onChange={(e) => setAuthorInputs((prev) => ({ ...prev, "__edit__": e.target.value }))}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        const val = (authorInputs["__edit__"] ?? "").trim();
+                        if (!val) return;
+                        setEditForm((f) => ({ ...f, authors: [...f.authors, { id: Math.random().toString(36).slice(2), title: val }] }));
+                        setAuthorInputs((prev) => ({ ...prev, "__edit__": "" }));
+                      }
+                    }}
+                    placeholder="Author name"
+                    className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const val = (authorInputs["__edit__"] ?? "").trim();
+                      if (!val) return;
+                      setEditForm((f) => ({ ...f, authors: [...f.authors, { id: Math.random().toString(36).slice(2), title: val }] }));
+                      setAuthorInputs((prev) => ({ ...prev, "__edit__": "" }));
+                    }}
+                    className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted transition-colors"
+                  >
+                    Add
+                  </button>
+                </div>
               </div>
             </div>
             <div className="flex items-center justify-end gap-3 border-t border-border px-5 py-4">

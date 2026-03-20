@@ -268,6 +268,16 @@ async function handleMessaging(batchId: string) {
   );
 
   console.log(`[batch-advance] batch=${batchId} → MESSAGING: ${queued} messages queued`);
+
+  // If no messages were queued (e.g. all duplicates or no contacts), auto-advance to COMPLETE
+  if (queued === 0) {
+    try {
+      await BatchService.advance(batchId, 'auto_no_messages');
+      console.log(`[batch-advance] batch=${batchId} no messages to send → COMPLETE`);
+    } catch {
+      // Already advanced — safe to ignore
+    }
+  }
 }
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────

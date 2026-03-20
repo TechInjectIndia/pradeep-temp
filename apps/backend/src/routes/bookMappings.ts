@@ -77,6 +77,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
             bookCode: body.bookCode.trim(),
             productId: body.productId.trim(),
             productTitle: body.productTitle.trim(),
+            authors: body.authors ?? [],
             notes: body.notes?.trim() ?? null,
           })
           .returning();
@@ -96,6 +97,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
         bookCode: t.String({ minLength: 1, maxLength: 200 }),
         productId: t.String({ minLength: 1, maxLength: 200 }),
         productTitle: t.String({ minLength: 1, maxLength: 500 }),
+        authors: t.Optional(t.Array(t.Object({ id: t.String(), title: t.String() }))),
         notes: t.Optional(t.String({ maxLength: 1000 })),
       }),
     }
@@ -120,6 +122,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
             bookCode: body.bookCode?.trim() ?? existing.bookCode,
             productId: body.productId?.trim() ?? existing.productId,
             productTitle: body.productTitle?.trim() ?? existing.productTitle,
+            authors: body.authors !== undefined ? body.authors : existing.authors,
             notes: body.notes !== undefined ? (body.notes?.trim() || null) : existing.notes,
             updatedAt: new Date(),
           })
@@ -142,6 +145,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
         bookCode: t.Optional(t.String({ minLength: 1, maxLength: 200 })),
         productId: t.Optional(t.String({ minLength: 1, maxLength: 200 })),
         productTitle: t.Optional(t.String({ minLength: 1, maxLength: 500 })),
+        authors: t.Optional(t.Array(t.Object({ id: t.String(), title: t.String() }))),
         notes: t.Optional(t.String({ maxLength: 1000 })),
       }),
     }

@@ -130,6 +130,7 @@ export type StatusHistoryEntry = {
 export type BookLink = {
   productId: string;
   title: string;
+  author?: string;
   specimenUrl: string;
   expiresAt: string;
 };
@@ -558,6 +559,7 @@ export const bookMappings = pgTable(
     bookCode: text('book_code').notNull(),
     productId: text('product_id').notNull(),
     productTitle: text('product_title').notNull(),
+    authors: jsonb('authors').$type<Array<{id: string; title: string}>>().default([]),
     notes: text('notes'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

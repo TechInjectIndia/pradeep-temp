@@ -22,8 +22,18 @@ export const uploadRoutes = new Elysia({ prefix: '/upload' })
           : typeof rawTc === 'string'
             ? parseField<('whatsapp' | 'email' | 'both')[]>(rawTc, 'teacherChannels')
             : undefined;
-        const mergeDecisions = parseField<MergeDecisionPayload[]>(body.mergeDecisions as string | undefined, 'mergeDecisions');
-        const skippedRowIndices = parseField<number[]>(body.skippedRowIndices as string | undefined, 'skippedRowIndices');
+        const rawMd = body.mergeDecisions;
+        const mergeDecisions: MergeDecisionPayload[] | undefined = Array.isArray(rawMd)
+          ? rawMd as MergeDecisionPayload[]
+          : typeof rawMd === 'string'
+            ? parseField<MergeDecisionPayload[]>(rawMd, 'mergeDecisions')
+            : undefined;
+        const rawSk = body.skippedRowIndices;
+        const skippedRowIndices: number[] | undefined = Array.isArray(rawSk)
+          ? rawSk as number[]
+          : typeof rawSk === 'string'
+            ? parseField<number[]>(rawSk, 'skippedRowIndices')
+            : undefined;
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         return await processUpload(buffer, file.name ?? 'upload.xlsx', channel, teacherChannels, mergeDecisions, skippedRowIndices);
@@ -34,16 +44,11 @@ export const uploadRoutes = new Elysia({ prefix: '/upload' })
     },
     {
       body: t.Object({
-        file: t.File({
-          type: [
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-            'text/csv',
-          ],
-        }),
+        file: t.File(),
         channel: t.Optional(t.String()),
-        teacherChannels: t.Optional(t.Any()),
-        mergeDecisions: t.Optional(t.Any()),
-        skippedRowIndices: t.Optional(t.Any()),
+        teacherChannels: t.Optional(t.Union([t.String(), t.Array(t.Any())])),
+        mergeDecisions: t.Optional(t.Union([t.String(), t.Array(t.Any())])),
+        skippedRowIndices: t.Optional(t.Union([t.String(), t.Array(t.Any())])),
       }),
     }
   );

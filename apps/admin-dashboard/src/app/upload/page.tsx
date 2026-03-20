@@ -147,11 +147,23 @@ function findInSheetDuplicates(rows: UploadRow[]): SheetDuplicateGroup[] {
   });
 
   const groups: SheetDuplicateGroup[] = [];
+  // Track which rows are already covered by a group
+  const coveredRows = new Set<number>();
+
   for (const [phone, indices] of phoneGroups) {
-    if (indices.length > 1) groups.push({ key: `phone:${phone}`, type: "phone", value: phone, rowIndices: indices });
+    if (indices.length > 1) {
+      groups.push({ key: `phone:${phone}`, type: "phone", value: phone, rowIndices: indices });
+      indices.forEach((i) => coveredRows.add(i));
+    }
   }
   for (const [email, indices] of emailGroups) {
-    if (indices.length > 1) groups.push({ key: `email:${email}`, type: "email", value: email, rowIndices: indices });
+    if (indices.length > 1) {
+      // Skip if all rows in this email group are already covered by a phone group
+      const uncovered = indices.filter((i) => !coveredRows.has(i));
+      if (uncovered.length < indices.length && uncovered.length === 0) continue;
+      groups.push({ key: `email:${email}`, type: "email", value: email, rowIndices: indices });
+      indices.forEach((i) => coveredRows.add(i));
+    }
   }
   // Sort by first row index so groups appear in file order
   groups.sort((a, b) => (a.rowIndices[0] ?? 0) - (b.rowIndices[0] ?? 0));
@@ -325,13 +337,14 @@ export default function UploadPage() {
 
   const [isUploading, setIsUploading] = useState(false);
 
-  // Quick-map modal (for unmapped book codes)
+  // Quick-map modal (for unmapped book codes — supports multiple products per code)
   const [quickMapCode, setQuickMapCode] = useState<string | null>(null);
   const [quickMapQuery, setQuickMapQuery] = useState("");
   const [quickMapHits, setQuickMapHits] = useState<AlgoliaHit[]>([]);
   const [quickMapSearching, setQuickMapSearching] = useState(false);
   const [quickMapSaving, setQuickMapSaving] = useState(false);
   const [quickMapSelected, setQuickMapSelected] = useState<AlgoliaHit | null>(null);
+  const [quickMapProducts, setQuickMapProducts] = useState<Array<{ productId: string; productTitle: string; authors: Array<{id: string; title: string}> }>>([]);
 
   // ---------------------------------------------------------------------------
   // File parsing
@@ -631,6 +644,7 @@ export default function UploadPage() {
     setQuickMapQuery("");
     setQuickMapHits([]);
     setQuickMapSelected(null);
+    setQuickMapProducts([]);
   };
 
   const closeQuickMap = () => {
@@ -638,20 +652,44 @@ export default function UploadPage() {
     setQuickMapQuery("");
     setQuickMapHits([]);
     setQuickMapSelected(null);
+    setQuickMapProducts([]);
+  };
+
+  const addQuickMapProduct = (hit: AlgoliaHit) => {
+    if (quickMapProducts.some((p) => p.productId === hit.objectID)) return;
+    setQuickMapProducts((prev) => [
+      ...prev,
+      {
+        productId: hit.objectID,
+        productTitle: hit.title ?? hit.objectID,
+        authors: Array.isArray(hit.authors) ? hit.authors : [],
+      },
+    ]);
+    setQuickMapQuery("");
+    setQuickMapHits([]);
+  };
+
+  const removeQuickMapProduct = (productId: string) => {
+    setQuickMapProducts((prev) => prev.filter((p) => p.productId !== productId));
   };
 
   const handleQuickMapSave = async () => {
-    if (!quickMapCode || !quickMapSelected) return;
+    if (!quickMapCode || quickMapProducts.length === 0) return;
     setQuickMapSaving(true);
     try {
-      await createBookMapping({
-        bookCode: quickMapCode,
-        productId: quickMapSelected.objectID,
-        productTitle: (quickMapSelected.title as string | undefined) ?? quickMapSelected.objectID,
-      });
+      await Promise.all(
+        quickMapProducts.map((p) =>
+          createBookMapping({
+            bookCode: quickMapCode,
+            productId: p.productId,
+            productTitle: p.productTitle,
+            authors: p.authors,
+          })
+        )
+      );
       // Remove from unmapped list
       setUnmappedBookCodes((prev) => prev ? prev.filter((c) => c !== quickMapCode) : prev);
-      toast.success(`Mapped "${quickMapCode}" successfully`);
+      toast.success(`Mapped "${quickMapCode}" → ${quickMapProducts.length} product(s)`);
       closeQuickMap();
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to save mapping");
@@ -849,12 +887,13 @@ export default function UploadPage() {
       {/* Quick-Map Modal */}
       {quickMapCode && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-          <div className="w-full max-w-md rounded-2xl bg-card border border-border shadow-2xl overflow-visible">
+          <div className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl overflow-visible">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div>
                 <h3 className="text-base font-semibold text-foreground">Map Book Code</h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
                   Code: <span className="font-mono font-semibold text-foreground">{quickMapCode}</span>
+                  {" · "}One code can map to multiple products
                 </p>
               </div>
               <button onClick={closeQuickMap} className="rounded-md p-1 text-muted-foreground hover:bg-muted transition-colors">
@@ -865,12 +904,11 @@ export default function UploadPage() {
             <div className="p-5 space-y-4">
               {/* Algolia search */}
               <div className="relative">
-                <label className="block text-sm font-medium text-foreground mb-1">Search Product (Algolia)</label>
+                <label className="block text-sm font-medium text-foreground mb-1">Search &amp; Add Products</label>
                 <input
                   value={quickMapQuery}
                   onChange={(e) => {
                     setQuickMapQuery(e.target.value);
-                    setQuickMapSelected(null);
                     if (e.target.value.trim()) setQuickMapSearching(true);
                     else { setQuickMapSearching(false); setQuickMapHits([]); }
                   }}
@@ -887,29 +925,61 @@ export default function UploadPage() {
                     ) : quickMapHits.length === 0 ? (
                       <div className="px-3 py-4 text-center text-sm text-muted-foreground">No products found</div>
                     ) : (
-                      quickMapHits.map((hit) => (
-                        <button
-                          key={hit.objectID}
-                          onClick={() => { setQuickMapSelected(hit); setQuickMapQuery((hit.title as string | undefined) ?? hit.objectID); setQuickMapHits([]); }}
-                          className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted border-b border-border last:border-0 transition-colors"
-                        >
-                          <span className="font-medium text-foreground">{(hit.title as string | undefined) ?? hit.objectID}</span>
-                          {hit.isbn && <span className="ml-2 text-xs text-muted-foreground">ISBN: {hit.isbn as string}</span>}
-                          <span className="ml-2 text-xs font-mono text-muted-foreground">{hit.objectID}</span>
-                        </button>
-                      ))
+                      quickMapHits.map((hit) => {
+                        const alreadyAdded = quickMapProducts.some((p) => p.productId === hit.objectID);
+                        return (
+                          <button
+                            key={hit.objectID}
+                            onClick={() => addQuickMapProduct(hit)}
+                            disabled={alreadyAdded}
+                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted border-b border-border last:border-0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          >
+                            <span className="font-medium text-foreground">{hit.title ?? hit.objectID}</span>
+                            {hit.isbn && <span className="ml-2 text-xs text-muted-foreground">ISBN: {hit.isbn as string}</span>}
+                            {hit.authors && hit.authors.length > 0 && (
+                              <span className="ml-2 text-xs text-muted-foreground">by {hit.authors.map((a) => a.title).join(", ")}</span>
+                            )}
+                            {alreadyAdded && <span className="ml-2 text-xs text-blue-600 font-medium">Added</span>}
+                          </button>
+                        );
+                      })
                     )}
                   </div>
                 )}
               </div>
 
-              {/* Selected product preview */}
-              {quickMapSelected && (
-                <div className="rounded-lg border border-blue-400/40 bg-blue-500/5 px-3 py-2.5 text-sm">
-                  <p className="text-xs text-muted-foreground mb-0.5">Selected product</p>
-                  <p className="font-medium text-foreground">{(quickMapSelected.title as string | undefined) ?? quickMapSelected.objectID}</p>
-                  <p className="text-xs font-mono text-muted-foreground">{quickMapSelected.objectID}</p>
+              {/* Selected products list */}
+              {quickMapProducts.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">
+                    Mapped Products <span className="text-muted-foreground font-normal">({quickMapProducts.length})</span>
+                  </label>
+                  <div className="space-y-2 max-h-48 overflow-y-auto">
+                    {quickMapProducts.map((p) => (
+                      <div key={p.productId} className="flex items-center gap-2 rounded-lg border border-blue-400/40 bg-blue-500/5 px-3 py-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-foreground truncate">{p.productTitle}</p>
+                          <p className="text-xs font-mono text-muted-foreground">{p.productId}</p>
+                          {p.authors.length > 0 && (
+                            <p className="text-xs text-muted-foreground">by {p.authors.map((a) => a.title).join(", ")}</p>
+                          )}
+                        </div>
+                        <button
+                          onClick={() => removeQuickMapProduct(p.productId)}
+                          className="shrink-0 rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              )}
+
+              {quickMapProducts.length === 0 && (
+                <p className="text-xs text-muted-foreground text-center py-2">
+                  Search above to add products. You can add multiple products per code.
+                </p>
               )}
             </div>
 
@@ -919,11 +989,11 @@ export default function UploadPage() {
               </button>
               <button
                 onClick={handleQuickMapSave}
-                disabled={!quickMapSelected || quickMapSaving}
+                disabled={quickMapProducts.length === 0 || quickMapSaving}
                 className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
               >
                 {quickMapSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
-                Save Mapping
+                Save {quickMapProducts.length > 0 ? `${quickMapProducts.length} Mapping${quickMapProducts.length > 1 ? "s" : ""}` : "Mapping"}
               </button>
             </div>
           </div>
@@ -1544,6 +1614,9 @@ export default function UploadPage() {
                                   Exact duplicate — no changes needed
                                 </span>
                               )}
+                              <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground font-mono" title="Database teacher ID">
+                                DB ID: {match.existingTeacher.id}
+                              </span>
                             </div>
                             {/* Action buttons */}
                             <div className="flex items-center gap-2">

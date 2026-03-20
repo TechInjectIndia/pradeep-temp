@@ -17,7 +17,7 @@ import type { BatchLogEntry } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   useBatch, usePauseBatch, useResumeBatch, useCancelBatch,
-  useCheckAdvanceBatch, useRetryResolution, useRetryOrderCreation, useRetryDispatching,
+  useRetryResolution, useRetryOrderCreation, useRetryDispatching,
   useGenerateLinks,
 } from "@/hooks/useBatches";
 import { getBatchLogs, getBatchTeachers } from "@/services/api";
@@ -54,7 +54,6 @@ export default function BatchDetailPage() {
   const pauseMutation = usePauseBatch();
   const resumeMutation = useResumeBatch();
   const cancelMutation = useCancelBatch();
-  const checkAdvanceMutation = useCheckAdvanceBatch();
   const retryResolutionMutation = useRetryResolution();
   const retryOrderCreationMutation = useRetryOrderCreation();
   const retryDispatchingMutation = useRetryDispatching();
@@ -174,11 +173,6 @@ export default function BatchDetailPage() {
                 Generate Links
               </button>
             )}
-            <button onClick={() => checkAdvanceMutation.mutate(batchId)} disabled={checkAdvanceMutation.isPending || !canCancel}
-              className="flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1.5 text-xs font-medium text-foreground hover:bg-muted/50 disabled:opacity-50 transition-colors">
-              {checkAdvanceMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RefreshCw className="h-3.5 w-3.5" />}
-              Advance
-            </button>
             {canPause && (
               <button onClick={() => pauseMutation.mutate(batchId)} disabled={pauseMutation.isPending}
                 className="flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 disabled:opacity-50 transition-colors">
