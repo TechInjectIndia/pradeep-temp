@@ -16,7 +16,7 @@ export const dlqRoutes = new Elysia({ prefix: '/dlq' })
     {
       query: t.Object({
         page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
-        pageSize: t.Optional(t.Numeric({ minimum: 1, maximum: 200, default: 20 })),
+        pageSize: t.Optional(t.Numeric({ minimum: 1, maximum: 1000, default: 20 })),
         batchId: t.Optional(t.String()),
         channel: t.Optional(t.String()),
         status: t.Optional(t.String()),

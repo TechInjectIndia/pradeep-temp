@@ -15,6 +15,12 @@ import { eq } from 'drizzle-orm';
 import { LinkService } from '@/services/LinkService';
 import { BatchService } from '@/services/BatchService';
 
+// Stage ordering — used to skip stale messages
+const STAGE_ORDER: Record<string, number> = {
+  UPLOADED: 0, VALIDATING: 1, RESOLVING: 2, ORDERING: 3, MESSAGING: 4, COMPLETE: 5,
+  PAUSED: -1, CANCELLED: -1, FAILED: -1, PARTIAL_FAILURE: -1,
+};
+
 async function handleBatchAdvance(
   job: BatchAdvanceJob,
   ack: () => void,
@@ -24,6 +30,19 @@ async function handleBatchAdvance(
   console.log(`[batch-advance] batch=${batchId} stage=${targetStage}`);
 
   try {
+    const batch = await BatchService.getById(batchId);
+    if (!batch) { console.warn(`[batch-advance] batch=${batchId} not found — skipping`); ack(); return; }
+
+    const currentOrder = STAGE_ORDER[batch.status] ?? -1;
+    const targetOrder = STAGE_ORDER[targetStage] ?? -1;
+
+    // Skip stale messages — batch has already moved past this stage
+    if (currentOrder > targetOrder) {
+      console.log(`[batch-advance] batch=${batchId} already at ${batch.status} — skipping stale ${targetStage} message`);
+      ack();
+      return;
+    }
+
     switch (targetStage) {
       case 'VALIDATING':
       case 'RESOLVING':
@@ -141,7 +160,7 @@ async function handleMessaging(batchId: string) {
         .update(`${order.teacherPhone}:${batchId}:WHATSAPP`)
         .digest('hex');
 
-      await db
+      const [waInserted] = await db
         .insert(commLog)
         .values({
           id: hash,
@@ -155,33 +174,38 @@ async function handleMessaging(batchId: string) {
           books: books.map((b) => b.title).join(', '),
           status: 'QUEUED',
         })
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .returning({ id: commLog.id });
 
-      const waJob: WhatsAppMessageJob = {
-        type: 'WHATSAPP',
-        batchId,
-        teacherRecordId: order.teacherRecordId,
-        teacherMasterId: order.teacherMasterId ?? '',
-        phone: order.teacherPhone,
-        name: order.teacherName,
-        school: order.school ?? undefined,
-        city: order.city ?? undefined,
-        email: order.teacherEmail ?? undefined,
-        specimenDetails,
-        commLogId: hash,
-        retryCount: 0,
-        books,
-      };
+      if (waInserted) {
+        const waJob: WhatsAppMessageJob = {
+          type: 'WHATSAPP',
+          batchId,
+          teacherRecordId: order.teacherRecordId,
+          teacherMasterId: order.teacherMasterId ?? '',
+          phone: order.teacherPhone,
+          name: order.teacherName,
+          school: order.school ?? undefined,
+          city: order.city ?? undefined,
+          email: order.teacherEmail ?? undefined,
+          specimenDetails,
+          commLogId: hash,
+          retryCount: 0,
+          books,
+        };
 
-      await publish(QUEUES.WHATSAPP_MESSAGES, waJob);
-      queued++;
+        await publish(QUEUES.WHATSAPP_MESSAGES, waJob);
+        queued++;
 
-      await BatchService.addLog(
-        batchId,
-        'outbox_queued',
-        `WhatsApp queued for ${order.teacherName} (${books.length} books)`,
-        order.teacherPhone
-      );
+        await BatchService.addLog(
+          batchId,
+          'outbox_queued',
+          `WhatsApp queued for ${order.teacherName} (${books.length} books)`,
+          order.teacherPhone
+        );
+      } else {
+        console.log(`[batch-advance] batch=${batchId} WhatsApp already queued for ${order.teacherName} — skipping`);
+      }
     }
 
     // ─── Email ────────────────────────────────────────────────────────────────
@@ -190,7 +214,7 @@ async function handleMessaging(batchId: string) {
         .update(`${order.teacherEmail}:${batchId}:EMAIL`)
         .digest('hex');
 
-      await db
+      const [emailInserted] = await db
         .insert(commLog)
         .values({
           id: hash,
@@ -204,29 +228,34 @@ async function handleMessaging(batchId: string) {
           books: books.map((b) => b.title).join(', '),
           status: 'QUEUED',
         })
-        .onConflictDoNothing();
+        .onConflictDoNothing()
+        .returning({ id: commLog.id });
 
-      const emailJob: EmailMessageJob = {
-        type: 'EMAIL',
-        batchId,
-        teacherRecordId: order.teacherRecordId,
-        teacherMasterId: order.teacherMasterId ?? '',
-        email: order.teacherEmail,
-        name: order.teacherName,
-        specimenDetails,
-        commLogId: hash,
-        retryCount: 0,
-      };
+      if (emailInserted) {
+        const emailJob: EmailMessageJob = {
+          type: 'EMAIL',
+          batchId,
+          teacherRecordId: order.teacherRecordId,
+          teacherMasterId: order.teacherMasterId ?? '',
+          email: order.teacherEmail,
+          name: order.teacherName,
+          specimenDetails,
+          commLogId: hash,
+          retryCount: 0,
+        };
 
-      await publish(QUEUES.EMAIL_MESSAGES, emailJob);
-      queued++;
+        await publish(QUEUES.EMAIL_MESSAGES, emailJob);
+        queued++;
 
-      await BatchService.addLog(
-        batchId,
-        'outbox_queued',
-        `Email queued for ${order.teacherName} (${books.length} books)`,
-        order.teacherEmail
-      );
+        await BatchService.addLog(
+          batchId,
+          'outbox_queued',
+          `Email queued for ${order.teacherName} (${books.length} books)`,
+          order.teacherEmail
+        );
+      } else {
+        console.log(`[batch-advance] batch=${batchId} Email already queued for ${order.teacherName} — skipping`);
+      }
     }
   }
 

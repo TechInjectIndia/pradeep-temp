@@ -288,6 +288,52 @@ export async function resolveDuplicate(
 
 // ---- Messages ----
 
+export interface CommLogEntry {
+  id: string;
+  batchId: string;
+  channel: "WHATSAPP" | "EMAIL";
+  teacherName?: string;
+  teacherPhone?: string;
+  teacherEmail?: string;
+  books?: string;
+  status: "QUEUED" | "SENT" | "DELIVERED" | "FAILED" | "DLQ" | "CANCELLED" | "SKIPPED";
+  attemptCount: number;
+  lastError?: string;
+  externalMessageId?: string;
+  lastAttemptAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface BatchCommSummary {
+  batchId: string;
+  fileName: string;
+  queued: number;
+  sent: number;
+  delivered: number;
+  failed: number;
+  dlq: number;
+  total: number;
+}
+
+export interface CommLogsResponse {
+  data: CommLogEntry[];
+  total: number;
+  page: number;
+  pageSize: number;
+  batchSummary: BatchCommSummary[];
+}
+
+export async function listCommLogs(params?: {
+  batchId?: string;
+  channel?: "WHATSAPP" | "EMAIL";
+  status?: string;
+  page?: number;
+  pageSize?: number;
+}): Promise<CommLogsResponse> {
+  return request<CommLogsResponse>(`/comm-logs${toQueryString(params ?? {})}`);
+}
+
 export async function listMessageLogs(params?: {
   batchId?: string;
   teacherPhone?: string;

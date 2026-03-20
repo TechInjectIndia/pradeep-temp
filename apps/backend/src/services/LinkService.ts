@@ -21,6 +21,13 @@ type LmsResponse = {
   teachers: Record<string, Record<string, string>>; // teacherRecordId → productId → url
 };
 
+type LmsTeacherPayload = {
+  name: string;
+  email: string | null;
+  phone: string | null;
+  productIds: string[];
+};
+
 export class LinkService {
   /**
    * Generate specimen links for every order in a batch.
@@ -74,8 +81,8 @@ export class LinkService {
     );
 
     // 5. Build the LMS API payload
-    // teachers: { teacherRecordId: [productId, ...] }
-    const teachersPayload: Record<string, string[]> = {};
+    // teachers: { teacherRecordId: { name, email, phone, productIds } }
+    const teachersPayload: Record<string, LmsTeacherPayload> = {};
     for (const order of batchOrders) {
       const raw = rawByRecordId.get(order.teacherRecordId);
       const bookStr = raw?.books ?? raw?.booksAssigned ?? '';
@@ -86,7 +93,12 @@ export class LinkService {
         .flatMap((c) => codeToProducts.get(c) ?? []);
 
       if (productIds.length > 0) {
-        teachersPayload[order.teacherRecordId] = productIds;
+        teachersPayload[order.teacherRecordId] = {
+          name: order.teacherName,
+          email: order.teacherEmail ?? null,
+          phone: order.teacherPhone ?? null,
+          productIds,
+        };
       }
     }
 

@@ -14,9 +14,16 @@ export const uploadRoutes = new Elysia({ prefix: '/upload' })
           catch (e) { console.warn(`[upload] Failed to parse ${name}:`, e); return undefined; }
         };
 
-        const teacherChannels = parseField<('whatsapp' | 'email' | 'both')[]>(body.teacherChannels, 'teacherChannels');
-        const mergeDecisions = parseField<MergeDecisionPayload[]>(body.mergeDecisions, 'mergeDecisions');
-        const skippedRowIndices = parseField<number[]>(body.skippedRowIndices, 'skippedRowIndices');
+        // Elysia auto-parses JSON strings in multipart bodies, so teacherChannels
+        // may arrive as a string (raw JSON) or already-parsed array
+        const rawTc = body.teacherChannels;
+        const teacherChannels: ('whatsapp' | 'email' | 'both')[] | undefined = Array.isArray(rawTc)
+          ? rawTc as ('whatsapp' | 'email' | 'both')[]
+          : typeof rawTc === 'string'
+            ? parseField<('whatsapp' | 'email' | 'both')[]>(rawTc, 'teacherChannels')
+            : undefined;
+        const mergeDecisions = parseField<MergeDecisionPayload[]>(body.mergeDecisions as string | undefined, 'mergeDecisions');
+        const skippedRowIndices = parseField<number[]>(body.skippedRowIndices as string | undefined, 'skippedRowIndices');
         const arrayBuffer = await file.arrayBuffer();
         const buffer = Buffer.from(arrayBuffer);
         return await processUpload(buffer, file.name ?? 'upload.xlsx', channel, teacherChannels, mergeDecisions, skippedRowIndices);
@@ -34,9 +41,9 @@ export const uploadRoutes = new Elysia({ prefix: '/upload' })
           ],
         }),
         channel: t.Optional(t.String()),
-        teacherChannels: t.Optional(t.String()),
-        mergeDecisions: t.Optional(t.String()),
-        skippedRowIndices: t.Optional(t.String()),
+        teacherChannels: t.Optional(t.Any()),
+        mergeDecisions: t.Optional(t.Any()),
+        skippedRowIndices: t.Optional(t.Any()),
       }),
     }
   );

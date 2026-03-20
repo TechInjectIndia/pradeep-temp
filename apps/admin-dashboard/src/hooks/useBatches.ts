@@ -90,8 +90,8 @@ export function useCheckAdvanceBatch() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (batchId: string) => checkAdvanceBatch(batchId),
-    onSuccess: (data) => {
-      toast.success(`Status updated to ${data.status}`);
+    onSuccess: () => {
+      toast.success("Batch advanced to next stage");
       queryClient.invalidateQueries({ queryKey: ["batches"] });
       queryClient.invalidateQueries({ queryKey: ["batch"] });
     },
@@ -105,8 +105,8 @@ export function useRetryResolution() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (batchId: string) => retryResolution(batchId),
-    onSuccess: (data) => {
-      toast.success(`Resolution complete — status: ${data.status}`);
+    onSuccess: () => {
+      toast.success("Resolution retried — batch will reprocess failed teachers");
       queryClient.invalidateQueries({ queryKey: ["batches"] });
       queryClient.invalidateQueries({ queryKey: ["batch"] });
     },

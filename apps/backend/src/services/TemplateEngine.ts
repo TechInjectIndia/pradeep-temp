@@ -23,6 +23,13 @@ export type TemplateContext = {
   }>;
 };
 
+// WATI template parameter character limit — error #132005 if exceeded
+const WATI_PARAM_MAX_LEN = 60;
+
+function truncate(value: string, max = WATI_PARAM_MAX_LEN): string {
+  return value.length <= max ? value : value.slice(0, max - 1) + '…';
+}
+
 /** Resolve a single dot-notation path against the context. */
 function resolvePath(path: string, ctx: TemplateContext): string {
   const parts = path.split('.');
@@ -45,10 +52,10 @@ function resolvePath(path: string, ctx: TemplateContext): string {
     if (!isNaN(idx) && idx >= 0 && idx < ctx.books.length) {
       const book = ctx.books[idx]!;
       const field = parts[2];
-      if (field === 'title') return book.title ?? '';
+      if (field === 'title') return truncate(book.title ?? '');
       if (field === 'specimenUrl') return book.specimenUrl ?? '';
       if (field === 'productId') return book.productId ?? '';
-      if (field === 'author') return book.author ?? '';
+      if (field === 'author') return truncate(book.author ?? '');
     }
     return '';
   }
@@ -66,7 +73,8 @@ export function resolveParams(
 ): Array<{ name: string; value: string }> {
   return params.map(({ paramName, dataPath, fallback }) => ({
     name: paramName,
-    value: resolvePath(dataPath, ctx) || fallback || '',
+    // WATI rejects blank parameters — use 'Pradeep Publications' as last resort
+    value: resolvePath(dataPath, ctx) || fallback || 'Pradeep Publications',
   }));
 }
 

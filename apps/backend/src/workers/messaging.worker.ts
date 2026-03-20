@@ -2,7 +2,7 @@
  * Messaging Worker — consumes WHATSAPP_MESSAGES and EMAIL_MESSAGES queues
  * and calls WATI / Resend APIs to send messages.
  */
-import { consume } from '@/queue';
+import { consume, publish } from '@/queue';
 import { QUEUES, type WhatsAppMessageJob, type EmailMessageJob } from '@/queue/types';
 import { config } from '@/config';
 import { db } from '@/db';
@@ -41,6 +41,32 @@ async function getTemplateForBookCount(bookCount: number) {
   });
 }
 
+// ─── Phone number normalization ───────────────────────────────────────────────
+
+/**
+ * Normalize an Indian mobile number to full E.164-style format (without "+").
+ * WATI expects 12-digit format: 91XXXXXXXXXX
+ * Examples:
+ *   "9814029931"  → "919814029931"
+ *   "919814029931"→ "919814029931"  (already correct)
+ *   "+919814029931"→"919814029931"
+ */
+function normalizeIndianPhone(phone: string): string {
+  // Strip any leading + or spaces
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length === 10) {
+    return `91${digits}`;
+  }
+  if (digits.length === 12 && digits.startsWith('91')) {
+    return digits;
+  }
+  if (digits.length === 13 && digits.startsWith('091')) {
+    return digits.slice(1);
+  }
+  // Return as-is if format is unrecognized
+  return digits;
+}
+
 // ─── WATI ────────────────────────────────────────────────────────────────────
 
 async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
@@ -77,7 +103,9 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
     ];
   }
 
-  const url = `${config.wati.baseUrl}/api/v1/sendTemplateMessage?whatsappNumber=${job.phone}`;
+  const normalizedPhone = normalizeIndianPhone(job.phone);
+  console.log(`[messaging-worker] phone: ${job.phone} → ${normalizedPhone}`);
+  const url = `${config.wati.baseUrl}/api/v1/sendTemplateMessage?whatsappNumber=${normalizedPhone}`;
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -129,14 +157,24 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
 
 // ─── Handle message ───────────────────────────────────────────────────────────
 
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function handleMessage(
   job: WhatsAppMessageJob | EmailMessageJob,
   ack: () => void,
-  nack: (requeue: boolean) => void
+  _nack: (requeue: boolean) => void
 ) {
   const { commLogId, batchId, retryCount } = job;
 
   try {
+    // Check if message was cancelled before sending
+    const log = await db.query.commLog.findFirst({ where: eq(commLog.id, commLogId) });
+    if (log?.status === 'CANCELLED') {
+      console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} — cancelled, skipping`);
+      ack();
+      return;
+    }
+
     let externalId: string;
     if (job.type === 'WHATSAPP') {
       externalId = await sendWhatsApp(job);
@@ -160,6 +198,7 @@ async function handleMessage(
       externalMessageId: externalId,
     });
 
+    await sleep(1000); // 1 message per second rate limit
     ack();
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
@@ -191,9 +230,17 @@ async function handleMessage(
         .set({ status: 'DLQ', updatedAt: new Date() })
         .where(eq(commLog.id, commLogId));
 
+      console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} → DLQ after ${nextRetry} attempts`);
+      await sleep(1000);
       ack(); // Ack from RabbitMQ — it's now in DB DLQ
     } else {
-      nack(true); // Requeue for retry
+      // Republish with incremented retryCount instead of nack(true) to avoid infinite loop
+      const retryJob = { ...job, retryCount: nextRetry };
+      const queue = job.type === 'WHATSAPP' ? QUEUES.WHATSAPP_MESSAGES : QUEUES.EMAIL_MESSAGES;
+      await sleep(1000); // wait before retry
+      await publish(queue, retryJob);
+      console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} retry ${nextRetry}/${MAX_RETRIES} requeued`);
+      ack(); // Ack original; new message with updated retryCount is now in queue
     }
   }
 }
@@ -201,14 +248,15 @@ async function handleMessage(
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 
 async function main() {
-  console.log('[messaging-worker] Starting...');
+  console.log('[messaging-worker] Starting... (rate: 1 msg/sec per channel)');
   await Promise.all([
+    // prefetch=1 — process one message at a time, 1 second apart
     consume(QUEUES.WHATSAPP_MESSAGES, (msg, ack, nack) =>
       handleMessage(msg as WhatsAppMessageJob, ack, nack)
-    ),
+    , 1),
     consume(QUEUES.EMAIL_MESSAGES, (msg, ack, nack) =>
       handleMessage(msg as EmailMessageJob, ack, nack)
-    ),
+    , 1),
   ]);
   console.log('[messaging-worker] Ready');
 }

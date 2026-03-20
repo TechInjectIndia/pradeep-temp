@@ -59,13 +59,13 @@ export default function BatchesPage() {
       render: (row) => <BatchStateIndicator status={row.status} />,
     },
     {
-      key: "stats",
+      key: "stats_teachers",
       header: "Teachers",
       render: (row) => <span className="text-sm">{row.stats?.totalTeachers ?? 0}</span>,
       mobileHidden: true,
     },
     {
-      key: "stats",
+      key: "stats_messages",
       header: "Messages",
       render: (row) => <span className="text-sm">{row.stats?.messagesQueued ?? 0}</span>,
       mobileHidden: true,

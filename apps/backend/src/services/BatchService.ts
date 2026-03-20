@@ -5,6 +5,7 @@ import {
   teachersRaw,
   batchErrors,
   batchLogs,
+  commLog,
   type BatchStats,
   type StatusHistoryEntry,
 } from '@/db/schema';
@@ -141,6 +142,13 @@ export class BatchService {
       .returning();
     const updated = rows[0];
     if (!updated) throw new Error('Failed to cancel batch');
+
+    // Mark all queued messages as CANCELLED so the messaging worker skips them
+    await db
+      .update(commLog)
+      .set({ status: 'CANCELLED', updatedAt: new Date() })
+      .where(and(eq(commLog.batchId, batchId), eq(commLog.status, 'QUEUED')));
+
     return updated;
   }
 
