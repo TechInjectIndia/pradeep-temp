@@ -108,7 +108,7 @@ export default function DuplicatesPage() {
   const duplicates = response?.data || [];
   const totalCount = response?.total || 0;
   const totalPages = response?.totalPages ?? Math.ceil(totalCount / pageSize);
-  const batches = batchesRes?.data.map((b) => b.batchId) || [];
+  const batches = batchesRes?.data.map((b) => b.id) || [];
 
   const handleMerge = (id: string) => {
     resolveMutation.mutate({ duplicateId: id, action: "merge" });

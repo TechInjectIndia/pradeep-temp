@@ -16,7 +16,7 @@ export interface Column<T> {
 interface Props<T> {
   columns: Column<T>[];
   data: T[];
-  keyExtractor: (row: T) => string;
+  keyExtractor: (row: T, index: number) => string;
   onRowClick?: (row: T) => void;
   pagination?: {
     page: number;
@@ -83,9 +83,9 @@ export default function DataTable<T>({
                 </td>
               </tr>
             ) : (
-              data.map((row) => (
+              data.map((row, idx) => (
                 <tr
-                  key={keyExtractor(row)}
+                  key={keyExtractor(row, idx)}
                   onClick={() => onRowClick?.(row)}
                   className={clsx(
                     "transition-colors",
@@ -124,9 +124,9 @@ export default function DataTable<T>({
             {emptyMessage}
           </div>
         ) : (
-          data.map((row) => (
+          data.map((row, idx) => (
             <div
-              key={keyExtractor(row)}
+              key={keyExtractor(row, idx)}
               onClick={() => onRowClick?.(row)}
               className={clsx(
                 "space-y-2 px-4 py-4 transition-colors",

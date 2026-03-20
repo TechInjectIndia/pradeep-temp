@@ -12,6 +12,7 @@ import {
   retryOrderCreation,
   retryDispatching,
   retryBatchErrors,
+  generateLinks,
 } from "@/services/api";
 import type { BatchListParams, BatchErrorParams } from "@/types";
 
@@ -141,6 +142,20 @@ export function useRetryDispatching() {
     },
     onError: (err: Error) => {
       toast.error(err.message || "Failed to dispatch messages");
+    },
+  });
+}
+
+export function useGenerateLinks() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (batchId: string) => generateLinks({ batchId }),
+    onSuccess: (data) => {
+      toast.success(`Generated ${data.linkCount} links for ${data.teacherCount} teachers`);
+      queryClient.invalidateQueries({ queryKey: ["batch"] });
+    },
+    onError: (err: Error) => {
+      toast.error(err.message || "Failed to generate links");
     },
   });
 }

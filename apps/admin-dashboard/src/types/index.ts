@@ -39,30 +39,44 @@ export type MessageChannel = "WHATSAPP" | "SMS" | "EMAIL";
 // ---- Dashboard ----
 
 export interface DashboardStats {
-  totalTeachers: number;
-  totalMessagesSent: number;
+  totalBatches: number;
   activeBatches: number;
-  queueSize: number;
-  dlqSize: number;
+  dlqCount: number;
+  messagesSent: number;
+  messagesDelivered: number;
+  deliveryRate: number;
 }
 
 // ---- Batch ----
 
+export interface BatchStats {
+  totalTeachers?: number;
+  teachersResolved?: number;
+  resolutionErrors?: number;
+  ordersCreated?: number;
+  expectedOrders?: number;
+  messagesQueued?: number;
+  messagesDelivered?: number;
+  messagesFailed?: number;
+  dlqMessages?: number;
+}
+
 export interface Batch {
-  batchId: string;
+  id: string;
   status: BatchStatus;
-  teacherCount: number;
-  orderCount: number;
-  messageCount: number;
-  errorCount: number;
+  fileName?: string;
+  stats?: BatchStats;
+  statusHistory?: StatusHistoryEntry[];
+  pausedFromStage?: string;
+  pausedAt?: string;
+  cancelReason?: string;
   createdAt: string;
   updatedAt: string;
 }
 
 export interface BatchDetail extends Batch {
-  stages: StageProgress[];
-  deliveryStatus: DeliveryBreakdown;
-  statusHistory: StatusHistoryEntry[];
+  stages?: StageProgress[];
+  deliveryStatus?: DeliveryBreakdown;
 }
 
 export interface StageProgress {
@@ -81,9 +95,10 @@ export interface DeliveryBreakdown {
 }
 
 export interface StatusHistoryEntry {
-  status: BatchStatus;
+  from: string;
+  to: string;
+  trigger: string;
   timestamp: string;
-  reason?: string;
 }
 
 // ---- Errors ----
@@ -98,22 +113,19 @@ export interface BatchLogEntry {
   teacherName?: string;
   teacherPhone?: string;
   teacherEmail?: string;
-  channel?: "whatsapp" | "email";
-  messageBody?: string;
-  templateParams?: Record<string, string>;
-  subject?: string;
-  timestamp: string;
+  channel?: "WHATSAPP" | "EMAIL";
+  loggedAt: string;
 }
 
 export interface BatchError {
   id: string;
   batchId: string;
   stage: BatchStage;
-  teacherName: string;
-  teacherPhone: string;
+  teacherName?: string;
+  teacherPhone?: string;
   errorType: string;
-  message: string;
-  retryable: boolean;
+  errorMessage: string;
+  isRetryable: boolean;
   createdAt: string;
 }
 
@@ -178,15 +190,18 @@ export interface TeacherRecord {
 export interface DLQEntry {
   id: string;
   batchId: string;
-  teacherPhone: string;
-  teacherName: string;
-  channel: MessageChannel;
-  attempts: number;
-  lastError: string;
-  retryable: boolean;
-  status: "PENDING" | "RETRYING" | "RESOLVED" | "ABANDONED";
+  teacherPhone?: string;
+  teacherEmail?: string;
+  teacherName?: string;
+  channel: "WHATSAPP" | "EMAIL";
+  attemptCount: number;
+  errorMessage: string;
+  errorType: string;
+  isRetryable: boolean;
+  status: "FAILED" | "RETRYING" | "RESOLVED";
   createdAt: string;
-  lastAttemptAt: string;
+  updatedAt: string;
+  retriedAt?: string;
 }
 
 // ---- Upload ----
@@ -313,17 +328,12 @@ export interface UploadedTeacher {
   books: string;
 }
 
-/** Payload: teacherId -> { productId -> quantity } */
 export interface GenerateLinksRequest {
   batchId: string;
-  teacherProducts: Record<string, Record<string, number>>;
 }
 
-/** Response: teacherId -> { productId -> [url, ...] } */
 export interface GenerateLinksResponse {
   batchId: string;
-  links: Record<string, Record<string, string[]>>;
-  expiresAt: string;
-  savedTo: string;
-  savedDocId: string;
+  teacherCount: number;
+  linkCount: number;
 }

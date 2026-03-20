@@ -12,6 +12,7 @@ import {
   AlertTriangle,
   X,
   MessageSquare,
+  BookOpen,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -23,6 +24,8 @@ const navItems = [
   { href: "/teachers", label: "Teachers", icon: Users },
   { href: "/duplicates", label: "Duplicates", icon: Copy },
   { href: "/dlq", label: "DLQ", icon: AlertTriangle },
+  { href: "/book-mappings", label: "Book Mappings", icon: BookOpen },
+  { href: "/wati-templates", label: "WATI Templates", icon: MessageSquare },
 ];
 
 interface Props {

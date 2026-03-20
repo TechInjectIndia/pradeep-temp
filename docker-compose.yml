@@ -1,0 +1,106 @@
+version: '3.9'
+
+services:
+  # ── PostgreSQL 16 ─────────────────────────────────────────────────────────────
+  postgres:
+    image: postgres:16-alpine
+    container_name: vsds_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vsds
+      POSTGRES_PASSWORD: vsds
+      POSTGRES_DB: vsds
+    ports:
+      - '5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U vsds -d vsds']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── RabbitMQ 3 (with Management UI) ──────────────────────────────────────────
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: vsds_rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: vsds
+      RABBITMQ_DEFAULT_PASS: vsds
+    ports:
+      - '5672:5672'   # AMQP
+      - '15672:15672' # Management UI (http://localhost:15672)
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
+      interval: 15s
+      timeout: 10s
+      retries: 5
+
+  # ── Bun Backend ───────────────────────────────────────────────────────────────
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: vsds_backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://vsds:vsds@postgres:5432/vsds
+      RABBITMQ_URL: amqp://vsds:vsds@rabbitmq:5672
+      PORT: 3001
+      NODE_ENV: production
+    ports:
+      - '3001:3001'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ── Messaging Worker ──────────────────────────────────────────────────────────
+  worker_messaging:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile.worker
+      args:
+        WORKER: messaging
+    container_name: vsds_worker_messaging
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://vsds:vsds@postgres:5432/vsds
+      RABBITMQ_URL: amqp://vsds:vsds@rabbitmq:5672
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # ── Ordering Worker ───────────────────────────────────────────────────────────
+  worker_ordering:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile.worker
+      args:
+        WORKER: ordering
+    container_name: vsds_worker_ordering
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql://vsds:vsds@postgres:5432/vsds
+      RABBITMQ_URL: amqp://vsds:vsds@rabbitmq:5672
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  rabbitmq_data:

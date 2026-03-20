@@ -50,33 +50,33 @@ export default function ErrorTable({
     },
     { key: "errorType", header: "Error Type" },
     {
-      key: "message",
+      key: "errorMessage",
       header: "Message",
       render: (row) => (
-        <span className="max-w-xs truncate block" title={row.message}>
-          {row.message}
+        <span className="max-w-xs truncate block" title={row.errorMessage}>
+          {row.errorMessage}
         </span>
       ),
     },
     {
-      key: "retryable",
+      key: "isRetryable",
       header: "Retryable",
       render: (row) => (
         <span
           className={clsx(
             "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-            row.retryable
+            row.isRetryable
               ? "bg-green-100 text-green-700"
               : "bg-muted text-muted-foreground"
           )}
         >
-          {row.retryable ? "Yes" : "No"}
+          {row.isRetryable ? "Yes" : "No"}
         </span>
       ),
     },
   ];
 
-  const retryableCount = errors.filter((e) => e.retryable).length;
+  const retryableCount = errors.filter((e) => e.isRetryable).length;
 
   return (
     <div className="space-y-4">

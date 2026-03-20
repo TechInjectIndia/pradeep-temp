@@ -22,7 +22,7 @@ export default function MessageLogsPage() {
       listMessageLogs({
         batchId: batchFilter || undefined,
         channel: channelFilter || undefined,
-        limit: 300,
+        pageSize: 300,
       }),
   });
 
@@ -33,7 +33,7 @@ export default function MessageLogsPage() {
 
   const logs = response?.data ?? [];
   const summary = response?.summary;
-  const batches = batchesRes?.data.map((b) => b.batchId) || [];
+  const batches = batchesRes?.data.map((b) => b.id) || [];
 
   const byPhone = summary?.byPhone ?? [];
   const byEmail = summary?.byEmail ?? [];

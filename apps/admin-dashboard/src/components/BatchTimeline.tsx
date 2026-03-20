@@ -190,13 +190,13 @@ function StatusHistorySection({ history }: { history: StatusHistoryEntry[] }) {
           <div className="border-t border-border/60 px-4 py-3">
             <ul className="space-y-2">
               {history.map((entry, idx) => {
-                const reason = entry.reason ?? (entry as { trigger?: string }).trigger;
+                const reason = entry.trigger;
                 return (
                   <li key={idx} className="flex items-start gap-3 text-sm">
                     <span className="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-primary/60" />
                     <div>
                       <span className="font-medium text-foreground">
-                        {String(entry.status ?? "UNKNOWN").replace(/_/g, " ")}
+                        {entry.from} → {entry.to}
                       </span>
                       <p className="text-xs text-muted-foreground">
                         {entry.timestamp ? new Date(entry.timestamp).toLocaleString() : "—"}

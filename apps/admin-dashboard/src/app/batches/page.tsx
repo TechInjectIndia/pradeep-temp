@@ -9,17 +9,12 @@ import { useBatches } from "@/hooks/useBatches";
 import { formatDate } from "@/utils/date";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-// Align with backend BatchStateMachine statuses
 const statuses: BatchStatus[] = [
-  "PENDING",
   "UPLOADED",
   "VALIDATING",
   "RESOLVING",
   "ORDERING",
-  "CREATING_ORDERS",
-  "AGGREGATING",
   "MESSAGING",
-  "DISPATCHING",
   "PAUSED",
   "COMPLETE",
   "PARTIAL_FAILURE",
@@ -39,27 +34,42 @@ export default function BatchesPage() {
     pageSize,
   });
 
-  const batches = response?.data || [];
-  const totalCount = response?.total || 0;
+  const batches = response?.data ?? [];
+  const totalCount = response?.total ?? 0;
 
   const columns: Column<Batch>[] = [
     {
-      key: "batchId",
+      key: "id",
       header: "Batch ID",
       render: (row) => (
-        <span className="font-mono text-sm font-medium text-blue-600">
-          {row.batchId}
-        </span>
+        <span className="font-mono text-sm font-medium text-blue-600">{row.id}</span>
       ),
+    },
+    {
+      key: "fileName",
+      header: "File",
+      render: (row) => (
+        <span className="text-sm text-muted-foreground">{row.fileName ?? "—"}</span>
+      ),
+      mobileHidden: true,
     },
     {
       key: "status",
       header: "Status",
       render: (row) => <BatchStateIndicator status={row.status} />,
     },
-    { key: "teacherCount", header: "Teachers" },
-    { key: "orderCount", header: "Orders" },
-    { key: "messageCount", header: "Messages" },
+    {
+      key: "stats",
+      header: "Teachers",
+      render: (row) => <span className="text-sm">{row.stats?.totalTeachers ?? 0}</span>,
+      mobileHidden: true,
+    },
+    {
+      key: "stats",
+      header: "Messages",
+      render: (row) => <span className="text-sm">{row.stats?.messagesQueued ?? 0}</span>,
+      mobileHidden: true,
+    },
     {
       key: "createdAt",
       header: "Created",
@@ -103,8 +113,8 @@ export default function BatchesPage() {
         <DataTable
           columns={columns}
           data={batches}
-          keyExtractor={(row) => row.batchId}
-          onRowClick={(row) => router.push(`/batches/${row.batchId}`)}
+          keyExtractor={(row) => row.id}
+          onRowClick={(row) => router.push(`/batches/${row.id}`)}
           pagination={{
             page,
             pageSize,

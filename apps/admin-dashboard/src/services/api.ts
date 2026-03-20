@@ -10,13 +10,18 @@ import type {
   DashboardStats,
   DuplicateListParams,
   DuplicateRecord,
+  GenerateLinksRequest,
+  GenerateLinksResponse,
+  MessageLogsResponse,
   PaginatedResponse,
+  ReviewedRow,
   Teacher,
   TeacherListParams,
+  UploadedTeacher,
 } from "@/types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:5001/vsds-platform/us-central1";
+  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
 const REQUEST_TIMEOUT_MS = 30_000;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -37,7 +42,6 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
 
     if (!res.ok) {
       const body = await res.text();
-      // Distinguish common error types for better UX
       if (res.status === 404) throw new Error(`Not found: ${body}`);
       if (res.status === 409) throw new Error(`Conflict: ${body}`);
       if (res.status === 400) throw new Error(`Bad request: ${body}`);
@@ -54,9 +58,9 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   }
 }
 
-function toQueryString(params: Record<string, any>): string {
+function toQueryString(params: object): string {
   const searchParams = new URLSearchParams();
-  for (const [key, value] of Object.entries(params)) {
+  for (const [key, value] of Object.entries(params as Record<string, unknown>)) {
     if (value !== undefined && value !== null && value !== "") {
       searchParams.set(key, String(value));
     }
@@ -68,29 +72,42 @@ function toQueryString(params: Record<string, any>): string {
 // ---- Dashboard ----
 
 export async function getDashboardStats(): Promise<DashboardStats> {
-  return request<DashboardStats>("/dashboardStats");
+  return request<DashboardStats>("/dashboard/stats");
 }
 
-// ---- Upload / Specimen ----
+// ---- Upload ----
 
-export async function uploadSpecimenReviewed(
-  rows: import("@/types").ReviewedRow[]
-): Promise<{ batchId: string; teacherCount: number; teachers: import("@/types").UploadedTeacher[] }> {
-  return request<{ batchId: string; teacherCount: number; teachers: import("@/types").UploadedTeacher[] }>(`/specimenUploadReviewed`, {
-    method: "POST",
-    body: JSON.stringify({ rows }),
-  });
-}
+export type MergeDecisionPayload =
+  | { rowIndex: number; action: "merge"; teacherId: string; nameChoice: "file" | "db"; noChanges: boolean; phonesToAdd: string[]; emailsToAdd: string[]; newName?: string }
+  | { rowIndex: number; action: "create_new" };
 
-export async function uploadSpecimen(file: File): Promise<{ batchId: string; teacherCount: number }> {
+export async function uploadSpecimen(
+  file: File,
+  channel?: "whatsapp" | "email" | "both",
+  teacherChannels?: ("whatsapp" | "email" | "both")[],
+  mergeDecisions?: MergeDecisionPayload[],
+  skippedRowIndices?: number[]
+): Promise<{ batchId: string; rowCount: number }> {
   const formData = new FormData();
   formData.append("file", file);
+  if (channel) {
+    formData.append("channel", channel);
+  }
+  if (teacherChannels && teacherChannels.length > 0) {
+    formData.append("teacherChannels", JSON.stringify(teacherChannels));
+  }
+  if (mergeDecisions && mergeDecisions.length > 0) {
+    formData.append("mergeDecisions", JSON.stringify(mergeDecisions));
+  }
+  if (skippedRowIndices && skippedRowIndices.length > 0) {
+    formData.append("skippedRowIndices", JSON.stringify(skippedRowIndices));
+  }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 60_000); // longer timeout for file upload
+  const timeout = setTimeout(() => controller.abort(), 60_000);
 
   try {
-    const res = await fetch(`${API_BASE_URL}/specimenUpload`, {
+    const res = await fetch(`${API_BASE_URL}/upload`, {
       method: "POST",
       body: formData,
       signal: controller.signal,
@@ -113,39 +130,46 @@ export async function uploadSpecimen(file: File): Promise<{ batchId: string; tea
   }
 }
 
-export async function createOrders(batchId: string): Promise<{ batchId: string }> {
-  return request<{ batchId: string }>(`/specimenCreateOrders`, {
+export async function uploadSpecimenReviewed(
+  rows: ReviewedRow[]
+): Promise<{ batchId: string; teacherCount: number; teachers: UploadedTeacher[] }> {
+  return request<{ batchId: string; teacherCount: number; teachers: UploadedTeacher[] }>(`/upload/reviewed`, {
     method: "POST",
-    body: JSON.stringify({ batchId }),
+    body: JSON.stringify({ rows }),
+  });
+}
+
+export async function createOrders(batchId: string): Promise<{ batchId: string }> {
+  return request<{ batchId: string }>(`/batches/${batchId}/advance`, {
+    method: "POST",
   });
 }
 
 export async function generateLinks(
-  payload: import("@/types").GenerateLinksRequest
-): Promise<import("@/types").GenerateLinksResponse> {
-  return request<import("@/types").GenerateLinksResponse>(`/specimenGenerateLinks`, {
+  payload: GenerateLinksRequest
+): Promise<GenerateLinksResponse> {
+  return request<GenerateLinksResponse>(`/batches/${payload.batchId}/links`, {
     method: "POST",
-    body: JSON.stringify(payload),
   });
 }
 
 export async function getBatchLinks(batchId: string): Promise<{
   id: string;
   batchId: string;
-  links: Record<string, Record<string, string[]>>;
+  links: Record<string, Record<string, string>>; // teacherRecordId → productId → url
   expiresAt: string;
 }> {
-  return request(`/specimenBatchLinks${toQueryString({ batchId })}`);
+  return request(`/batches/${batchId}/links`);
 }
 
 // ---- Batches ----
 
 export async function listBatches(params: BatchListParams = {}): Promise<PaginatedResponse<Batch>> {
-  return request<PaginatedResponse<Batch>>(`/batchesList${toQueryString(params)}`);
+  return request<PaginatedResponse<Batch>>(`/batches${toQueryString(params)}`);
 }
 
 export async function getBatch(batchId: string): Promise<BatchDetail> {
-  return request<BatchDetail>(`/batchesGet?batchId=${batchId}`);
+  return request<BatchDetail>(`/batches/${batchId}`);
 }
 
 export interface BatchTeacherOrderItem {
@@ -157,77 +181,74 @@ export interface BatchTeacherOrderItem {
 }
 
 export interface BatchTeacherWithOrders {
-  teacherRecordId: string;
-  teacherName: string;
-  teacherPhone: string;
-  teacherEmail: string;
-  orders: BatchTeacherOrderItem[];
+  id: string;
+  name: string | null;
+  phone: string | null;
+  email: string | null;
+  school: string | null;
+  books: string | null;
+  resolutionStatus: string;
 }
 
-export async function getBatchTeachers(batchId: string): Promise<{
-  data: BatchTeacherWithOrders[];
-  total: number;
-}> {
-  return request<{ data: BatchTeacherWithOrders[]; total: number }>(
-    `/batchesTeachers?batchId=${batchId}`
+export async function getBatchTeachers(
+  batchId: string,
+  params: { page?: number; pageSize?: number; status?: string } = {}
+): Promise<PaginatedResponse<BatchTeacherWithOrders>> {
+  return request<PaginatedResponse<BatchTeacherWithOrders>>(
+    `/batches/${batchId}/teachers${toQueryString(params)}`
   );
 }
 
 export async function pauseBatch(batchId: string): Promise<void> {
-  await request(`/batchesPause`, {
-    method: "POST",
-    body: JSON.stringify({ batchId }),
-  });
+  await request(`/batches/${batchId}/pause`, { method: "POST" });
 }
 
 export async function resumeBatch(batchId: string): Promise<void> {
-  await request(`/batchesResume`, {
-    method: "POST",
-    body: JSON.stringify({ batchId }),
-  });
+  await request(`/batches/${batchId}/resume`, { method: "POST" });
 }
 
 export async function cancelBatch(batchId: string, reason: string): Promise<void> {
-  await request(`/batchesCancel`, {
+  await request(`/batches/${batchId}/cancel`, {
     method: "POST",
-    body: JSON.stringify({ batchId, reason }),
+    body: JSON.stringify({ reason }),
   });
 }
 
 export async function checkAdvanceBatch(batchId: string): Promise<{ batchId: string; status: string }> {
-  return request<{ batchId: string; status: string }>(`/batchesCheckAdvance`, {
+  return request<{ batchId: string; status: string }>(`/batches/${batchId}/advance`, {
     method: "POST",
-    body: JSON.stringify({ batchId }),
   });
 }
 
 export async function retryResolution(batchId: string): Promise<{ batchId: string; status: string }> {
-  return request<{ batchId: string; status: string }>(`/batchesRetryResolution`, {
+  return request<{ batchId: string; status: string }>(`/batches/${batchId}/errors/retry`, {
     method: "POST",
-    body: JSON.stringify({ batchId }),
+    body: JSON.stringify({ stage: "RESOLUTION" }),
   });
 }
 
 export async function retryOrderCreation(batchId: string): Promise<{ batchId: string; ordersToCreate: number }> {
-  return request<{ batchId: string; ordersToCreate: number }>(`/batchesRetryOrderCreation`, {
+  const res = await request<{ retriedCount: number }>(`/batches/${batchId}/errors/retry`, {
     method: "POST",
-    body: JSON.stringify({ batchId }),
+    body: JSON.stringify({ stage: "ORDERS" }),
   });
+  return { batchId, ordersToCreate: res.retriedCount };
 }
 
 export async function retryDispatching(batchId: string): Promise<{ batchId: string; totalMessages: number }> {
-  return request<{ batchId: string; totalMessages: number }>(`/batchesRetryDispatching`, {
+  const res = await request<{ retriedCount: number; skippedCount: number }>("/dlq/retry", {
     method: "POST",
-    body: JSON.stringify({ batchId }),
+    body: JSON.stringify({ retryAll: true, batchId }),
   });
+  return { batchId, totalMessages: res.retriedCount };
 }
 
 export async function getBatchLogs(
   batchId: string,
-  params?: { step?: string; limit?: number }
-): Promise<{ data: BatchLogEntry[]; total: number }> {
-  return request<{ data: BatchLogEntry[]; total: number }>(
-    `/batchesLogs${toQueryString({ batchId, ...params })}`
+  params?: { step?: string; page?: number; pageSize?: number }
+): Promise<PaginatedResponse<BatchLogEntry>> {
+  return request<PaginatedResponse<BatchLogEntry>>(
+    `/batches/${batchId}/logs${toQueryString(params ?? {})}`
   );
 }
 
@@ -237,29 +258,31 @@ export async function getBatchErrors(
   batchId: string,
   params: BatchErrorParams = {}
 ): Promise<PaginatedResponse<BatchError>> {
-  return request<PaginatedResponse<BatchError>>(`/batchesErrors${toQueryString({ ...params, batchId })}`);
+  return request<PaginatedResponse<BatchError>>(`/batches/${batchId}/errors${toQueryString(params)}`);
 }
 
 export async function retryBatchErrors(batchId: string, stage?: string): Promise<{ retriedCount: number }> {
-  return request<{ retriedCount: number }>(`/batchesRetryErrors`, {
+  return request<{ retriedCount: number }>(`/batches/${batchId}/errors/retry`, {
     method: "POST",
-    body: JSON.stringify({ batchId, stage }),
+    body: JSON.stringify({ stage }),
   });
 }
 
 // ---- Duplicates ----
 
 export async function listDuplicates(params: DuplicateListParams = {}): Promise<PaginatedResponse<DuplicateRecord>> {
-  return request<PaginatedResponse<DuplicateRecord>>(`/duplicatesList${toQueryString(params)}`);
+  return request<PaginatedResponse<DuplicateRecord>>(`/duplicates${toQueryString(params)}`);
 }
 
 export async function resolveDuplicate(
   duplicateId: string,
   action: "merge" | "keep_separate"
 ): Promise<void> {
-  await request(`/duplicatesResolve`, {
+  await request(`/duplicates/${duplicateId}/resolve`, {
     method: "POST",
-    body: JSON.stringify({ duplicateId, action }),
+    body: JSON.stringify({
+      resolution: action === "merge" ? "MERGED" : "KEPT_SEPARATE",
+    }),
   });
 }
 
@@ -270,28 +293,33 @@ export async function listMessageLogs(params?: {
   teacherPhone?: string;
   teacherEmail?: string;
   channel?: "whatsapp" | "email";
-  limit?: number;
-}): Promise<import("@/types").MessageLogsResponse> {
-  return request<import("@/types").MessageLogsResponse>(
-    `/messagesLogs${toQueryString(params ?? {})}`
+  page?: number;
+  pageSize?: number;
+}): Promise<MessageLogsResponse> {
+  return request<MessageLogsResponse>(
+    `/dlq${toQueryString(params ?? {})}`
   );
 }
 
 export async function resendMessage(communicationId: string, channel: string): Promise<void> {
-  await request(`/messagesResend`, {
+  await request(`/dlq/retry`, {
     method: "POST",
-    body: JSON.stringify({ communicationId, channel }),
+    body: JSON.stringify({ ids: [communicationId] }),
   });
 }
 
 // ---- DLQ ----
 
 export async function listDLQ(params: DLQListParams = {}): Promise<PaginatedResponse<DLQEntry>> {
-  return request<PaginatedResponse<DLQEntry>>(`/dlqList${toQueryString(params)}`);
+  return request<PaginatedResponse<DLQEntry>>(`/dlq${toQueryString(params)}`);
 }
 
-export async function retryDLQ(data: { ids?: string[]; retryAll?: boolean }): Promise<{ retriedCount: number }> {
-  return request<{ retriedCount: number }>("/dlqRetry", {
+export async function retryDLQ(data: {
+  ids?: string[];
+  retryAll?: boolean;
+  batchId?: string;
+}): Promise<{ retriedCount: number; skippedCount?: number }> {
+  return request<{ retriedCount: number; skippedCount?: number }>("/dlq/retry", {
     method: "POST",
     body: JSON.stringify(data),
   });
@@ -300,7 +328,7 @@ export async function retryDLQ(data: { ids?: string[]; retryAll?: boolean }): Pr
 // ---- Teachers ----
 
 export async function listTeachers(params: TeacherListParams = {}): Promise<PaginatedResponse<Teacher>> {
-  return request<PaginatedResponse<Teacher>>(`/teachersList${toQueryString(params)}`);
+  return request<PaginatedResponse<Teacher>>(`/teachers${toQueryString(params)}`);
 }
 
 export interface DBDuplicateMatch {
@@ -317,21 +345,41 @@ export interface DBDuplicateMatch {
   /** 0–100 */
   confidence: number;
   matchReasons: string[];
-  /** True when name, email, phone all match — no merge needed, use existing record */
-  exactMatch?: boolean;
+  diff: {
+    nameConflict: boolean;
+    phonesToAdd: string[];
+    emailsToAdd: string[];
+    schoolConflict: boolean;
+    noChanges: boolean; // 100% match — nothing to update
+  };
 }
 
 export async function checkDuplicatesAgainstDB(
   rows: { name: string; phone: string; email: string; school: string }[]
 ): Promise<DBDuplicateMatch[]> {
-  const res = await request<{ matches: DBDuplicateMatch[]; total: number }>(
-    `/teachersCheckDuplicates`,
-    {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 120_000); // 2 min for large files
+  try {
+    const res = await fetch(`${API_BASE_URL}/teachers/check-duplicates`, {
       method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ rows }),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const body = await res.text();
+      throw new Error(`Duplicate check failed: ${body}`);
     }
-  );
-  return res.matches;
+    const data = await res.json() as { matches: DBDuplicateMatch[]; total: number };
+    return data.matches;
+  } catch (err) {
+    if (err instanceof Error && err.name === "AbortError") {
+      throw new Error("Duplicate check timed out — file may be too large");
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function mergeTeacher(data: {
@@ -340,8 +388,195 @@ export async function mergeTeacher(data: {
   phones: string[];
   emails: string[];
 }): Promise<void> {
-  await request(`/teachersMerge`, {
+  await request(`/teachers/${data.teacherId}/merge`, {
     method: "POST",
     body: JSON.stringify(data),
+  });
+}
+
+// ---- Book Mappings ----
+
+export interface BookMapping {
+  id: string;
+  bookCode: string;
+  productId: string;
+  productTitle: string;
+  notes: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listBookMappings(params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+} = {}): Promise<{ data: BookMapping[]; total: number; page: number; pageSize: number }> {
+  return request(`/book-mappings${toQueryString(params)}`);
+}
+
+export async function lookupBookCodes(codes: string[]): Promise<{ mappings: BookMapping[] }> {
+  return request("/book-mappings/lookup", {
+    method: "POST",
+    body: JSON.stringify({ codes }),
+  });
+}
+
+export async function createBookMapping(data: {
+  bookCode: string;
+  productId: string;
+  productTitle: string;
+  notes?: string;
+}): Promise<BookMapping> {
+  return request("/book-mappings", {
+    method: "POST",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function updateBookMapping(
+  id: string,
+  data: { bookCode?: string; productId?: string; productTitle?: string; notes?: string }
+): Promise<BookMapping> {
+  return request(`/book-mappings/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(data),
+  });
+}
+
+export async function deleteBookMapping(id: string): Promise<void> {
+  await request(`/book-mappings/${id}`, { method: "DELETE" });
+}
+
+// ---- Algolia ----
+
+export interface AlgoliaProduct {
+  objectID: string;
+  title: string;
+  isbn: string | null;
+  subject: string | null;
+  grade: string | null;
+  publisher: string | null;
+  coverUrl: string | null;
+  syncedAt: string;
+}
+
+export interface AlgoliaHit {
+  objectID: string;
+  title?: string;
+  isbn?: string;
+  subject?: string;
+  grade?: string;
+  publisher?: string;
+  image?: string;
+  [key: string]: unknown;
+}
+
+export async function searchAlgolia(q: string): Promise<{ hits: AlgoliaHit[] }> {
+  return request(`/algolia/search?q=${encodeURIComponent(q)}`);
+}
+
+export async function listAlgoliaProducts(params: {
+  page?: number;
+  pageSize?: number;
+  search?: string;
+} = {}): Promise<{ data: AlgoliaProduct[]; total: number; page: number; pageSize: number }> {
+  return request(`/algolia/products${toQueryString(params)}`);
+}
+
+export async function syncAlgoliaProducts(products: Omit<AlgoliaProduct, "syncedAt">[]): Promise<{ synced: number }> {
+  return request("/algolia/products/sync", {
+    method: "POST",
+    body: JSON.stringify({ products }),
+  });
+}
+
+export async function deleteAlgoliaProduct(objectID: string): Promise<void> {
+  await request(`/algolia/products/${encodeURIComponent(objectID)}`, { method: "DELETE" });
+}
+
+// ---- WATI Templates ----
+
+export interface WatiTemplateParam {
+  paramName: string;
+  dataPath: string;
+  fallback: string;
+}
+
+export interface WatiTemplate {
+  id: string;
+  templateName: string;
+  displayName: string;
+  bodyPreview: string | null;
+  params: WatiTemplateParam[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export async function listWatiTemplates(): Promise<WatiTemplate[]> {
+  return request("/wati-templates");
+}
+
+export async function createWatiTemplate(data: {
+  templateName: string;
+  displayName: string;
+  bodyPreview?: string;
+  params?: WatiTemplateParam[];
+}): Promise<WatiTemplate> {
+  return request("/wati-templates", { method: "POST", body: JSON.stringify(data) });
+}
+
+export async function updateWatiTemplate(
+  id: string,
+  data: { templateName?: string; displayName?: string; bodyPreview?: string; params?: WatiTemplateParam[] }
+): Promise<WatiTemplate> {
+  return request(`/wati-templates/${id}`, { method: "PUT", body: JSON.stringify(data) });
+}
+
+export async function activateWatiTemplate(id: string): Promise<WatiTemplate> {
+  return request(`/wati-templates/${id}/activate`, { method: "POST" });
+}
+
+export async function deactivateWatiTemplate(id: string): Promise<WatiTemplate> {
+  return request(`/wati-templates/${id}/deactivate`, { method: "POST" });
+}
+
+export async function deleteWatiTemplate(id: string): Promise<void> {
+  await request(`/wati-templates/${id}`, { method: "DELETE" });
+}
+
+export async function parseWatiVariables(bodyPreview: string): Promise<{ variables: string[] }> {
+  return request("/wati-templates/parse-variables", {
+    method: "POST",
+    body: JSON.stringify({ bodyPreview }),
+  });
+}
+
+export interface WatiRemoteTemplate {
+  id: string;
+  elementName: string;
+  status: string;
+  body?: string;
+  bodyOriginal?: string;
+  category?: string;
+  language?: { key: string; value: string; text: string } | string;
+  allowTemplateSend?: boolean;
+}
+
+export async function fetchWatiTemplatesFromApi(page = 1, pageSize = 100): Promise<{
+  templates: WatiRemoteTemplate[];
+  total: number;
+}> {
+  return request(`/wati-templates/fetch-from-wati?page=${page}&pageSize=${pageSize}`);
+}
+
+export async function previewWatiTemplate(id: string, sampleData?: {
+  teacherName?: string; teacherPhone?: string; teacherEmail?: string;
+  school?: string; city?: string; batchId?: string;
+  books?: { title: string; specimenUrl: string; productId: string; author?: string }[];
+}): Promise<{ templateName: string; params: { name: string; value: string }[] }> {
+  return request(`/wati-templates/${id}/preview`, {
+    method: "POST",
+    body: JSON.stringify(sampleData ?? {}),
   });
 }

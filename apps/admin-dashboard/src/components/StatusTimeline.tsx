@@ -31,11 +31,11 @@ export default function StatusTimeline({ history }: Props) {
     <div className="flow-root">
       <ul className="-mb-8">
         {history.map((entry, idx) => {
-          const status = entry.status ?? (entry as { to?: string }).to ?? "UNKNOWN";
+          const status = entry.to ?? "UNKNOWN";
           const Icon = statusIcon[status] || Loader;
           const color = statusColor[status] || "text-muted-foreground/70";
           const isLast = idx === history.length - 1;
-          const reason = entry.reason ?? (entry as { trigger?: string }).trigger;
+          const reason = entry.trigger;
 
           return (
             <li key={idx}>

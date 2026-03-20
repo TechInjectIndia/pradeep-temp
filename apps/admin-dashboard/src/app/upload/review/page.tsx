@@ -373,7 +373,7 @@ export default function UploadReviewPage() {
     return rows.map((r) => {
       const indices = getRowIndices(r);
       const exactMatch = dbMatches.find(
-        (m) => m.exactMatch && indices.includes(m.rowIndex)
+        (m) => m.diff.noChanges && indices.includes(m.rowIndex)
       );
       return {
         name: r.name,
@@ -536,8 +536,8 @@ export default function UploadReviewPage() {
   const allPendingDbMatches = dbMatches.filter(
     (m) => !dismissedDbMatches.has(m.rowIndex) && !removedRowIds.has(`r-${m.rowIndex}`)
   );
-  const exactMatchDb = allPendingDbMatches.filter((m) => m.exactMatch);
-  const pendingDbMatches = allPendingDbMatches.filter((m) => !m.exactMatch);
+  const exactMatchDb = allPendingDbMatches.filter((m) => m.diff.noChanges);
+  const pendingDbMatches = allPendingDbMatches.filter((m) => !m.diff.noChanges);
 
   if (rows.length === 0) {
     return (

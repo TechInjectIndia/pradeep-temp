@@ -3,12 +3,19 @@
   "private": true,
   "workspaces": [
     "packages/*",
-    "firebase/functions",
-    "apps/*"
+    "apps/admin-dashboard"
   ],
   "scripts": {
     "build": "npm run build --workspaces",
-    "lint": "npm run lint --workspaces --if-present"
+    "lint": "npm run lint --workspaces --if-present",
+    "dev:backend": "cd apps/backend && bun run dev",
+    "dev:dashboard": "npm run dev --workspace=apps/admin-dashboard",
+    "db:migrate": "cd apps/backend && bun run db:migrate",
+    "db:generate": "cd apps/backend && bun run db:generate",
+    "db:studio": "cd apps/backend && bun run db:studio",
+    "docker:up": "docker compose up -d postgres rabbitmq",
+    "docker:down": "docker compose down",
+    "docker:full": "docker compose up -d"
   },
   "engines": {
     "node": ">=18"
