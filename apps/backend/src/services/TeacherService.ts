@@ -114,6 +114,8 @@ export class TeacherService {
     if (data.phone) existing = await this.findByPhone(data.phone);
     if (!existing && data.email) existing = await this.findByEmail(data.email);
 
+    const effectiveSchool = data.school || data.institutionName;
+
     if (existing) {
       const phones = new Set(existing.phones);
       const emails = new Set(existing.emails);
@@ -125,7 +127,7 @@ export class TeacherService {
         .set({
           phones: [...phones],
           emails: [...emails],
-          school: data.school ?? existing.school,
+          school: effectiveSchool ?? existing.school,
           city: data.city ?? existing.city,
           updatedAt: new Date(),
         })
@@ -149,7 +151,7 @@ export class TeacherService {
         name: data.name,
         phones,
         emails,
-        school: data.school,
+        school: effectiveSchool,
         city: data.city,
         recordId: data.recordId,
         booksAssigned: data.booksAssigned,

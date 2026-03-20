@@ -78,14 +78,19 @@ function mapRowToUploadRow(row: Record<string, unknown>): UploadRow {
   };
   const firstName = get(["first name", "firstname"]);
   const lastName = get(["last name", "lastname"]);
-  const name =
+  const salutation = get(["salutation"]);
+  const rawName =
     get(["name", "teacher name", "teachername"]) ||
     [firstName, lastName].filter(Boolean).join(" ").trim();
+  // Prepend salutation if present and not already part of the name
+  const name = salutation && rawName && !rawName.toLowerCase().startsWith(salutation.toLowerCase())
+    ? `${salutation} ${rawName}`
+    : rawName;
   return {
     name: name || "",
     phone: get(["phone"]) || "",
     email: get(["email"]) || "",
-    school: get(["school", "institution name", "institutionname"]) || "",
+    school: get(["school", "institution name", "institutionname", "instituition name", "instituitionname", "instituition name.id", "institution name.id"]) || "",
     books: get(["books", "books assigned", "booksassigned"]) || "",
     recordId: get(["record id", "recordid"]) || undefined,
     booksAssigned: get(["books assigned", "booksassigned"]) || undefined,
@@ -93,8 +98,8 @@ function mapRowToUploadRow(row: Record<string, unknown>): UploadRow {
     teacherOwner: get(["teacher owner", "teacherowner"]) || undefined,
     firstName: firstName || undefined,
     lastName: lastName || undefined,
-    institutionId: get(["institution name.id", "institution name id", "institutionid"]) || undefined,
-    institutionName: get(["institution name", "institutionname"]) || undefined,
+    institutionId: get(["institution name.id", "institution name id", "institutionid", "instituition name.id", "instituition's id"]) || undefined,
+    institutionName: get(["institution name", "institutionname", "instituition name", "instituitionname"]) || undefined,
     salutation: get(["salutation"]) || undefined,
   };
 }
@@ -109,6 +114,7 @@ type Step = 1 | 2 | 3;
 type MergeDecision =
   | { action: "merge"; nameChoice: "file" | "db" }
   | { action: "create_new" }
+  | { action: "use_db" } // use DB teacher ID, but send to file's phone/email
   | null; // null = not yet decided
 
 type SheetDuplicateGroup = {
@@ -122,10 +128,13 @@ type SheetMergeConfig = {
   chosenName: string;
   chosenPhones: Set<string>;
   chosenEmails: Set<string>;
+  primaryPhone: string;
+  primaryEmail: string;
 };
 
 // Detect duplicates within the uploaded file itself
 function findInSheetDuplicates(rows: UploadRow[]): SheetDuplicateGroup[] {
+  // Collect raw duplicate signals (phone & email)
   const phoneGroups = new Map<string, number[]>();
   const emailGroups = new Map<string, number[]>();
 
@@ -146,26 +155,69 @@ function findInSheetDuplicates(rows: UploadRow[]): SheetDuplicateGroup[] {
     }
   });
 
-  const groups: SheetDuplicateGroup[] = [];
-  // Track which rows are already covered by a group
-  const coveredRows = new Set<number>();
+  // Union-find to merge overlapping groups (e.g. same email + same phone → 1 group)
+  const parent = new Map<number, number>();
+  function find(x: number): number {
+    if (!parent.has(x)) return x;
+    const root = find(parent.get(x)!);
+    parent.set(x, root);
+    return root;
+  }
+  function union(a: number, b: number) {
+    const ra = find(a), rb = find(b);
+    if (ra !== rb) parent.set(rb, ra);
+  }
 
-  for (const [phone, indices] of phoneGroups) {
+  // Union all rows that share a phone
+  for (const [, indices] of phoneGroups) {
     if (indices.length > 1) {
-      groups.push({ key: `phone:${phone}`, type: "phone", value: phone, rowIndices: indices });
-      indices.forEach((i) => coveredRows.add(i));
+      for (let i = 1; i < indices.length; i++) union(indices[0], indices[i]);
     }
   }
-  for (const [email, indices] of emailGroups) {
+  // Union all rows that share an email
+  for (const [, indices] of emailGroups) {
     if (indices.length > 1) {
-      // Skip if all rows in this email group are already covered by a phone group
-      const uncovered = indices.filter((i) => !coveredRows.has(i));
-      if (uncovered.length < indices.length && uncovered.length === 0) continue;
-      groups.push({ key: `email:${email}`, type: "email", value: email, rowIndices: indices });
-      indices.forEach((i) => coveredRows.add(i));
+      for (let i = 1; i < indices.length; i++) union(indices[0], indices[i]);
     }
   }
-  // Sort by first row index so groups appear in file order
+
+  // Collect connected components
+  const components = new Map<number, number[]>();
+  const allDupRows = new Set<number>();
+  for (const [, indices] of phoneGroups) { if (indices.length > 1) indices.forEach((i) => allDupRows.add(i)); }
+  for (const [, indices] of emailGroups) { if (indices.length > 1) indices.forEach((i) => allDupRows.add(i)); }
+
+  for (const idx of allDupRows) {
+    const root = find(idx);
+    if (!components.has(root)) components.set(root, []);
+    components.get(root)!.push(idx);
+  }
+
+  // Build final groups with match type info
+  const groups: SheetDuplicateGroup[] = [];
+  for (const [, members] of components) {
+    if (members.length < 2) continue;
+    members.sort((a, b) => a - b);
+
+    // Determine match type — check what signals connected these rows
+    const memberSet = new Set(members);
+    let hasPhone = false, hasEmail = false;
+    let matchValue = "";
+    for (const [phone, indices] of phoneGroups) {
+      if (indices.length > 1 && indices.some((i) => memberSet.has(i))) { hasPhone = true; matchValue = phone; }
+    }
+    for (const [email, indices] of emailGroups) {
+      if (indices.length > 1 && indices.some((i) => memberSet.has(i))) { hasEmail = true; if (!matchValue) matchValue = email; }
+    }
+
+    const type: "phone" | "email" = hasPhone ? "phone" : "email";
+    const key = hasPhone && hasEmail
+      ? `combined:${members.join("-")}`
+      : `${type}:${matchValue}`;
+
+    groups.push({ key, type, value: matchValue, rowIndices: members });
+  }
+
   groups.sort((a, b) => (a.rowIndices[0] ?? 0) - (b.rowIndices[0] ?? 0));
   return groups;
 }
@@ -497,12 +549,14 @@ export default function UploadPage() {
     // 2. DB duplicate check + book code lookup (parallel async)
     setIsDuplicateChecking(true);
     try {
-      const rowsToCheck = parsedRows.map((r) => ({
-        name: r.name ?? "",
-        phone: r.phone ?? "",
-        email: r.email ?? "",
-        school: r.school ?? "",
-      }));
+      // Strip salutation prefix from name for DB matching (DB stores raw names)
+      const rowsToCheck = parsedRows.map((r) => {
+        let matchName = r.name ?? "";
+        if (r.salutation && matchName.startsWith(r.salutation)) {
+          matchName = matchName.slice(r.salutation.length).trim();
+        }
+        return { name: matchName, phone: r.phone ?? "", email: r.email ?? "", school: r.school ?? "" };
+      });
 
       // Collect all unique book codes from the file
       const allCodes = new Set<string>();
@@ -534,13 +588,10 @@ export default function UploadPage() {
       }
       // If lookup failed, leave unmappedBookCodes as null (UI shows nothing)
 
-      // Default: auto-approve merges with no name conflict; leave name conflicts null (user must decide)
+      // Default: use_db for all matches — uses DB teacher ID but sends to file's phone/email
       const defaults = new Map<number, MergeDecision>();
       for (const m of matches) {
-        if (!m.diff.nameConflict) {
-          defaults.set(m.rowIndex, { action: "merge", nameChoice: "db" });
-        }
-        // nameConflict → leave null (undefined in map) so user must decide
+        defaults.set(m.rowIndex, { action: "use_db" });
       }
       setMergeDecisions(defaults);
     } catch (err) {
@@ -560,15 +611,14 @@ export default function UploadPage() {
   const handleCreateBatch = async () => {
     if (!selectedFile || parsedRows.length === 0) return;
 
-    // Validate: all matches with nameConflict must have a decision
+    // Validate: all merge decisions with nameConflict must have a name choice
     if (duplicateMatches) {
       const unresolved = duplicateMatches.filter((m) => {
         const d = mergeDecisions.get(m.rowIndex);
-        // A null or missing decision on a nameConflict match is unresolved
-        return d === null || (d === undefined && m.diff.nameConflict);
+        return d?.action === "merge" && m.diff.nameConflict && !d.nameChoice;
       });
       if (unresolved.length > 0) {
-        toast.error(`Please resolve all ${unresolved.length} name conflict(s) before continuing`);
+        toast.error(`Please choose a name for ${unresolved.length} merge(s) with name conflicts`);
         return;
       }
     }
@@ -590,6 +640,18 @@ export default function UploadPage() {
               if (!decision) return null;
               if (decision.action === "create_new") {
                 return { rowIndex: match.rowIndex, action: "create_new" as const };
+              }
+              if (decision.action === "use_db") {
+                // Link to DB teacher ID but don't update DB record — file's phone/email used for sending
+                return {
+                  rowIndex: match.rowIndex,
+                  action: "merge" as const,
+                  teacherId: match.existingTeacher.id,
+                  nameChoice: "db" as const,
+                  noChanges: true, // don't update DB record
+                  phonesToAdd: [] as string[],
+                  emailsToAdd: [] as string[],
+                };
               }
               return {
                 rowIndex: match.rowIndex,
@@ -728,6 +790,8 @@ export default function UploadPage() {
       chosenName: allNames[0] ?? "",
       chosenPhones: new Set(allPhones),
       chosenEmails: new Set(allEmails),
+      primaryPhone: allPhones[0] ?? "",
+      primaryEmail: allEmails[allEmails.length - 1] ?? "",
     });
     setMergeDialogGroup(group);
   };
@@ -769,6 +833,9 @@ export default function UploadPage() {
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {group.rowIndices.length} rows share <span className="font-mono font-semibold">{group.value}</span>. Choose what to keep.
                 </p>
+                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1.5 font-medium">
+                  The primary email and phone will be used for sending WhatsApp and Email messages.
+                </p>
               </div>
 
               {/* Name */}
@@ -799,24 +866,40 @@ export default function UploadPage() {
               {/* Phones */}
               {allPhones.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Phones to include</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Phones</p>
                   <div className="space-y-1.5">
-                    {allPhones.map((phone) => (
-                      <label key={phone} className="flex items-center gap-3 cursor-pointer rounded-lg border border-border px-3 py-2.5 hover:bg-muted/30 transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={pendingConfig.chosenPhones.has(phone)}
-                          onChange={() => setPendingConfig((prev) => {
-                            if (!prev) return prev;
-                            const next = new Set(prev.chosenPhones);
-                            if (next.has(phone)) next.delete(phone); else next.add(phone);
-                            return { ...prev, chosenPhones: next };
-                          })}
-                          className="accent-blue-600"
-                        />
-                        <span className="text-sm font-mono text-foreground">{phone}</span>
-                      </label>
-                    ))}
+                    {allPhones.map((phone) => {
+                      const included = pendingConfig.chosenPhones.has(phone);
+                      const isPrimary = pendingConfig.primaryPhone === phone;
+                      return (
+                        <div key={phone} className={["flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors", isPrimary && included ? "border-blue-400 bg-blue-500/5" : "border-border hover:bg-muted/30"].join(" ")}>
+                          <input
+                            type="checkbox"
+                            checked={included}
+                            onChange={() => setPendingConfig((prev) => {
+                              if (!prev) return prev;
+                              const next = new Set(prev.chosenPhones);
+                              if (next.has(phone)) { next.delete(phone); return { ...prev, chosenPhones: next, primaryPhone: prev.primaryPhone === phone ? ([...next][0] ?? "") : prev.primaryPhone }; }
+                              else { next.add(phone); return { ...prev, chosenPhones: next }; }
+                            })}
+                            className="accent-blue-600"
+                          />
+                          <span className="text-sm font-mono text-foreground flex-1">{phone}</span>
+                          {isPrimary && included && (
+                            <span className="rounded-full bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-400">Primary</span>
+                          )}
+                          {!isPrimary && included && (
+                            <button
+                              type="button"
+                              onClick={() => setPendingConfig((prev) => prev ? { ...prev, primaryPhone: phone } : prev)}
+                              className="rounded-md border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            >
+                              Make Primary
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -824,24 +907,40 @@ export default function UploadPage() {
               {/* Emails */}
               {allEmails.length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Emails to include</p>
+                  <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Emails</p>
                   <div className="space-y-1.5">
-                    {allEmails.map((email) => (
-                      <label key={email} className="flex items-center gap-3 cursor-pointer rounded-lg border border-border px-3 py-2.5 hover:bg-muted/30 transition-colors">
-                        <input
-                          type="checkbox"
-                          checked={pendingConfig.chosenEmails.has(email)}
-                          onChange={() => setPendingConfig((prev) => {
-                            if (!prev) return prev;
-                            const next = new Set(prev.chosenEmails);
-                            if (next.has(email)) next.delete(email); else next.add(email);
-                            return { ...prev, chosenEmails: next };
-                          })}
-                          className="accent-blue-600"
-                        />
-                        <span className="text-sm font-mono text-foreground">{email}</span>
-                      </label>
-                    ))}
+                    {allEmails.map((email) => {
+                      const included = pendingConfig.chosenEmails.has(email);
+                      const isPrimary = pendingConfig.primaryEmail === email;
+                      return (
+                        <div key={email} className={["flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-colors", isPrimary && included ? "border-blue-400 bg-blue-500/5" : "border-border hover:bg-muted/30"].join(" ")}>
+                          <input
+                            type="checkbox"
+                            checked={included}
+                            onChange={() => setPendingConfig((prev) => {
+                              if (!prev) return prev;
+                              const next = new Set(prev.chosenEmails);
+                              if (next.has(email)) { next.delete(email); return { ...prev, chosenEmails: next, primaryEmail: prev.primaryEmail === email ? ([...next][0] ?? "") : prev.primaryEmail }; }
+                              else { next.add(email); return { ...prev, chosenEmails: next }; }
+                            })}
+                            className="accent-blue-600"
+                          />
+                          <span className="text-sm font-mono text-foreground flex-1">{email}</span>
+                          {isPrimary && included && (
+                            <span className="rounded-full bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-400">Primary</span>
+                          )}
+                          {!isPrimary && included && (
+                            <button
+                              type="button"
+                              onClick={() => setPendingConfig((prev) => prev ? { ...prev, primaryEmail: email } : prev)}
+                              className="rounded-md border border-border px-2 py-0.5 text-[10px] font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+                            >
+                              Make Primary
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -855,12 +954,18 @@ export default function UploadPage() {
                     <p className="font-medium text-foreground">{pendingConfig.chosenName || "—"}</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground block">Phone{pendingConfig.chosenPhones.size !== 1 ? "s" : ""}</span>
-                    <p className="font-mono text-foreground">{[...pendingConfig.chosenPhones].join(", ") || "—"}</p>
+                    <span className="text-muted-foreground block">Primary Phone</span>
+                    <p className="font-mono font-semibold text-foreground">{pendingConfig.primaryPhone || "—"}</p>
+                    {pendingConfig.chosenPhones.size > 1 && (
+                      <p className="font-mono text-muted-foreground mt-0.5">+{pendingConfig.chosenPhones.size - 1} secondary</p>
+                    )}
                   </div>
                   <div className="col-span-2">
-                    <span className="text-muted-foreground block">Email{pendingConfig.chosenEmails.size !== 1 ? "s" : ""}</span>
-                    <p className="font-mono text-foreground">{[...pendingConfig.chosenEmails].join(", ") || "—"}</p>
+                    <span className="text-muted-foreground block">Primary Email</span>
+                    <p className="font-mono font-semibold text-foreground">{pendingConfig.primaryEmail || "—"}</p>
+                    {pendingConfig.chosenEmails.size > 1 && (
+                      <p className="font-mono text-muted-foreground mt-0.5">+{pendingConfig.chosenEmails.size - 1} secondary</p>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1432,8 +1537,10 @@ export default function UploadPage() {
                       {isMerged && (() => {
                         const cfg = sheetMergeConfigs.get(group.key);
                         const previewName = cfg?.chosenName || finalName;
-                        const previewPhones = cfg ? [...cfg.chosenPhones] : allPhones;
-                        const previewEmails = cfg ? [...cfg.chosenEmails] : allEmails;
+                        const previewPrimaryPhone = cfg?.primaryPhone || allPhones[0] || "";
+                        const previewPrimaryEmail = cfg?.primaryEmail || allEmails[0] || "";
+                        const otherPhones = cfg ? [...cfg.chosenPhones].filter((p) => p !== cfg.primaryPhone).length : Math.max(0, allPhones.length - 1);
+                        const otherEmails = cfg ? [...cfg.chosenEmails].filter((e) => e !== cfg.primaryEmail).length : Math.max(0, allEmails.length - 1);
                         return (
                           <div className="mt-3 rounded-lg border border-blue-400/40 bg-blue-500/5 p-3">
                             <p className="mb-2 text-xs font-semibold text-blue-700 dark:text-blue-400">Final Teacher Record</p>
@@ -1443,12 +1550,14 @@ export default function UploadPage() {
                                 <p className="font-medium text-foreground">{previewName}</p>
                               </div>
                               <div>
-                                <span className="text-muted-foreground">Phone{previewPhones.length !== 1 ? "s" : ""}</span>
-                                <p className="font-mono text-foreground">{previewPhones.join(", ") || "—"}</p>
+                                <span className="text-muted-foreground">Primary Phone</span>
+                                <p className="font-mono font-semibold text-foreground">{previewPrimaryPhone || "—"}</p>
+                                {otherPhones > 0 && <p className="text-muted-foreground">+{otherPhones} secondary</p>}
                               </div>
                               <div>
-                                <span className="text-muted-foreground">Email{previewEmails.length !== 1 ? "s" : ""}</span>
-                                <p className="font-mono text-foreground">{previewEmails.join(", ") || "—"}</p>
+                                <span className="text-muted-foreground">Primary Email</span>
+                                <p className="font-mono font-semibold text-foreground">{previewPrimaryEmail || "—"}</p>
+                                {otherEmails > 0 && <p className="text-muted-foreground">+{otherEmails} secondary</p>}
                               </div>
                               <div>
                                 <span className="text-muted-foreground">School</span>
@@ -1583,43 +1692,48 @@ export default function UploadPage() {
                   <div className="space-y-4">
                     {duplicateMatches.map((match) => {
                       const decision = mergeDecisions.get(match.rowIndex) ?? null;
+                      const isUseDb = decision?.action === "use_db";
                       const isMerging = decision?.action === "merge";
                       const isCreatingNew = decision?.action === "create_new";
-                      const { diff } = match;
 
                       return (
                         <div key={match.rowIndex} className={[
                           "rounded-xl border shadow-sm overflow-hidden",
-                          isMerging ? "border-blue-400/60" : isCreatingNew ? "border-muted" : "border-orange-400/60",
+                          isUseDb ? "border-green-400/60" : isMerging ? "border-blue-400/60" : isCreatingNew ? "border-muted" : "border-orange-400/60",
                         ].join(" ")}>
                           {/* Card header */}
                           <div className={[
-                            "flex items-center justify-between px-4 py-2.5 text-xs font-medium",
-                            isMerging ? "bg-blue-50 dark:bg-blue-950/30" : isCreatingNew ? "bg-muted/30" : "bg-orange-50 dark:bg-orange-950/20",
+                            "flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-xs font-medium",
+                            isUseDb ? "bg-green-50 dark:bg-green-950/20" : isMerging ? "bg-blue-50 dark:bg-blue-950/30" : isCreatingNew ? "bg-muted/30" : "bg-orange-50 dark:bg-orange-950/20",
                           ].join(" ")}>
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-muted-foreground">Row #{match.rowIndex + 1}</span>
                               <span className="text-muted-foreground">·</span>
                               <span className={[
                                 "rounded-full px-2 py-0.5 font-semibold",
                                 match.confidence >= 90 ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                                  : match.confidence >= 70 ? "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400"
-                                  : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/40 dark:text-yellow-400",
+                                  : "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400",
                               ].join(" ")}>
                                 {match.confidence}% match
                               </span>
                               <span className="text-muted-foreground">{match.matchReasons.join(" · ")}</span>
-                              {diff.noChanges && (
-                                <span className="rounded-full bg-green-100 px-2 py-0.5 text-green-700 dark:bg-green-900/40 dark:text-green-400">
-                                  Exact duplicate — no changes needed
-                                </span>
-                              )}
                               <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground font-mono" title="Database teacher ID">
-                                DB ID: {match.existingTeacher.id}
+                                DB: {match.existingTeacher.id}
                               </span>
                             </div>
                             {/* Action buttons */}
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-1.5">
+                              <button
+                                onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db" }); return n; })}
+                                className={[
+                                  "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                                  isUseDb
+                                    ? "bg-green-600 text-white"
+                                    : "text-muted-foreground hover:bg-green-100 hover:text-green-700",
+                                ].join(" ")}
+                              >
+                                {isUseDb ? "✓ Use DB" : "Use DB"}
+                              </button>
                               <button
                                 onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "create_new" }); return n; })}
                                 className={[
@@ -1632,134 +1746,64 @@ export default function UploadPage() {
                                 Create New
                               </button>
                               <button
-                                onClick={() => setMergeDecisions(prev => {
-                                  const n = new Map(prev);
-                                  if (isMerging) {
-                                    n.delete(match.rowIndex); // undo merge → back to undecided
-                                  } else {
-                                    n.set(match.rowIndex, { action: "merge", nameChoice: "db" });
-                                  }
-                                  return n;
-                                })}
+                                onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "merge", nameChoice: "db" }); return n; })}
                                 className={[
                                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                                   isMerging
                                     ? "bg-blue-600 text-white"
-                                    : "bg-muted text-muted-foreground hover:bg-blue-100 hover:text-blue-700",
+                                    : "text-muted-foreground hover:bg-blue-100 hover:text-blue-700",
                                 ].join(" ")}
                               >
-                                {isMerging ? "✓ Merging" : "Merge"}
+                                {isMerging ? "✓ Merge" : "Merge"}
                               </button>
                             </div>
                           </div>
 
-                          {/* Git-diff body */}
-                          <div className="font-mono text-xs">
-                            {/* Name row */}
-                            <div className="grid grid-cols-2 border-b border-border">
-                              <div className={["px-4 py-2 border-r border-border", diff.nameConflict ? "bg-red-500/5" : ""].join(" ")}>
-                                <span className="text-muted-foreground mr-2 select-none">{diff.nameConflict ? "−" : " "}</span>
-                                <span className={diff.nameConflict ? "text-red-600 dark:text-red-400" : "text-foreground"}>
-                                  name: {match.existingTeacher.name || "—"}
-                                </span>
-                                <span className="ml-2 text-muted-foreground/50 text-[10px]">[DB]</span>
+                          {/* Compact summary — shown for Use DB and Create New */}
+                          {(isUseDb || isCreatingNew) && (
+                            <div className="px-4 py-2.5 text-xs flex flex-wrap gap-x-6 gap-y-1 border-t border-border/50">
+                              <div>
+                                <span className="text-muted-foreground">DB name: </span>
+                                <span className="font-medium text-foreground">{match.existingTeacher.name}</span>
                               </div>
-                              <div className={["px-4 py-2", diff.nameConflict ? "bg-green-500/5" : ""].join(" ")}>
-                                <span className="text-muted-foreground mr-2 select-none">{diff.nameConflict ? "+" : " "}</span>
-                                <span className={diff.nameConflict ? "text-green-600 dark:text-green-400" : "text-foreground"}>
-                                  name: {match.row.name || "—"}
-                                </span>
-                                <span className="ml-2 text-muted-foreground/50 text-[10px]">[File]</span>
+                              <div>
+                                <span className="text-muted-foreground">File name: </span>
+                                <span className="font-medium text-foreground">{match.row.name}</span>
+                              </div>
+                              <div>
+                                <span className="text-muted-foreground">Send to: </span>
+                                <span className="font-mono text-foreground">{match.row.phone || match.row.email || "—"}</span>
+                                <span className="text-muted-foreground ml-1">(from file)</span>
                               </div>
                             </div>
+                          )}
 
-                            {/* Name conflict resolution */}
-                            {diff.nameConflict && isMerging && (
-                              <div className="bg-blue-50/50 dark:bg-blue-950/20 px-4 py-2 border-b border-border flex items-center gap-4 text-xs">
-                                <span className="font-sans font-medium text-blue-700 dark:text-blue-400">Which name to keep in DB?</span>
+                          {/* Merge detail — only shown when Merge is selected */}
+                          {isMerging && (
+                            <div className="px-4 py-3 border-t border-border/50 text-xs space-y-2">
+                              <div className="flex items-center gap-4">
+                                <span className="font-medium text-blue-700 dark:text-blue-400">Which name to keep?</span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                   <input type="radio" name={`name-${match.rowIndex}`} checked={decision?.action === "merge" && decision.nameChoice === "db"}
                                     onChange={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "merge", nameChoice: "db" }); return n; })}
                                     className="accent-blue-600" />
-                                  <span className="font-sans text-foreground">Keep DB: <strong>{match.existingTeacher.name}</strong></span>
+                                  <span className="text-foreground">DB: <strong>{match.existingTeacher.name}</strong></span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                   <input type="radio" name={`name-${match.rowIndex}`} checked={decision?.action === "merge" && decision.nameChoice === "file"}
                                     onChange={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "merge", nameChoice: "file" }); return n; })}
                                     className="accent-blue-600" />
-                                  <span className="font-sans text-foreground">Use file: <strong>{match.row.name}</strong></span>
+                                  <span className="text-foreground">File: <strong>{match.row.name}</strong></span>
                                 </label>
                               </div>
-                            )}
-
-                            {/* Phones */}
-                            <div className="grid grid-cols-2 border-b border-border">
-                              <div className="px-4 py-2 border-r border-border">
-                                <span className="text-muted-foreground mr-2 select-none"> </span>
-                                <span className="text-foreground">phones: [{match.existingTeacher.phones.join(", ") || "none"}]</span>
-                                <span className="ml-2 text-muted-foreground/50 text-[10px]">[DB]</span>
-                              </div>
-                              <div className={["px-4 py-2", diff.phonesToAdd.length > 0 ? "bg-green-500/5" : ""].join(" ")}>
-                                {diff.phonesToAdd.length > 0 ? (
-                                  <>
-                                    <span className="text-muted-foreground mr-2 select-none">+</span>
-                                    <span className="text-green-600 dark:text-green-400">
-                                      phones: [{[...match.existingTeacher.phones, ...diff.phonesToAdd].join(", ")}]
-                                    </span>
-                                    <span className="ml-2 text-green-500/70 text-[10px]">+{diff.phonesToAdd.join(", ")} added</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="text-muted-foreground mr-2 select-none"> </span>
-                                    <span className="text-muted-foreground">phones: already in DB</span>
-                                  </>
-                                )}
-                              </div>
+                              {match.diff.phonesToAdd.length > 0 && (
+                                <p className="text-muted-foreground">+{match.diff.phonesToAdd.join(", ")} phone(s) will be added to DB</p>
+                              )}
+                              {match.diff.emailsToAdd.length > 0 && (
+                                <p className="text-muted-foreground">+{match.diff.emailsToAdd.join(", ")} email(s) will be added to DB</p>
+                              )}
                             </div>
-
-                            {/* Emails */}
-                            <div className="grid grid-cols-2 border-b border-border">
-                              <div className="px-4 py-2 border-r border-border">
-                                <span className="text-muted-foreground mr-2 select-none"> </span>
-                                <span className="text-foreground">emails: [{match.existingTeacher.emails.join(", ") || "none"}]</span>
-                                <span className="ml-2 text-muted-foreground/50 text-[10px]">[DB]</span>
-                              </div>
-                              <div className={["px-4 py-2", diff.emailsToAdd.length > 0 ? "bg-green-500/5" : ""].join(" ")}>
-                                {diff.emailsToAdd.length > 0 ? (
-                                  <>
-                                    <span className="text-muted-foreground mr-2 select-none">+</span>
-                                    <span className="text-green-600 dark:text-green-400">
-                                      emails: [{[...match.existingTeacher.emails, ...diff.emailsToAdd].join(", ")}]
-                                    </span>
-                                    <span className="ml-2 text-green-500/70 text-[10px]">+{diff.emailsToAdd.join(", ")} added</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="text-muted-foreground mr-2 select-none"> </span>
-                                    <span className="text-muted-foreground">emails: already in DB</span>
-                                  </>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* School */}
-                            <div className={["grid grid-cols-2", diff.schoolConflict ? "" : ""].join(" ")}>
-                              <div className={["px-4 py-2 border-r border-border", diff.schoolConflict ? "bg-red-500/5" : ""].join(" ")}>
-                                <span className="text-muted-foreground mr-2 select-none">{diff.schoolConflict ? "−" : " "}</span>
-                                <span className={diff.schoolConflict ? "text-red-600 dark:text-red-400" : "text-foreground"}>
-                                  school: {match.existingTeacher.school || "—"}
-                                </span>
-                                <span className="ml-2 text-muted-foreground/50 text-[10px]">[DB]</span>
-                              </div>
-                              <div className={["px-4 py-2", diff.schoolConflict ? "bg-green-500/5" : ""].join(" ")}>
-                                <span className="text-muted-foreground mr-2 select-none">{diff.schoolConflict ? "+" : " "}</span>
-                                <span className={diff.schoolConflict ? "text-green-600 dark:text-green-400" : "text-foreground"}>
-                                  school: {match.row.school || "—"}
-                                </span>
-                                <span className="ml-2 text-muted-foreground/50 text-[10px]">[File]</span>
-                              </div>
-                            </div>
-                          </div>
+                          )}
                         </div>
                       );
                     })}

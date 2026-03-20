@@ -45,7 +45,7 @@ async function handleOrderCreation(
       teacherName = rawTeacher.name ?? 'Unknown';
       teacherPhone = rawTeacher.phone ?? null;
       teacherEmail = rawTeacher.email ?? null;
-      teacherSchool = rawTeacher.school;
+      teacherSchool = rawTeacher.school ?? rawTeacher.institutionName;
       teacherCity = rawTeacher.city;
     } else {
       // Resolve teacher master record via upsert (find-or-create)
@@ -70,7 +70,7 @@ async function handleOrderCreation(
       teacherName = rawTeacher.name ?? teacher.name;
       teacherPhone = rawTeacher.phone ?? teacher.phones[0] ?? null;
       teacherEmail = rawTeacher.email ?? teacher.emails[0] ?? null;
-      teacherSchool = rawTeacher.school ?? teacher.school;
+      teacherSchool = rawTeacher.school ?? rawTeacher.institutionName ?? teacher.school;
       teacherCity = rawTeacher.city ?? teacher.city;
 
       await db
