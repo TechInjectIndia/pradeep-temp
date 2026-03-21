@@ -18,7 +18,6 @@ import { useQuery } from "@tanstack/react-query";
 import {
   useBatch, usePauseBatch, useResumeBatch, useCancelBatch,
   useRetryResolution, useRetryOrderCreation, useRetryDispatching,
-  useGenerateLinks,
 } from "@/hooks/useBatches";
 import { getBatchLogs, getBatchTeachers, listCommLogs, type CommLogEntry } from "@/services/api";
 
@@ -73,7 +72,6 @@ export default function BatchDetailPage() {
   const retryResolutionMutation = useRetryResolution();
   const retryOrderCreationMutation = useRetryOrderCreation();
   const retryDispatchingMutation = useRetryDispatching();
-  const generateLinksMutation = useGenerateLinks();
 
   if (isLoading) return <SkeletonTable rows={6} cols={4} />;
 
@@ -106,7 +104,6 @@ export default function BatchDetailPage() {
   };
 
   const stats = batch.stats ?? {};
-  const canGenerateLinks = (stats.ordersCreated ?? 0) > 0 && !["CANCELLED", "FAILED"].includes(batch.status);
 
   return (
     <div className="space-y-4">
@@ -185,13 +182,6 @@ export default function BatchDetailPage() {
                 Dispatch messages
               </button>
             )}
-            {canGenerateLinks && (
-              <button onClick={() => generateLinksMutation.mutate(batchId)} disabled={generateLinksMutation.isPending}
-                className="flex items-center gap-1.5 rounded-lg border border-violet-500/40 bg-violet-500/10 px-2.5 py-1.5 text-xs font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-500/20 disabled:opacity-50 transition-colors">
-                {generateLinksMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Link2 className="h-3.5 w-3.5" />}
-                Generate Links
-              </button>
-            )}
             {canPause && (
               <button onClick={() => pauseMutation.mutate(batchId)} disabled={pauseMutation.isPending}
                 className="flex items-center gap-1.5 rounded-lg border border-amber-500/40 bg-amber-500/10 px-2.5 py-1.5 text-xs font-medium text-amber-600 dark:text-amber-400 hover:bg-amber-500/20 disabled:opacity-50 transition-colors">
@@ -217,55 +207,46 @@ export default function BatchDetailPage() {
         </div>
       </div>
 
-      {/* Stats strip */}
-      <div className="flex flex-wrap items-center gap-4 rounded-lg border border-border/60 bg-muted/20 px-4 py-2.5">
-        <div className="flex items-center gap-2">
-          <Users className="h-3.5 w-3.5 text-primary" />
-          <span className="text-sm font-bold text-foreground">{stats.totalTeachers ?? 0}</span>
-          <span className="text-xs text-muted-foreground">Teachers</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <Package className="h-3.5 w-3.5 text-primary" />
-          <span className="text-sm font-bold text-foreground">{stats.ordersCreated ?? 0}</span>
-          <span className="text-xs text-muted-foreground">Orders</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <MessageSquare className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-          <span className="text-sm font-bold text-foreground">{stats.messagesDelivered ?? 0}</span>
-          <span className="text-xs text-muted-foreground">Delivered</span>
-        </div>
-        <div className="flex items-center gap-2">
-          <AlertTriangle className={clsx("h-3.5 w-3.5", (stats.dlqMessages ?? 0) > 0 ? "text-destructive" : "text-muted-foreground")} />
-          <span className="text-sm font-bold text-foreground">{stats.dlqMessages ?? 0}</span>
-          <span className="text-xs text-muted-foreground">DLQ</span>
-        </div>
-        {(stats.dlqMessages ?? 0) > 0 && (
-          <Link href={`/batches/${batchId}/errors`}
-            className="ml-auto text-xs font-medium text-destructive hover:underline flex items-center gap-1">
-            <AlertTriangle className="h-3 w-3" /> View errors
-          </Link>
-        )}
-      </div>
+      {/* Overview */}
+      <div className="rounded-xl border border-border bg-card px-4 py-3">
+        <div className="flex items-center gap-6 flex-wrap">
+          {/* Stats */}
+          {[
+            { icon: <Users className="h-3.5 w-3.5" />, value: stats.totalTeachers ?? 0, label: "Teachers" },
+            { icon: <Package className="h-3.5 w-3.5" />, value: stats.ordersCreated ?? 0, label: "Orders" },
+            { icon: <MessageSquare className="h-3.5 w-3.5" />, value: stats.messagesProcessed ?? stats.messagesDelivered ?? 0, label: "Sent" },
+            { icon: <AlertTriangle className="h-3.5 w-3.5" />, value: stats.dlqMessages ?? 0, label: "DLQ" },
+          ].map((s) => (
+            <div key={s.label} className="flex items-center gap-2">
+              <span className="text-muted-foreground">{s.icon}</span>
+              <span className="text-sm font-bold text-foreground">{s.value}</span>
+              <span className="text-xs text-muted-foreground">{s.label}</span>
+            </div>
+          ))}
 
-      {/* Pipeline Stage Timeline */}
-      <PipelineTimeline status={batch.status} statusHistory={batch.statusHistory} />
-
-      {/* Status history */}
-      {(batch.statusHistory?.length ?? 0) > 0 && (
-        <div className="rounded-xl border border-border bg-card p-4">
-          <h2 className="mb-3 text-sm font-semibold text-foreground uppercase tracking-wider">Status History</h2>
-          <div className="space-y-1">
-            {batch.statusHistory!.map((entry, i) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <span className="rounded bg-muted px-2 py-0.5 text-xs font-mono text-muted-foreground">{entry.from}</span>
-                <span className="text-muted-foreground">→</span>
-                <span className="rounded bg-primary/10 px-2 py-0.5 text-xs font-mono text-primary">{entry.to}</span>
-                <span className="text-xs text-muted-foreground ml-auto">{formatDateTime(entry.timestamp)}</span>
-              </div>
-            ))}
+          {/* Pipeline — right side */}
+          <div className="ml-auto flex items-center gap-0 shrink-0">
+            {PIPELINE_STAGES.map((stage, i) => {
+              const state = getStageState(stage, batch.status, batch.statusHistory);
+              return (
+                <div key={stage} className="flex items-center">
+                  <div className={clsx(
+                    "flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold",
+                    state === "completed" && "bg-emerald-500 text-white",
+                    state === "active" && "bg-primary text-primary-foreground ring-2 ring-primary/20",
+                    state === "pending" && "bg-muted text-muted-foreground"
+                  )}>
+                    {state === "completed" ? "✓" : i + 1}
+                  </div>
+                  {i < PIPELINE_STAGES.length - 1 && (
+                    <div className={clsx("mx-0.5 h-px w-4", state === "completed" ? "bg-emerald-500" : "bg-border")} />
+                  )}
+                </div>
+              );
+            })}
           </div>
         </div>
-      )}
+      </div>
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg bg-muted/40 p-1">
