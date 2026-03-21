@@ -1,27 +1,36 @@
 /**
- * Messaging Worker — consumes WHATSAPP_MESSAGES and EMAIL_MESSAGES queues
- * and calls WATI / Resend APIs to send messages.
+ * Messaging Worker — processes WHATSAPP_MESSAGES and EMAIL_MESSAGES queues
+ * via BullMQ and calls WATI / Resend APIs to send messages.
+ *
+ * Rate limiting: BullMQ limiter handles 1 msg/sec for emails.
+ * Retries: BullMQ handles automatic retries with exponential backoff.
+ * Template caching: In-memory cache with 60s TTL avoids per-message DB queries.
  */
-import { consume, publish } from '@/queue';
-import { QUEUES, type WhatsAppMessageJob, type EmailMessageJob } from '@/queue/types';
+import { createWorker, addJob, QUEUES } from '@/queue';
+import type { WhatsAppMessageJob, EmailMessageJob } from '@/queue/types';
+import type { Job } from 'bullmq';
 import { config } from '@/config';
 import { db } from '@/db';
-import { commLog, failedMessages, messageSendLog, watiTemplates } from '@/db/schema';
-import { eq, gte, asc, desc, and, count as drizzleCount } from 'drizzle-orm';
+import { commLog, failedMessages, messageSendLog, batches, watiTemplates, type BatchStats } from '@/db/schema';
+import { eq, gte, asc, desc, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { resolveParams } from '@/services/TemplateEngine';
 import { BatchService } from '@/services/BatchService';
 
-const MAX_RETRIES = 3;
+// ─── Template cache (60s TTL) ────────────────────────────────────────────────
 
-// ─── Load WATI template by book count ────────────────────────────────────────
-// Selection order:
-//  1. Template with bookCount >= order's book count (smallest that fits) — e.g. 3 books → spemst_4
-//  2. Template with highest bookCount (largest available)
-//  3. isActive fallback template
+const templateCache = new Map<number, { template: unknown; cachedAt: number }>();
+const CACHE_TTL = 60_000;
+
+async function getCachedTemplate(bookCount: number) {
+  const cached = templateCache.get(bookCount);
+  if (cached && Date.now() - cached.cachedAt < CACHE_TTL) return cached.template;
+  const template = await getTemplateForBookCount(bookCount);
+  templateCache.set(bookCount, { template, cachedAt: Date.now() });
+  return template;
+}
 
 async function getTemplateForBookCount(bookCount: number) {
-  // Smallest template that can hold bookCount books
   const fitting = await db.query.watiTemplates.findMany({
     where: gte(watiTemplates.bookCount, bookCount),
     orderBy: [asc(watiTemplates.bookCount)],
@@ -29,14 +38,12 @@ async function getTemplateForBookCount(bookCount: number) {
   });
   if (fitting.length > 0) return fitting[0]!;
 
-  // No exact fit — use largest available template
   const largest = await db.query.watiTemplates.findMany({
     orderBy: [desc(watiTemplates.bookCount)],
     limit: 1,
   });
   if (largest.length > 0 && largest[0]!.bookCount !== null) return largest[0]!;
 
-  // Last resort: the manually activated template
   return db.query.watiTemplates.findFirst({
     where: eq(watiTemplates.isActive, true),
   });
@@ -44,27 +51,11 @@ async function getTemplateForBookCount(bookCount: number) {
 
 // ─── Phone number normalization ───────────────────────────────────────────────
 
-/**
- * Normalize an Indian mobile number to full E.164-style format (without "+").
- * WATI expects 12-digit format: 91XXXXXXXXXX
- * Examples:
- *   "9814029931"  → "919814029931"
- *   "919814029931"→ "919814029931"  (already correct)
- *   "+919814029931"→"919814029931"
- */
 function normalizeIndianPhone(phone: string): string {
-  // Strip any leading + or spaces
   const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10) {
-    return `91${digits}`;
-  }
-  if (digits.length === 12 && digits.startsWith('91')) {
-    return digits;
-  }
-  if (digits.length === 13 && digits.startsWith('091')) {
-    return digits.slice(1);
-  }
-  // Return as-is if format is unrecognized
+  if (digits.length === 10) return `91${digits}`;
+  if (digits.length === 12 && digits.startsWith('91')) return digits;
+  if (digits.length === 13 && digits.startsWith('091')) return digits.slice(1);
   return digits;
 }
 
@@ -75,17 +66,16 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
     throw new Error('WATI not configured');
   }
 
-  // Select template by book count; fall back to legacy if none configured
   const bookCount = job.books?.length ?? 0;
-  const tmpl = await getTemplateForBookCount(bookCount);
-  console.log(`[messaging-worker] batch=${job.batchId} teacher=${job.name} books=${bookCount} template=${tmpl?.templateName ?? 'legacy'}`);
+  const tmpl = await getCachedTemplate(bookCount) as typeof watiTemplates.$inferSelect | undefined;
+  console.log(`[messaging] batch=${job.batchId} teacher=${job.name} books=${bookCount} template=${tmpl?.templateName ?? 'legacy'}`);
 
   let templateName: string;
   let parameters: { name: string; value: string }[];
 
   if (tmpl && tmpl.params && tmpl.params.length > 0) {
     templateName = tmpl.templateName;
-    const ctx = {
+    parameters = resolveParams(tmpl.params, {
       teacherName: job.name,
       teacherPhone: job.phone,
       teacherEmail: job.email,
@@ -93,10 +83,8 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
       city: job.city,
       batchId: job.batchId,
       books: job.books ?? [],
-    };
-    parameters = resolveParams(tmpl.params, ctx);
+    });
   } else {
-    // Legacy fallback
     templateName = config.wati.templateName || 'specimen_dispatch';
     parameters = [
       { name: 'name', value: job.name },
@@ -105,7 +93,6 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
   }
 
   const normalizedPhone = normalizeIndianPhone(job.phone);
-  console.log(`[messaging-worker] phone: ${job.phone} → ${normalizedPhone}`);
   const url = `${config.wati.baseUrl}/api/v1/sendTemplateMessage?whatsappNumber=${normalizedPhone}`;
   const response = await fetch(url, {
     method: 'POST',
@@ -132,6 +119,89 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
   return data.local_message_id ?? data.id ?? 'unknown';
 }
 
+// ─── WATI Bulk Send (available for future use) ────────────────────────────────
+// This function uses WATI's v2 bulk broadcast API to send up to 100 messages
+// per request. It is NOT currently wired into the main per-message flow above,
+// which remains simpler to debug and rate-limit. Enable this when bulk sending
+// is needed for high-throughput batches (e.g. 10K+ teachers).
+
+type BulkWhatsAppMessage = {
+  phone: string;
+  name: string;
+  books: { title: string; specimenUrl: string; productId: string; author?: string | null }[];
+  batchId: string;
+  school?: string;
+  city?: string;
+  email?: string;
+};
+
+async function sendWhatsAppBulk(
+  messages: BulkWhatsAppMessage[]
+): Promise<{ sent: number; failed: number }> {
+  if (!config.wati.baseUrl || !config.wati.apiKey) {
+    throw new Error('WATI not configured');
+  }
+
+  const BULK_CHUNK_SIZE = 100;
+  let sent = 0;
+  let failed = 0;
+
+  for (let i = 0; i < messages.length; i += BULK_CHUNK_SIZE) {
+    const chunk = messages.slice(i, i + BULK_CHUNK_SIZE);
+
+    // All messages in a chunk must use the same template; pick based on first message's book count
+    const bookCount = chunk[0]?.books?.length ?? 0;
+    const tmpl = await getCachedTemplate(bookCount) as typeof watiTemplates.$inferSelect | undefined;
+    const templateName = tmpl?.templateName ?? config.wati.templateName ?? 'specimen_dispatch';
+
+    const receivers = chunk.map((msg) => {
+      const params = tmpl?.params && tmpl.params.length > 0
+        ? resolveParams(tmpl.params, {
+            teacherName: msg.name,
+            teacherPhone: msg.phone,
+            teacherEmail: msg.email,
+            school: msg.school,
+            city: msg.city,
+            batchId: msg.batchId,
+            books: msg.books ?? [],
+          })
+        : [
+            { name: 'name', value: msg.name },
+            { name: 'specimen_details', value: msg.books.map((b) => `${b.title}: ${b.specimenUrl}`).join('\n') },
+          ];
+
+      return {
+        whatsappNumber: normalizeIndianPhone(msg.phone),
+        customParams: params.map((p) => ({ name: p.name, value: p.value })),
+      };
+    });
+
+    const url = `${config.wati.baseUrl}/api/v2/sendTemplateMessages`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${config.wati.apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        template_name: templateName,
+        broadcast_name: chunk[0]?.batchId ?? 'bulk',
+        receivers,
+      }),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error(`[messaging] WATI bulk API error ${response.status}: ${text}`);
+      failed += chunk.length;
+    } else {
+      sent += chunk.length;
+    }
+  }
+
+  return { sent, failed };
+}
+
 // ─── Resend ───────────────────────────────────────────────────────────────────
 
 async function sendEmail(job: EmailMessageJob): Promise<string> {
@@ -156,146 +226,155 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
   return data?.id ?? 'unknown';
 }
 
-// ─── Handle message ───────────────────────────────────────────────────────────
+// ─── Atomic batch completion check ───────────────────────────────────────────
 
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-async function handleMessage(
-  job: WhatsAppMessageJob | EmailMessageJob,
-  ack: () => void,
-  _nack: (requeue: boolean) => void
-) {
-  const { commLogId, batchId, retryCount } = job;
-
+async function incrementAndCheckComplete(batchId: string) {
   try {
-    // Check if message was cancelled before sending
-    const log = await db.query.commLog.findFirst({ where: eq(commLog.id, commLogId) });
-    if (log?.status === 'CANCELLED') {
-      console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} — cancelled, skipping`);
-      await checkBatchComplete(batchId);
-      ack();
-      return;
+    // Atomically increment messagesProcessed counter
+    const [updated] = await db
+      .update(batches)
+      .set({
+        stats: sql`jsonb_set(
+          COALESCE(stats, '{}'::jsonb),
+          '{messagesProcessed}',
+          to_jsonb(COALESCE((stats->>'messagesProcessed')::int, 0) + 1)
+        )`,
+        updatedAt: new Date(),
+      })
+      .where(eq(batches.id, batchId))
+      .returning();
+
+    const stats = updated?.stats as BatchStats | undefined;
+    const processed = stats?.messagesProcessed ?? 0;
+    const queued = stats?.messagesQueued ?? 0;
+
+    if (queued > 0 && processed >= queued && updated?.status === 'MESSAGING') {
+      try {
+        await BatchService.advance(batchId, 'auto_messaging_complete');
+        console.log(`[messaging] batch=${batchId} all ${queued} messages processed → COMPLETE`);
+      } catch {
+        // Another worker already advanced
+      }
     }
-
-    let externalId: string;
-    if (job.type === 'WHATSAPP') {
-      externalId = await sendWhatsApp(job);
-    } else {
-      externalId = await sendEmail(job);
-    }
-
-    // Mark sent
-    await db
-      .update(commLog)
-      .set({ status: 'SENT', externalMessageId: externalId, attemptCount: retryCount + 1, lastAttemptAt: new Date(), updatedAt: new Date() })
-      .where(eq(commLog.id, commLogId));
-
-    await db.insert(messageSendLog).values({
-      id: nanoid(),
-      commLogId,
-      batchId,
-      channel: job.type,
-      attemptNumber: retryCount + 1,
-      status: 'sent',
-      externalMessageId: externalId,
-    });
-
-    await sleep(1000); // 1 message per second rate limit
-
-    // Check if all messages for this batch are done → auto-advance to COMPLETE
-    await checkBatchComplete(batchId);
-
-    ack();
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : String(err);
-    const nextRetry = retryCount + 1;
+    console.log(`[messaging] batch=${batchId} completion check:`, (err as Error).message);
+  }
+}
 
-    await db
-      .update(commLog)
-      .set({ lastError: errorMessage, attemptCount: nextRetry, lastAttemptAt: new Date(), updatedAt: new Date() })
-      .where(eq(commLog.id, commLogId));
+// ─── Shared message processor ────────────────────────────────────────────────
 
-    if (nextRetry >= MAX_RETRIES) {
-      // Move to DLQ
-      await db.insert(failedMessages).values({
-        id: nanoid(),
-        commLogId,
-        batchId,
-        channel: job.type,
-        teacherPhone: job.type === 'WHATSAPP' ? (job as WhatsAppMessageJob).phone : undefined,
-        teacherEmail: job.type === 'EMAIL' ? (job as EmailMessageJob).email : undefined,
-        errorType: errorMessage.includes('RATE') ? 'RATE_LIMIT' : 'UNKNOWN',
-        errorMessage,
-        attemptCount: nextRetry,
-        isRetryable: true,
-        status: 'FAILED',
-      });
+async function processMessage(job: Job<WhatsAppMessageJob | EmailMessageJob>) {
+  const { commLogId, batchId } = job.data;
 
+  // Check if message was cancelled before sending
+  const log = await db.query.commLog.findFirst({ where: eq(commLog.id, commLogId) });
+  if (log?.status === 'CANCELLED') {
+    console.log(`[messaging] batch=${batchId} commLog=${commLogId} — cancelled, skipping`);
+    await incrementAndCheckComplete(batchId);
+    return;
+  }
+
+  let externalId: string;
+  if (job.data.type === 'WHATSAPP') {
+    externalId = await sendWhatsApp(job.data as WhatsAppMessageJob);
+  } else {
+    externalId = await sendEmail(job.data as EmailMessageJob);
+  }
+
+  // Mark sent
+  await db
+    .update(commLog)
+    .set({
+      status: 'SENT',
+      externalMessageId: externalId,
+      attemptCount: (job.attemptsMade || 0) + 1,
+      lastAttemptAt: new Date(),
+      updatedAt: new Date(),
+    })
+    .where(eq(commLog.id, commLogId));
+
+  await db.insert(messageSendLog).values({
+    id: nanoid(),
+    commLogId,
+    batchId,
+    channel: job.data.type,
+    attemptNumber: (job.attemptsMade || 0) + 1,
+    status: 'sent',
+    externalMessageId: externalId,
+  });
+
+  await incrementAndCheckComplete(batchId);
+}
+
+// ─── BullMQ Workers ──────────────────────────────────────────────────────────
+
+// WhatsApp worker — 1 msg/sec via sleep (WATI rate limit)
+const waWorker = createWorker<WhatsAppMessageJob>(
+  QUEUES.WHATSAPP_MESSAGES,
+  async (job) => {
+    await processMessage(job as Job<WhatsAppMessageJob | EmailMessageJob>);
+    // WATI rate limit: 1 msg/sec
+    await new Promise((r) => setTimeout(r, 1000));
+  },
+  { concurrency: 1 }
+);
+
+// Email worker — 1 msg/sec via BullMQ limiter (Resend rate limit)
+const emailWorker = createWorker<EmailMessageJob>(
+  QUEUES.EMAIL_MESSAGES,
+  async (job) => {
+    await processMessage(job as Job<WhatsAppMessageJob | EmailMessageJob>);
+  },
+  {
+    concurrency: 1,
+    limiter: { max: 1, duration: 1000 },
+  }
+);
+
+// Handle max retries exhausted — move to DLQ
+for (const worker of [waWorker, emailWorker]) {
+  worker.on('failed', async (job, err) => {
+    if (!job) return;
+    const data = job.data as WhatsAppMessageJob | EmailMessageJob;
+    const maxAttempts = job.opts?.attempts ?? 3;
+
+    // Only DLQ on final failure
+    if (job.attemptsMade >= maxAttempts) {
+      const errorMessage = err.message;
+      try {
+        await db.insert(failedMessages).values({
+          id: nanoid(),
+          commLogId: data.commLogId,
+          batchId: data.batchId,
+          channel: data.type,
+          teacherPhone: data.type === 'WHATSAPP' ? (data as WhatsAppMessageJob).phone : undefined,
+          teacherEmail: data.type === 'EMAIL' ? (data as EmailMessageJob).email : undefined,
+          errorType: errorMessage.includes('RATE') ? 'RATE_LIMIT' : 'UNKNOWN',
+          errorMessage,
+          attemptCount: job.attemptsMade,
+          isRetryable: true,
+          status: 'FAILED',
+        });
+
+        await db
+          .update(commLog)
+          .set({ status: 'DLQ', lastError: errorMessage, updatedAt: new Date() })
+          .where(eq(commLog.id, data.commLogId));
+
+        console.log(`[messaging] batch=${data.batchId} commLog=${data.commLogId} → DLQ after ${job.attemptsMade} attempts`);
+
+        await incrementAndCheckComplete(data.batchId);
+      } catch (dlqErr) {
+        console.error(`[messaging] DLQ insert failed:`, (dlqErr as Error).message);
+      }
+    } else {
+      // Update commLog with error for intermediate failures
       await db
         .update(commLog)
-        .set({ status: 'DLQ', updatedAt: new Date() })
-        .where(eq(commLog.id, commLogId));
-
-      console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} → DLQ after ${nextRetry} attempts`);
-      await sleep(1000);
-
-      // Check if all messages for this batch are done → auto-advance to COMPLETE
-      await checkBatchComplete(batchId);
-
-      ack(); // Ack from RabbitMQ — it's now in DB DLQ
-    } else {
-      // Republish with incremented retryCount instead of nack(true) to avoid infinite loop
-      const retryJob = { ...job, retryCount: nextRetry };
-      const queue = job.type === 'WHATSAPP' ? QUEUES.WHATSAPP_MESSAGES : QUEUES.EMAIL_MESSAGES;
-      await sleep(1000); // wait before retry
-      await publish(queue, retryJob);
-      console.log(`[messaging-worker] batch=${batchId} commLog=${commLogId} retry ${nextRetry}/${MAX_RETRIES} requeued`);
-      ack(); // Ack original; new message with updated retryCount is now in queue
+        .set({ lastError: err.message, attemptCount: job.attemptsMade, lastAttemptAt: new Date(), updatedAt: new Date() })
+        .where(eq(commLog.id, data.commLogId));
     }
-  }
+  });
 }
 
-// ─── Auto-advance to COMPLETE when all messages are processed ─────────────────
-
-async function checkBatchComplete(batchId: string) {
-  try {
-    const batch = await BatchService.getById(batchId);
-    if (!batch || batch.status !== 'MESSAGING') return;
-
-    // Count remaining QUEUED messages
-    const [result] = await db
-      .select({ total: drizzleCount() })
-      .from(commLog)
-      .where(and(eq(commLog.batchId, batchId), eq(commLog.status, 'QUEUED')));
-
-    const remaining = Number(result?.total ?? 0);
-    if (remaining === 0) {
-      await BatchService.advance(batchId, 'auto_messaging_complete');
-      console.log(`[messaging-worker] batch=${batchId} all messages processed → COMPLETE`);
-    }
-  } catch (err) {
-    // Another worker may have already advanced — safe to ignore
-    console.log(`[messaging-worker] batch=${batchId} checkBatchComplete:`, (err as Error).message);
-  }
-}
-
-// ─── Bootstrap ────────────────────────────────────────────────────────────────
-
-async function main() {
-  console.log('[messaging-worker] Starting... (rate: 1 msg/sec per channel)');
-  await Promise.all([
-    // prefetch=1 — process one message at a time, 1 second apart
-    consume(QUEUES.WHATSAPP_MESSAGES, (msg, ack, nack) =>
-      handleMessage(msg as WhatsAppMessageJob, ack, nack)
-    , 1),
-    consume(QUEUES.EMAIL_MESSAGES, (msg, ack, nack) =>
-      handleMessage(msg as EmailMessageJob, ack, nack)
-    , 1),
-  ]);
-  console.log('[messaging-worker] Ready');
-}
-
-main().catch((err) => {
-  console.error('[messaging-worker] Fatal error:', err);
-  process.exit(1);
-});
+console.log('[messaging-worker] Ready (WhatsApp: 1/sec, Email: 1/sec via limiter)');

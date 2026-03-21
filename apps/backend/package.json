@@ -15,22 +15,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "elysia": "^1.1.0",
     "@elysiajs/cors": "^1.1.0",
     "@elysiajs/swagger": "^1.1.0",
     "@sinclair/typebox": "^0.34.0",
+    "bullmq": "^5.71.0",
+    "dotenv": "^16.4.5",
     "drizzle-orm": "^0.30.0",
-    "postgres": "^3.4.4",
-    "amqplib": "^0.10.3",
-    "resend": "^3.2.0",
-    "xlsx": "^0.18.5",
+    "elysia": "^1.1.0",
+    "ioredis": "^5.10.1",
     "nanoid": "^5.0.7",
-    "dotenv": "^16.4.5"
+    "postgres": "^3.4.4",
+    "resend": "^3.2.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
-    "@types/amqplib": "^0.10.5",
+    "bun-types": "latest",
     "drizzle-kit": "^0.21.0",
-    "typescript": "^5.4.5",
-    "bun-types": "latest"
+    "typescript": "^5.4.5"
   }
 }

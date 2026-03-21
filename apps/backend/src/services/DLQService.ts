@@ -1,8 +1,7 @@
 import { eq, and, desc, count, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import { failedMessages } from '@/db/schema';
-import { publish } from '@/queue';
-import { QUEUES } from '@/queue/types';
+import { addJob, QUEUES } from '@/queue';
 
 export class DLQService {
   static async list(params: {
@@ -49,7 +48,7 @@ export class DLQService {
 
     for (const msg of messages) {
       const queue = msg.channel === 'WHATSAPP' ? QUEUES.WHATSAPP_MESSAGES : QUEUES.EMAIL_MESSAGES;
-      await publish(queue, {
+      await addJob(queue, {
         type: msg.channel,
         batchId: msg.batchId,
         teacherRecordId: msg.teacherRecordId,

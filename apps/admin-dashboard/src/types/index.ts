@@ -63,6 +63,8 @@ export interface BatchStats {
 
 export interface Batch {
   id: string;
+  displayId?: string;
+  seqId?: number;
   status: BatchStatus;
   fileName?: string;
   stats?: BatchStats;

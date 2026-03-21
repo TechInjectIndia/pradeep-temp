@@ -1,4 +1,4 @@
-import { eq, and, desc, count } from 'drizzle-orm';
+import { eq, and, desc, count, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   batches,
@@ -9,8 +9,7 @@ import {
   type BatchStats,
   type StatusHistoryEntry,
 } from '@/db/schema';
-import { publish } from '@/queue';
-import { QUEUES } from '@/queue/types';
+import { addJob, QUEUES } from '@/queue';
 import { nanoid } from 'nanoid';
 
 type BatchStatus =
@@ -153,13 +152,13 @@ export class BatchService {
   }
 
   static async updateStats(batchId: string, statsUpdate: Partial<BatchStats>) {
-    const batch = await this.getById(batchId);
-    if (!batch) return;
-
-    const merged = { ...(batch.stats ?? {}), ...statsUpdate };
+    // Atomic JSON merge — no read-then-write race
     await db
       .update(batches)
-      .set({ stats: merged, updatedAt: new Date() })
+      .set({
+        stats: sql`COALESCE(stats, '{}') || ${sql.raw(`'${JSON.stringify(statsUpdate).replace(/'/g, "''")}'::jsonb`)}`,
+        updatedAt: new Date(),
+      })
       .where(eq(batches.id, batchId));
   }
 
@@ -227,10 +226,10 @@ export class BatchService {
     let retriedCount = 0;
     for (const err of errors) {
       if (err.stage === 'MESSAGES' && err.commLogId) {
-        await publish(QUEUES.WHATSAPP_MESSAGES, { commLogId: err.commLogId, batchId, retryCount: 0 });
+        await addJob(QUEUES.WHATSAPP_MESSAGES, { commLogId: err.commLogId, batchId, retryCount: 0 });
         retriedCount++;
       } else if (err.stage === 'ORDERS' && err.teacherRawId) {
-        await publish(QUEUES.ORDER_CREATION, { batchId, teacherRecordId: err.teacherRawId, retryCount: 0 });
+        await addJob(QUEUES.ORDER_CREATION, { batchId, teacherRecordId: err.teacherRawId, retryCount: 0 });
         retriedCount++;
       }
     }
@@ -275,26 +274,31 @@ export class BatchService {
     next: BatchStatus,
     trigger: string
   ) {
-    const history: StatusHistoryEntry[] = [
-      ...(batch.statusHistory ?? []),
-      { from: batch.status, to: next, trigger, timestamp: new Date().toISOString() },
-    ];
+    const historyEntry: StatusHistoryEntry = {
+      from: batch.status,
+      to: next,
+      trigger,
+      timestamp: new Date().toISOString(),
+    };
 
+    // Atomic conditional update — prevents race conditions where two workers
+    // try to advance the same batch simultaneously
     const rows = await db
       .update(batches)
       .set({
         status: next,
-        statusHistory: history,
+        statusHistory: sql`COALESCE(status_history, '[]'::jsonb) || ${sql.raw(`'${JSON.stringify([historyEntry]).replace(/'/g, "''")}'::jsonb`)}`,
         resumedAt: next !== 'PAUSED' && batch.status === 'PAUSED' ? new Date() : batch.resumedAt,
         updatedAt: new Date(),
       })
-      .where(eq(batches.id, batchId))
+      .where(and(eq(batches.id, batchId), eq(batches.status, batch.status as BatchStatus)))
       .returning();
 
-    const updated = rows[0];
-    if (!updated) throw new Error('Failed to transition batch');
+    if (rows.length === 0) throw new Error(`Batch already transitioned from ${batch.status}`);
 
-    await publish(QUEUES.BATCH_ADVANCE, { batchId, targetStage: next });
+    const updated = rows[0]!;
+
+    await addJob(QUEUES.BATCH_ADVANCE, { batchId, targetStage: next });
 
     return updated;
   }

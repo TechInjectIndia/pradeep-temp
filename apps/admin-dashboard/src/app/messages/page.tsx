@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { formatDateTime } from "@/utils/date";
 import { listCommLogs, type CommLogEntry, type BatchCommSummary } from "@/services/api";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonTable from "@/components/SkeletonTable";
 
 const STATUS_COLORS: Record<string, string> = {
   QUEUED:    "bg-yellow-100 text-yellow-800",
@@ -122,7 +122,7 @@ export default function MessagesPage() {
           </span>
         </div>
       ) : isLoading ? (
-        <LoadingSpinner />
+        <SkeletonTable rows={8} cols={6} />
       ) : (
         <>
           {activeTab === "batches" && (
@@ -132,18 +132,18 @@ export default function MessagesPage() {
           {activeTab === "logs" && (
             <>
               {/* Filters */}
-              <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
                 <input
                   type="text"
                   placeholder="Filter by batch ID…"
                   value={batchFilter}
                   onChange={(e) => { setBatchFilter(e.target.value); setPage(1); }}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm w-52 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full sm:w-auto rounded-lg border border-border bg-card px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 />
                 <select
                   value={channelFilter}
                   onChange={(e) => { setChannelFilter(e.target.value as "WHATSAPP" | "EMAIL" | ""); setPage(1); }}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full sm:w-auto rounded-lg border border-border bg-card px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">All Channels</option>
                   <option value="WHATSAPP">WhatsApp</option>
@@ -152,7 +152,7 @@ export default function MessagesPage() {
                 <select
                   value={statusFilter}
                   onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-                  className="rounded-lg border border-border bg-card px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full sm:w-auto rounded-lg border border-border bg-card px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="">All Statuses</option>
                   {["QUEUED", "SENT", "DELIVERED", "FAILED", "DLQ"].map((s) => (
@@ -171,14 +171,14 @@ export default function MessagesPage() {
                     <button
                       disabled={page <= 1}
                       onClick={() => setPage(page - 1)}
-                      className="rounded border border-border px-3 py-1 disabled:opacity-40 hover:bg-muted"
+                      className="rounded border border-border px-3 py-2 disabled:opacity-40 hover:bg-muted"
                     >
                       Prev
                     </button>
                     <button
                       disabled={page >= totalPages}
                       onClick={() => setPage(page + 1)}
-                      className="rounded border border-border px-3 py-1 disabled:opacity-40 hover:bg-muted"
+                      className="rounded border border-border px-3 py-2 disabled:opacity-40 hover:bg-muted"
                     >
                       Next
                     </button>

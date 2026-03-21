@@ -87,9 +87,8 @@ export class LinkService {
       ])
     );
 
-    // 5. Build the LMS API payload
-    // teachers: { teacherRecordId: { name, email, phone, productIds } }
-    const teachersPayload: Record<string, LmsTeacherPayload> = {};
+    // 5. Build per-order product ID mapping (needed for chunked LMS calls)
+    const orderProductMap = new Map<string, string[]>();
     for (const order of batchOrders) {
       const raw = rawByRecordId.get(order.teacherRecordId);
       const bookStr = raw?.books ?? raw?.booksAssigned ?? '';
@@ -100,6 +99,29 @@ export class LinkService {
         .flatMap((c) => codeToProducts.get(c) ?? []);
 
       if (productIds.length > 0) {
+        orderProductMap.set(order.id, productIds);
+      }
+    }
+
+    if (orderProductMap.size === 0) {
+      return { teacherCount: batchOrders.length, linkCount: 0 };
+    }
+
+    // 6. Process orders in chunks to avoid OOM and oversized API payloads at 10K scale
+    const CHUNK_SIZE = 500;
+    const { baseUrl, apiKey } = config.lms;
+    const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
+    const fullLinkMap: Record<string, Record<string, string>> = {};
+    let totalLinks = 0;
+
+    for (let i = 0; i < batchOrders.length; i += CHUNK_SIZE) {
+      const chunk = batchOrders.slice(i, i + CHUNK_SIZE);
+
+      // Build LMS payload for this chunk only
+      const teachersPayload: Record<string, LmsTeacherPayload> = {};
+      for (const order of chunk) {
+        const productIds = orderProductMap.get(order.id);
+        if (!productIds) continue;
         teachersPayload[order.teacherRecordId] = {
           name: order.teacherName,
           email: order.teacherEmail ?? null,
@@ -107,73 +129,67 @@ export class LinkService {
           productIds,
         };
       }
+
+      if (Object.keys(teachersPayload).length === 0) continue;
+
+      // Call LMS API for this chunk
+      const res = await fetch(`${baseUrl}/v1/teacher-batch-links`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-api-key': apiKey,
+        },
+        body: JSON.stringify({ batchId, teachers: teachersPayload }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`LMS API error ${res.status}: ${text}`);
+      }
+
+      const lmsData = (await res.json()) as LmsResponse;
+
+      // Update orders in this chunk — collect promises and flush in parallel (bounded to chunk size)
+      const chunkUpdates: Promise<unknown>[] = [];
+      for (const order of chunk) {
+        const teacherLinks = lmsData.teachers[order.teacherRecordId];
+        if (!teacherLinks) continue;
+
+        const bookLinkEntries: BookLink[] = Object.entries(teacherLinks).map(
+          ([productId, specimenUrl]) => {
+            const author = productIdToAuthors.get(productId) || undefined;
+            return {
+              productId,
+              title: productIdToTitle.get(productId) ?? productId,
+              author,
+              specimenUrl,
+              expiresAt: expiresAt.toISOString(),
+            };
+          }
+        );
+
+        chunkUpdates.push(
+          db
+            .update(orders)
+            .set({
+              books: bookLinkEntries,
+              totalBooks: bookLinkEntries.length,
+              expiresAt,
+              status: 'links_generated',
+              updatedAt: new Date(),
+            })
+            .where(eq(orders.id, order.id))
+        );
+
+        fullLinkMap[order.teacherRecordId] = teacherLinks;
+        totalLinks += bookLinkEntries.length;
+      }
+
+      // Flush chunk updates in parallel (bounded to chunk size)
+      if (chunkUpdates.length > 0) {
+        await Promise.all(chunkUpdates);
+      }
     }
-
-    if (Object.keys(teachersPayload).length === 0) {
-      return { teacherCount: batchOrders.length, linkCount: 0 };
-    }
-
-    // 6. Call LMS API
-    const { baseUrl, apiKey } = config.lms;
-    const res = await fetch(`${baseUrl}/v1/teacher-batch-links`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-      },
-      body: JSON.stringify({ batchId, teachers: teachersPayload }),
-    });
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`LMS API error ${res.status}: ${text}`);
-    }
-
-    const lmsData = (await res.json()) as LmsResponse;
-
-    // 7. Build per-order BookLink[] and collect full link map
-    const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
-    const fullLinkMap: Record<string, Record<string, string>> = {};
-    let totalLinks = 0;
-
-    const updatePromises: Promise<unknown>[] = [];
-
-    for (const order of batchOrders) {
-      const teacherLinks = lmsData.teachers[order.teacherRecordId];
-      if (!teacherLinks) continue;
-
-      const bookLinkEntries: BookLink[] = Object.entries(teacherLinks).map(
-        ([productId, specimenUrl]) => {
-          const author = productIdToAuthors.get(productId) || undefined;
-          return {
-            productId,
-            title: productIdToTitle.get(productId) ?? productId,
-            author,
-            specimenUrl,
-            expiresAt: expiresAt.toISOString(),
-          };
-        }
-      );
-
-      updatePromises.push(
-        db
-          .update(orders)
-          .set({
-            books: bookLinkEntries,
-            totalBooks: bookLinkEntries.length,
-            expiresAt,
-            status: 'links_generated',
-            updatedAt: new Date(),
-          })
-          .where(eq(orders.id, order.id))
-      );
-
-      fullLinkMap[order.teacherRecordId] = teacherLinks;
-      totalLinks += bookLinkEntries.length;
-    }
-
-    // Run all order updates in parallel
-    await Promise.all(updatePromises);
 
     // 8. Persist full link map in batchLinks (upsert via batchId unique)
     await db

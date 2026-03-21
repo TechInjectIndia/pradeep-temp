@@ -66,6 +66,27 @@
   }
 }
 
+/* Theme Presets */
+[data-theme="blue"] {
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+}
+
+[data-theme="purple"] {
+  --primary: 271 81% 56%;
+  --primary-foreground: 210 40% 98%;
+}
+
+[data-theme="green"] {
+  --primary: 142 71% 45%;
+  --primary-foreground: 210 40% 98%;
+}
+
+[data-theme="orange"] {
+  --primary: 24 95% 53%;
+  --primary-foreground: 210 40% 98%;
+}
+
 @layer base {
   * {
     @apply border-border;

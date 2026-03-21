@@ -13,6 +13,7 @@ import { bookMappingRoutes } from '@/routes/bookMappings';
 import { algoliaRoutes } from '@/routes/algolia';
 import { watiTemplateRoutes } from '@/routes/watiTemplates';
 import { commLogRoutes } from '@/routes/commLogs';
+import { sseRoutes } from '@/routes/sse';
 
 validateConfig();
 
@@ -54,6 +55,7 @@ const app = new Elysia()
   .use(algoliaRoutes)
   .use(watiTemplateRoutes)
   .use(commLogRoutes)
+  .use(sseRoutes)
   .onError(({ code, error, set }) => {
     if (code === 'NOT_FOUND') {
       set.status = 404;

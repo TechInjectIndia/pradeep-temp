@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
@@ -15,6 +16,13 @@ import {
   BookOpen,
 } from "lucide-react";
 import { ThemeToggle } from "./ThemeToggle";
+
+const themes = [
+  { name: "blue", color: "bg-blue-500" },
+  { name: "purple", color: "bg-purple-500" },
+  { name: "green", color: "bg-green-500" },
+  { name: "orange", color: "bg-orange-500" },
+];
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -35,6 +43,11 @@ interface Props {
 
 export default function Sidebar({ open, onClose }: Props) {
   const pathname = usePathname();
+
+  useEffect(() => {
+    const saved = localStorage.getItem("vsds-theme");
+    if (saved) document.documentElement.dataset.theme = saved;
+  }, []);
 
   return (
     <>
@@ -87,9 +100,24 @@ export default function Sidebar({ open, onClose }: Props) {
         </nav>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border px-6 py-4">
-          <p className="text-xs font-medium text-muted-foreground">VSDS v1.0.0</p>
-          <ThemeToggle />
+        <div className="border-t border-border px-6 py-4 space-y-3">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-medium text-muted-foreground">VSDS v1.0.0</p>
+            <ThemeToggle />
+          </div>
+          <div className="flex items-center gap-1.5">
+            {themes.map((t) => (
+              <button
+                key={t.name}
+                onClick={() => {
+                  document.documentElement.dataset.theme = t.name;
+                  localStorage.setItem("vsds-theme", t.name);
+                }}
+                className={`h-5 w-5 rounded-full ${t.color} ring-2 ring-transparent hover:ring-border transition-all`}
+                title={t.name}
+              />
+            ))}
+          </div>
         </div>
       </aside>
     </>

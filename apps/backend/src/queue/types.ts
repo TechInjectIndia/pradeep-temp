@@ -42,10 +42,3 @@ export interface BatchAdvanceJob {
 }
 
 export type MessageJob = WhatsAppMessageJob | EmailMessageJob;
-
-export const QUEUES = {
-  WHATSAPP_MESSAGES: 'whatsapp-messages',
-  EMAIL_MESSAGES: 'email-messages',
-  ORDER_CREATION: 'order-creation',
-  BATCH_ADVANCE: 'batch-advance',
-} as const;

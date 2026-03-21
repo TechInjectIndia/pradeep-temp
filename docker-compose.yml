@@ -20,23 +20,19 @@ services:
       timeout: 5s
       retries: 5
 
-  # ── RabbitMQ 3 (with Management UI) ──────────────────────────────────────────
-  rabbitmq:
-    image: rabbitmq:3.13-management-alpine
-    container_name: vsds_rabbitmq
+  # ── Redis 7 (BullMQ queue backend) ───────────────────────────────────────────
+  redis:
+    image: redis:7-alpine
+    container_name: vsds_redis
     restart: unless-stopped
-    environment:
-      RABBITMQ_DEFAULT_USER: vsds
-      RABBITMQ_DEFAULT_PASS: vsds
     ports:
-      - '5672:5672'   # AMQP
-      - '15672:15672' # Management UI (http://localhost:15672)
+      - '6379:6379'
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - redis_data:/data
     healthcheck:
-      test: ['CMD', 'rabbitmq-diagnostics', 'ping']
-      interval: 15s
-      timeout: 10s
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
       retries: 5
 
   # ── Bun Backend ───────────────────────────────────────────────────────────────
@@ -50,7 +46,7 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://vsds:vsds@postgres:5432/vsds
-      RABBITMQ_URL: amqp://vsds:vsds@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
       PORT: 3001
       NODE_ENV: production
     ports:
@@ -58,7 +54,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      redis:
         condition: service_healthy
 
   # ── Messaging Worker ──────────────────────────────────────────────────────────
@@ -74,11 +70,11 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://vsds:vsds@postgres:5432/vsds
-      RABBITMQ_URL: amqp://vsds:vsds@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      redis:
         condition: service_healthy
 
   # ── Ordering Worker ───────────────────────────────────────────────────────────
@@ -94,13 +90,13 @@ services:
       - .env
     environment:
       DATABASE_URL: postgresql://vsds:vsds@postgres:5432/vsds
-      RABBITMQ_URL: amqp://vsds:vsds@rabbitmq:5672
+      REDIS_URL: redis://redis:6379
     depends_on:
       postgres:
         condition: service_healthy
-      rabbitmq:
+      redis:
         condition: service_healthy
 
 volumes:
   postgres_data:
-  rabbitmq_data:
+  redis_data:

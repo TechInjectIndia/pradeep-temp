@@ -1,73 +1,28 @@
 /**
- * Batch Advance Worker — orchestrates batch stage transitions.
+ * Batch Advance Worker -- orchestrates batch stage transitions.
  *
- * VALIDATING → queues ORDER_CREATION for all teachers, advances batch to ORDERING
- * ORDERING   → no-op; ordering.worker processes individual teachers
- * MESSAGING  → fetches specimen links, creates commLog entries, queues WHATSAPP/EMAIL jobs
- * COMPLETE   → logs completion
+ * VALIDATING -> queues ORDER_CREATION for all teachers, advances batch to ORDERING
+ * ORDERING   -> no-op; ordering.worker processes individual teachers
+ * MESSAGING  -> fetches specimen links, creates commLogs, queues WHATSAPP/EMAIL jobs
+ * COMPLETE   -> logs completion
  */
 import { createHash } from 'crypto';
-import { consume, publish } from '@/queue';
-import { QUEUES, type BatchAdvanceJob, type WhatsAppMessageJob, type EmailMessageJob } from '@/queue/types';
+import { createWorker, addJob, QUEUES } from '@/queue';
+import type { BatchAdvanceJob, WhatsAppMessageJob, EmailMessageJob } from '@/queue/types';
+import type { Job } from 'bullmq';
 import { db } from '@/db';
 import { teachersRaw, orders, commLog, batches } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { LinkService } from '@/services/LinkService';
 import { BatchService } from '@/services/BatchService';
 
-// Stage ordering — used to skip stale messages
+// Stage ordering -- used to skip stale messages
 const STAGE_ORDER: Record<string, number> = {
   UPLOADED: 0, VALIDATING: 1, RESOLVING: 2, ORDERING: 3, MESSAGING: 4, COMPLETE: 5,
   PAUSED: -1, CANCELLED: -1, FAILED: -1, PARTIAL_FAILURE: -1,
 };
 
-async function handleBatchAdvance(
-  job: BatchAdvanceJob,
-  ack: () => void,
-  nack: (requeue: boolean) => void
-) {
-  const { batchId, targetStage } = job;
-  console.log(`[batch-advance] batch=${batchId} stage=${targetStage}`);
-
-  try {
-    const batch = await BatchService.getById(batchId);
-    if (!batch) { console.warn(`[batch-advance] batch=${batchId} not found — skipping`); ack(); return; }
-
-    const currentOrder = STAGE_ORDER[batch.status] ?? -1;
-    const targetOrder = STAGE_ORDER[targetStage] ?? -1;
-
-    // Skip stale messages — batch has already moved past this stage
-    if (currentOrder > targetOrder) {
-      console.log(`[batch-advance] batch=${batchId} already at ${batch.status} — skipping stale ${targetStage} message`);
-      ack();
-      return;
-    }
-
-    switch (targetStage) {
-      case 'VALIDATING':
-      case 'RESOLVING':
-        await handleValidating(batchId);
-        break;
-      case 'ORDERING':
-        await BatchService.addLog(batchId, 'ordering', 'Ordering stage started — processing teachers');
-        break;
-      case 'MESSAGING':
-        await handleMessaging(batchId);
-        break;
-      case 'COMPLETE':
-        await BatchService.addLog(batchId, 'batch_advanced', 'Batch marked complete');
-        break;
-      default:
-        console.log(`[batch-advance] No handler for stage=${targetStage}`);
-    }
-    ack();
-  } catch (err) {
-    console.error(`[batch-advance] batch=${batchId} stage=${targetStage} error:`, err);
-    ack(); // Ack to avoid infinite requeue; error is captured in batchLogs
-  }
-}
-
-// ─── VALIDATING: queue ORDER_CREATION for all raw teachers ────────────────────
+// --- VALIDATING: queue ORDER_CREATION for all raw teachers ---
 
 async function handleValidating(batchId: string) {
   const rawTeachers = await db.query.teachersRaw.findMany({
@@ -75,7 +30,7 @@ async function handleValidating(batchId: string) {
   });
 
   if (rawTeachers.length === 0) {
-    await BatchService.addLog(batchId, 'validation', 'No teachers found in batch — nothing to process');
+    await BatchService.addLog(batchId, 'validation', 'No teachers found in batch -- nothing to process');
     return;
   }
 
@@ -88,7 +43,7 @@ async function handleValidating(batchId: string) {
 
   // Queue an ORDER_CREATION job for every teacher
   for (const teacher of rawTeachers) {
-    await publish(QUEUES.ORDER_CREATION, {
+    await addJob(QUEUES.ORDER_CREATION, {
       batchId,
       teacherRecordId: teacher.id,
       teacherMasterId: teacher.teacherMasterId ?? '',
@@ -109,10 +64,10 @@ async function handleValidating(batchId: string) {
     .set({ status: 'ORDERING', updatedAt: new Date() })
     .where(eq(batches.id, batchId));
 
-  console.log(`[batch-advance] batch=${batchId} → ORDERING (${rawTeachers.length} jobs queued)`);
+  console.log(`[batch-advance] batch=${batchId} -> ORDERING (${rawTeachers.length} jobs queued)`);
 }
 
-// ─── MESSAGING: fetch links, create commLogs, queue messages ──────────────────
+// --- MESSAGING: fetch links, create commLogs, queue messages ---
 
 async function handleMessaging(batchId: string) {
   await BatchService.addLog(batchId, 'aggregation', 'Fetching specimen links from LMS API...');
@@ -139,7 +94,7 @@ async function handleMessaging(batchId: string) {
   });
 
   if (batchOrders.length === 0) {
-    await BatchService.addLog(batchId, 'error', 'No orders found — cannot queue messages');
+    await BatchService.addLog(batchId, 'error', 'No orders found -- cannot queue messages');
     return;
   }
 
@@ -154,7 +109,7 @@ async function handleMessaging(batchId: string) {
 
     const specimenDetails = books.map((b) => `${b.title}: ${b.specimenUrl}`).join('\n');
 
-    // ─── WhatsApp ─────────────────────────────────────────────────────────────
+    // --- WhatsApp ---
     if (order.sendWhatsApp && order.teacherPhone) {
       const hash = createHash('sha256')
         .update(`${order.teacherPhone}:${batchId}:WHATSAPP`)
@@ -194,7 +149,7 @@ async function handleMessaging(batchId: string) {
           books,
         };
 
-        await publish(QUEUES.WHATSAPP_MESSAGES, waJob);
+        await addJob(QUEUES.WHATSAPP_MESSAGES, waJob);
         queued++;
 
         await BatchService.addLog(
@@ -204,11 +159,11 @@ async function handleMessaging(batchId: string) {
           order.teacherPhone
         );
       } else {
-        console.log(`[batch-advance] batch=${batchId} WhatsApp already queued for ${order.teacherName} — skipping`);
+        console.log(`[batch-advance] batch=${batchId} WhatsApp already queued for ${order.teacherName} -- skipping`);
       }
     }
 
-    // ─── Email ────────────────────────────────────────────────────────────────
+    // --- Email ---
     if (order.sendEmail && order.teacherEmail) {
       const hash = createHash('sha256')
         .update(`${order.teacherEmail}:${batchId}:EMAIL`)
@@ -244,7 +199,7 @@ async function handleMessaging(batchId: string) {
           retryCount: 0,
         };
 
-        await publish(QUEUES.EMAIL_MESSAGES, emailJob);
+        await addJob(QUEUES.EMAIL_MESSAGES, emailJob);
         queued++;
 
         await BatchService.addLog(
@@ -254,7 +209,7 @@ async function handleMessaging(batchId: string) {
           order.teacherEmail
         );
       } else {
-        console.log(`[batch-advance] batch=${batchId} Email already queued for ${order.teacherName} — skipping`);
+        console.log(`[batch-advance] batch=${batchId} Email already queued for ${order.teacherName} -- skipping`);
       }
     }
   }
@@ -267,30 +222,57 @@ async function handleMessaging(batchId: string) {
     `Messaging started: ${queued} messages queued across ${batchOrders.length} teachers`
   );
 
-  console.log(`[batch-advance] batch=${batchId} → MESSAGING: ${queued} messages queued`);
+  console.log(`[batch-advance] batch=${batchId} -> MESSAGING: ${queued} messages queued`);
 
   // If no messages were queued (e.g. all duplicates or no contacts), auto-advance to COMPLETE
   if (queued === 0) {
     try {
       await BatchService.advance(batchId, 'auto_no_messages');
-      console.log(`[batch-advance] batch=${batchId} no messages to send → COMPLETE`);
+      console.log(`[batch-advance] batch=${batchId} no messages to send -> COMPLETE`);
     } catch {
-      // Already advanced — safe to ignore
+      // Already advanced -- safe to ignore
     }
   }
 }
 
-// ─── Bootstrap ────────────────────────────────────────────────────────────────
+// --- BullMQ Worker ---
 
-async function main() {
-  console.log('[batch-advance] Starting...');
-  await consume(QUEUES.BATCH_ADVANCE, (msg, ack, nack) =>
-    handleBatchAdvance(msg as BatchAdvanceJob, ack, nack)
-  );
-  console.log('[batch-advance] Ready');
-}
+createWorker<BatchAdvanceJob>(QUEUES.BATCH_ADVANCE, async (job: Job<BatchAdvanceJob>) => {
+  const { batchId, targetStage } = job.data;
+  console.log(`[batch-advance] batch=${batchId} stage=${targetStage}`);
 
-main().catch((err) => {
-  console.error('[batch-advance] Fatal error:', err);
-  process.exit(1);
+  const batch = await BatchService.getById(batchId);
+  if (!batch) {
+    console.warn(`[batch-advance] batch=${batchId} not found -- skipping`);
+    return;
+  }
+
+  const currentOrder = STAGE_ORDER[batch.status] ?? -1;
+  const targetOrder = STAGE_ORDER[targetStage] ?? -1;
+
+  // Skip stale messages -- batch has already moved past this stage
+  if (currentOrder > targetOrder) {
+    console.log(`[batch-advance] batch=${batchId} already at ${batch.status} -- skipping stale ${targetStage} message`);
+    return;
+  }
+
+  switch (targetStage) {
+    case 'VALIDATING':
+    case 'RESOLVING':
+      await handleValidating(batchId);
+      break;
+    case 'ORDERING':
+      await BatchService.addLog(batchId, 'ordering', 'Ordering stage started -- processing teachers');
+      break;
+    case 'MESSAGING':
+      await handleMessaging(batchId);
+      break;
+    case 'COMPLETE':
+      await BatchService.addLog(batchId, 'batch_advanced', 'Batch marked complete');
+      break;
+    default:
+      console.log(`[batch-advance] No handler for stage=${targetStage}`);
+  }
 });
+
+console.log('[batch-advance] Ready');

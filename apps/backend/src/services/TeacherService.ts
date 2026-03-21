@@ -307,11 +307,17 @@ export class TeacherService {
   }
 
   private static async syncLookups(teacherId: string, phones: string[], emails: string[]) {
-    for (const phone of phones) {
-      await db.insert(phoneLookup).values({ phone, teacherId }).onConflictDoNothing();
+    if (phones.length > 0) {
+      await db
+        .insert(phoneLookup)
+        .values(phones.map((phone) => ({ phone, teacherId })))
+        .onConflictDoNothing();
     }
-    for (const email of emails) {
-      await db.insert(emailLookup).values({ email, teacherId }).onConflictDoNothing();
+    if (emails.length > 0) {
+      await db
+        .insert(emailLookup)
+        .values(emails.map((email) => ({ email, teacherId })))
+        .onConflictDoNothing();
     }
   }
 }

@@ -1,86 +1,75 @@
-import amqplib from 'amqplib';
+import { Queue, Worker, QueueEvents, type Job, type WorkerOptions } from 'bullmq';
+import IORedis from 'ioredis';
 import { config } from '@/config';
-import { QUEUES } from './types';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let connection: any = null;
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-let publishChannel: any = null;
+// Singleton Redis connection
+const connection = new IORedis(config.redis.url, {
+  maxRetriesPerRequest: null, // Required by BullMQ
+  enableReadyCheck: false,
+});
 
-async function getConnection() {
-  if (!connection) {
-    // amqplib.connect returns a ChannelModel (which has createChannel)
-    connection = await amqplib.connect(config.rabbitmq.url);
-    connection.on('error', (err: Error) => {
-      console.error('[RabbitMQ] Connection error:', err.message);
-      connection = null;
-      publishChannel = null;
-    });
-    connection.on('close', () => {
-      console.warn('[RabbitMQ] Connection closed — will reconnect on next use');
-      connection = null;
-      publishChannel = null;
-    });
+connection.on('error', (err) => console.error('[Redis] Error:', err.message));
+connection.on('connect', () => console.log('[Redis] Connected'));
+
+// Queue name constants
+export const QUEUES = {
+  BATCH_ADVANCE: 'batch-advance',
+  ORDER_CREATION: 'order-creation',
+  WHATSAPP_MESSAGES: 'whatsapp-messages',
+  EMAIL_MESSAGES: 'email-messages',
+} as const;
+
+// Queue instances (lazy-created singletons)
+const queues = new Map<string, Queue>();
+
+function getQueue(name: string): Queue {
+  if (!queues.has(name)) {
+    queues.set(name, new Queue(name, { connection }));
   }
-  return connection;
+  return queues.get(name)!;
 }
 
-async function getPublishChannel() {
-  if (!publishChannel) {
-    const conn = await getConnection();
-    publishChannel = await conn.createChannel();
-    for (const queue of Object.values(QUEUES)) {
-      await publishChannel.assertQueue(queue, { durable: true });
-    }
-  }
-  return publishChannel;
+// Publish a job
+export async function addJob(queueName: string, data: unknown, opts?: { priority?: number; delay?: number; attempts?: number; backoff?: { type: string; delay: number } }) {
+  const queue = getQueue(queueName);
+  return queue.add(queueName, data, {
+    removeOnComplete: { count: 1000 },
+    removeOnFail: { count: 5000 },
+    ...opts,
+  });
 }
 
-export async function publish(queue: string, payload: unknown): Promise<void> {
-  const ch = await getPublishChannel();
-  const content = Buffer.from(JSON.stringify(payload));
-  ch.sendToQueue(queue, content, { persistent: true });
-}
-
-export async function consume(
-  queue: string,
-  handler: (msg: unknown, ack: () => void, nack: (requeue: boolean) => void) => Promise<void>,
-  prefetch = config.rabbitmq.prefetch
-): Promise<void> {
-  const conn = await getConnection();
-  const ch = await conn.createChannel();
-  await ch.assertQueue(queue, { durable: true });
-  ch.prefetch(prefetch);
-
-  await ch.consume(queue, async (msg: amqplib.ConsumeMessage | null) => {
-    if (!msg) return;
-    let payload: unknown;
-    try {
-      payload = JSON.parse(msg.content.toString());
-    } catch {
-      console.error('[RabbitMQ] Failed to parse message, discarding');
-      ch.nack(msg, false, false);
-      return;
-    }
-
-    await handler(
-      payload,
-      () => ch.ack(msg),
-      (requeue) => ch.nack(msg, false, requeue)
-    );
+// Create a BullMQ Worker
+export function createWorker<T = unknown>(
+  queueName: string,
+  processor: (job: Job<T>) => Promise<void>,
+  opts?: Partial<WorkerOptions>
+): Worker<T> {
+  const worker = new Worker<T>(queueName, processor, {
+    connection,
+    concurrency: 1,
+    ...opts,
   });
 
-  console.log(`[RabbitMQ] Consuming from: ${queue}`);
+  worker.on('completed', (_job) => {
+    // silent
+  });
+
+  worker.on('failed', (job, err) => {
+    console.error(`[${queueName}] Job ${job?.id} failed:`, err.message);
+  });
+
+  worker.on('error', (err) => {
+    console.error(`[${queueName}] Worker error:`, err.message);
+  });
+
+  console.log(`[${queueName}] Worker started`);
+  return worker;
 }
 
-export async function closeConnection(): Promise<void> {
-  try {
-    if (publishChannel) await publishChannel.close();
-    if (connection) await connection.close();
-  } catch {
-    // ignore close errors
-  } finally {
-    publishChannel = null;
-    connection = null;
-  }
+// For SSE - listen to queue events
+export function getQueueEvents(queueName: string): QueueEvents {
+  return new QueueEvents(queueName, { connection });
 }
+
+export { connection as redisConnection };

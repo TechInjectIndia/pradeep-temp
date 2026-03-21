@@ -7,7 +7,7 @@ import BatchStateIndicator from "@/components/BatchStateIndicator";
 import type { Batch, BatchStatus } from "@/types";
 import { useBatches } from "@/hooks/useBatches";
 import { formatDate } from "@/utils/date";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonTable from "@/components/SkeletonTable";
 
 const statuses: BatchStatus[] = [
   "UPLOADED",
@@ -42,7 +42,12 @@ export default function BatchesPage() {
       key: "id",
       header: "Batch ID",
       render: (row) => (
-        <span className="font-mono text-sm font-medium text-blue-600">{row.id}</span>
+        <div>
+          {row.displayId && (
+            <span className="text-xs font-semibold text-foreground mr-1.5">{row.displayId}</span>
+          )}
+          <span className="font-mono text-sm font-medium text-blue-600">{row.id}</span>
+        </div>
       ),
     },
     {
@@ -86,14 +91,14 @@ export default function BatchesPage() {
         </p>
       </div>
 
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
         <select
           value={statusFilter}
           onChange={(e) => {
             setStatusFilter(e.target.value as BatchStatus | "");
             setPage(1);
           }}
-          className="rounded-lg border border-border bg-card px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          className="w-full sm:w-auto rounded-lg border border-border bg-card px-4 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
         >
           <option value="">All Statuses</option>
           {statuses.map((s) => (
@@ -108,8 +113,9 @@ export default function BatchesPage() {
       </div>
 
       {isLoading ? (
-        <LoadingSpinner />
+        <SkeletonTable rows={8} cols={6} />
       ) : (
+        <div className="overflow-x-auto -mx-4 sm:mx-0">
         <DataTable
           columns={columns}
           data={batches}
@@ -123,6 +129,7 @@ export default function BatchesPage() {
             onPageChange: setPage,
           }}
         />
+        </div>
       )}
     </div>
   );

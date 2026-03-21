@@ -1,25 +1,20 @@
 /**
- * Ordering Worker — consumes ORDER_CREATION queue.
+ * Ordering Worker -- consumes ORDER_CREATION queue.
  * Resolves teacher master records and creates orders.
  * Pre-resolved rows (approved merges from upload UI) skip the upsert step.
  */
-import { consume } from '@/queue';
-import { QUEUES, type OrderCreationJob } from '@/queue/types';
+import { createWorker, addJob, QUEUES } from '@/queue';
+import type { OrderCreationJob } from '@/queue/types';
+import type { Job } from 'bullmq';
 import { db } from '@/db';
-import { teachersRaw, orders, batchErrors } from '@/db/schema';
-import { eq, count as drizzleCount } from 'drizzle-orm';
+import { teachersRaw, orders, batchErrors, batches, type BatchStats } from '@/db/schema';
+import { eq, sql } from 'drizzle-orm';
 import { TeacherService } from '@/services/TeacherService';
 import { BatchService } from '@/services/BatchService';
 import { nanoid } from 'nanoid';
 
-const MAX_RETRIES = 2;
-
-async function handleOrderCreation(
-  job: OrderCreationJob,
-  ack: () => void,
-  nack: (requeue: boolean) => void
-) {
-  const { batchId, teacherRecordId, retryCount } = job;
+createWorker<OrderCreationJob>(QUEUES.ORDER_CREATION, async (job: Job<OrderCreationJob>) => {
+  const { batchId, teacherRecordId, retryCount } = job.data;
 
   try {
     const rawTeacher = await db.query.teachersRaw.findFirst({
@@ -27,8 +22,7 @@ async function handleOrderCreation(
     });
 
     if (!rawTeacher) {
-      console.warn(`[ordering-worker] batch=${batchId} record=${teacherRecordId} not found — skipping`);
-      ack();
+      console.warn(`[ordering-worker] batch=${batchId} record=${teacherRecordId} not found -- skipping`);
       return;
     }
 
@@ -40,7 +34,7 @@ async function handleOrderCreation(
     let teacherCity: string | null | undefined;
 
     if (rawTeacher.resolutionStatus === 'RESOLVED' && rawTeacher.teacherMasterId) {
-      // Pre-resolved by admin during upload (approved merge) — skip upsert entirely
+      // Pre-resolved by admin during upload (approved merge) -- skip upsert entirely
       teacherMasterId = rawTeacher.teacherMasterId;
       teacherName = rawTeacher.name ?? 'Unknown';
       teacherPhone = rawTeacher.phone ?? null;
@@ -113,31 +107,36 @@ async function handleOrderCreation(
       teacherMasterId
     );
 
-    // Check if all expected orders are now created → auto-advance to MESSAGING
-    const batch = await BatchService.getById(batchId);
-    const expected = batch?.stats?.expectedOrders ?? 0;
-    if (expected > 0 && batch?.status === 'ORDERING') {
-      const countRows = await db
-        .select({ total: drizzleCount() })
-        .from(orders)
-        .where(eq(orders.batchId, batchId));
-      const createdCount = Number(countRows[0]?.total ?? 0);
-      if (createdCount >= expected) {
-        try {
-          await BatchService.advance(batchId, 'auto_ordering_complete');
-          console.log(`[ordering-worker] batch=${batchId} all ${expected} orders done → MESSAGING`);
-        } catch {
-          // Another worker already advanced — safe to ignore
-        }
+    // Atomically increment ordersCreated and check if all expected orders are done
+    const [updated] = await db
+      .update(batches)
+      .set({
+        stats: sql`jsonb_set(
+          COALESCE(stats, '{}'::jsonb),
+          '{ordersCreated}',
+          to_jsonb(COALESCE((stats->>'ordersCreated')::int, 0) + 1)
+        )`,
+        updatedAt: new Date(),
+      })
+      .where(eq(batches.id, batchId))
+      .returning();
+
+    const stats = updated?.stats as BatchStats | undefined;
+    const created = stats?.ordersCreated ?? 0;
+    const expected = stats?.expectedOrders ?? 0;
+    if (expected > 0 && created >= expected) {
+      try {
+        await BatchService.advance(batchId, 'auto_ordering_complete');
+        console.log(`[ordering-worker] batch=${batchId} all ${expected} orders done -> MESSAGING`);
+      } catch {
+        // Another worker already advanced -- safe to ignore
       }
     }
-
-    ack();
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : String(err);
     console.error(`[ordering-worker] batch=${batchId} record=${teacherRecordId} retry=${retryCount}:`, errorMessage);
 
-    if (retryCount >= MAX_RETRIES) {
+    if (retryCount >= 2) {
       await db.insert(batchErrors).values({
         id: nanoid(),
         batchId,
@@ -153,22 +152,16 @@ async function handleOrderCreation(
         .set({ resolutionStatus: 'FAILED', resolutionError: errorMessage, updatedAt: new Date() })
         .where(eq(teachersRaw.id, teacherRecordId));
 
-      ack(); // Remove from queue; error recorded in DB for retry UI
-    } else {
-      nack(true); // Requeue for retry
+      // Don't rethrow -- error recorded in DB for retry UI
+      return;
     }
+
+    // Rethrow to let BullMQ retry
+    throw err;
   }
-}
-
-async function main() {
-  console.log('[ordering-worker] Starting...');
-  await consume(QUEUES.ORDER_CREATION, (msg, ack, nack) =>
-    handleOrderCreation(msg as OrderCreationJob, ack, nack)
-  );
-  console.log('[ordering-worker] Ready');
-}
-
-main().catch((err) => {
-  console.error('[ordering-worker] Fatal error:', err);
-  process.exit(1);
+}, {
+  concurrency: 10,
+  autorun: true,
 });
+
+console.log('[ordering-worker] Ready');

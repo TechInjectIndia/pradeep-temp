@@ -1,6 +1,7 @@
 import { Elysia, t } from 'elysia';
 import { BatchService } from '@/services/BatchService';
 import { LinkService } from '@/services/LinkService';
+import { formatBatchId } from '@/utils/ids';
 
 const paginationQuery = t.Object({
   page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
@@ -10,12 +11,17 @@ const paginationQuery = t.Object({
 export const batchRoutes = new Elysia({ prefix: '/batches' })
   .get(
     '/',
-    ({ query }) =>
-      BatchService.list({
+    async ({ query }) => {
+      const result = await BatchService.list({
         page: query.page ?? 1,
         pageSize: query.pageSize ?? 20,
         status: query.status,
-      }),
+      });
+      return {
+        ...result,
+        data: result.data.map((b) => ({ ...b, displayId: formatBatchId(b.seqId) })),
+      };
+    },
     {
       query: t.Object({
         page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
@@ -27,7 +33,7 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
   .get('/:id', async ({ params, set }) => {
     const batch = await BatchService.getById(params.id);
     if (!batch) { set.status = 404; return { message: 'Batch not found' }; }
-    return batch;
+    return { ...batch, displayId: formatBatchId(batch.seqId) };
   })
   .post('/:id/advance', async ({ params, set }) => {
     try {

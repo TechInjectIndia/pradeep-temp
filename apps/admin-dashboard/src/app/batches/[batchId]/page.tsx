@@ -10,10 +10,10 @@ import {
   MessageSquare, AlertTriangle, Link2,
 } from "lucide-react";
 import BatchStateIndicator from "@/components/BatchStateIndicator";
-import LoadingSpinner from "@/components/LoadingSpinner";
+import SkeletonTable from "@/components/SkeletonTable";
 import { Loader2 } from "lucide-react";
 import { clsx } from "clsx";
-import type { BatchLogEntry } from "@/types";
+import type { BatchLogEntry, StatusHistoryEntry } from "@/types";
 import { useQuery } from "@tanstack/react-query";
 import {
   useBatch, usePauseBatch, useResumeBatch, useCancelBatch,
@@ -59,7 +59,7 @@ export default function BatchDetailPage() {
   const retryDispatchingMutation = useRetryDispatching();
   const generateLinksMutation = useGenerateLinks();
 
-  if (isLoading) return <LoadingSpinner />;
+  if (isLoading) return <SkeletonTable rows={6} cols={4} />;
 
   if (error || !batch) {
     return (
@@ -138,6 +138,9 @@ export default function BatchDetailPage() {
               <ArrowLeft className="h-3.5 w-3.5" />
               Back
             </button>
+            {batch.displayId && (
+              <span className="text-sm font-semibold text-foreground">{batch.displayId}</span>
+            )}
             <h1 className="text-lg font-bold text-foreground font-mono truncate">{batch.id}</h1>
             <BatchStateIndicator status={batch.status} size="sm" />
             {batch.fileName && (
@@ -227,6 +230,9 @@ export default function BatchDetailPage() {
           </Link>
         )}
       </div>
+
+      {/* Pipeline Stage Timeline */}
+      <PipelineTimeline status={batch.status} statusHistory={batch.statusHistory} />
 
       {/* Status history */}
       {(batch.statusHistory?.length ?? 0) > 0 && (
@@ -368,6 +374,108 @@ export default function BatchDetailPage() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Pipeline Stage Timeline ─────────────────────────────────────────────────
+
+const PIPELINE_STAGES = ["UPLOAD", "ORDERING", "MESSAGING", "COMPLETE"] as const;
+
+const STAGE_STATUS_MAP: Record<string, string> = {
+  UPLOADED: "UPLOAD",
+  VALIDATING: "UPLOAD",
+  RESOLVING: "UPLOAD",
+  ORDERING: "ORDERING",
+  CREATING_ORDERS: "ORDERING",
+  AGGREGATING: "ORDERING",
+  MESSAGING: "MESSAGING",
+  DISPATCHING: "MESSAGING",
+  COMPLETE: "COMPLETE",
+  PARTIAL_FAILURE: "COMPLETE",
+};
+
+function getStageState(
+  stage: string,
+  currentStatus: string,
+  statusHistory?: StatusHistoryEntry[]
+): "completed" | "active" | "pending" {
+  const currentPipelineStage = STAGE_STATUS_MAP[currentStatus];
+  const stageIndex = PIPELINE_STAGES.indexOf(stage as typeof PIPELINE_STAGES[number]);
+  const currentIndex = PIPELINE_STAGES.indexOf(currentPipelineStage as typeof PIPELINE_STAGES[number]);
+
+  if (currentIndex < 0) return "pending";
+  if (stageIndex < currentIndex) return "completed";
+  if (stageIndex === currentIndex) return "active";
+
+  // Check statusHistory for past completions
+  if (statusHistory) {
+    const historyStatuses = statusHistory.map((h) => STAGE_STATUS_MAP[h.to]).filter(Boolean);
+    if (historyStatuses.includes(stage)) return "completed";
+  }
+
+  return "pending";
+}
+
+function PipelineTimeline({
+  status,
+  statusHistory,
+}: {
+  status: string;
+  statusHistory?: StatusHistoryEntry[];
+}) {
+  if (["CANCELLED", "FAILED", "PAUSED"].includes(status)) {
+    // Still show timeline but mark appropriately
+  }
+
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <h2 className="mb-3 text-sm font-semibold text-foreground uppercase tracking-wider">Pipeline</h2>
+      <div className="flex items-center gap-0">
+        {PIPELINE_STAGES.map((stage, i) => {
+          const state = getStageState(stage, status, statusHistory);
+          return (
+            <div key={stage} className="flex items-center">
+              <div className="flex flex-col items-center">
+                <div
+                  className={clsx(
+                    "flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors",
+                    state === "completed" && "bg-emerald-500 text-white",
+                    state === "active" && "bg-blue-500 text-white ring-4 ring-blue-500/20",
+                    state === "pending" && "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {state === "completed" ? (
+                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  ) : (
+                    i + 1
+                  )}
+                </div>
+                <span
+                  className={clsx(
+                    "mt-1.5 text-xs font-medium",
+                    state === "completed" && "text-emerald-600 dark:text-emerald-400",
+                    state === "active" && "text-blue-600 dark:text-blue-400",
+                    state === "pending" && "text-muted-foreground"
+                  )}
+                >
+                  {stage}
+                </span>
+              </div>
+              {i < PIPELINE_STAGES.length - 1 && (
+                <div
+                  className={clsx(
+                    "mx-1 h-0.5 w-8 sm:w-12 transition-colors",
+                    state === "completed" ? "bg-emerald-500" : "bg-muted"
+                  )}
+                />
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

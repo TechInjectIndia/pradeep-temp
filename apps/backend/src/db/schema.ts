@@ -4,6 +4,7 @@ import {
   text,
   boolean,
   integer,
+  serial,
   real,
   jsonb,
   timestamp,
@@ -117,6 +118,7 @@ export type BatchStats = {
   messagesQueued?: number;
   messagesDelivered?: number;
   messagesFailed?: number;
+  messagesProcessed?: number;
   dlqMessages?: number;
 };
 
@@ -169,6 +171,7 @@ export const batches = pgTable(
   'batches',
   {
     id: text('id').primaryKey(),
+    seqId: serial('seq_id').notNull().unique(),
     status: batchStatusEnum('status').notNull().default('UPLOADED'),
     fileName: text('file_name'),
     stats: jsonb('stats').$type<BatchStats>().default({}),
@@ -192,6 +195,7 @@ export const teachers = pgTable(
   'teachers',
   {
     id: text('id').primaryKey(),
+    seqId: serial('seq_id').notNull().unique(),
     name: text('name').notNull(),
     phones: jsonb('phones').$type<string[]>().default([]).notNull(),
     emails: jsonb('emails').$type<string[]>().default([]).notNull(),

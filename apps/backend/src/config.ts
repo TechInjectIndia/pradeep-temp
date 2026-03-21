@@ -21,9 +21,8 @@ export const config = {
     maxConnections: parseInt(optional('DB_MAX_CONNECTIONS', '20'), 10),
   },
 
-  rabbitmq: {
-    url: optional('RABBITMQ_URL', 'amqp://vsds:vsds@localhost:5672'),
-    prefetch: parseInt(optional('RABBITMQ_PREFETCH', '5'), 10),
+  redis: {
+    url: optional('REDIS_URL', 'redis://localhost:6379'),
   },
 
   wati: {
@@ -57,7 +56,7 @@ export const config = {
 export function validateConfig(): void {
   if (config.nodeEnv === 'production') {
     required('DATABASE_URL');
-    required('RABBITMQ_URL');
+    required('REDIS_URL');
     required('WATI_BASE_URL');
     required('WATI_API_KEY');
     required('RESEND_API_KEY');

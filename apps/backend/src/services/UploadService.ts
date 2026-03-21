@@ -249,6 +249,11 @@ export async function processUpload(
     });
     const teacherMap = new Map(existingTeachers.map((t) => [t.id, t]));
 
+    // Build all updates in parallel — each teacher has different data so can't batch into one query
+    const allPhoneLookups: { phone: string; teacherId: string }[] = [];
+    const allEmailLookups: { email: string; teacherId: string }[] = [];
+    const teacherUpdatePromises: Promise<unknown>[] = [];
+
     for (const decision of mergeUpdates) {
       const existing = teacherMap.get(decision.teacherId);
       if (!existing) continue;
@@ -263,20 +268,33 @@ export async function processUpload(
         emails: [...emails],
         updatedAt: new Date(),
       };
-      // If admin chose the file's name, update it in master
       if (decision.nameChoice === 'file' && decision.newName) {
         updatePayload.name = decision.newName;
       }
 
-      await db.update(teachers).set(updatePayload).where(eq(teachers.id, decision.teacherId));
+      teacherUpdatePromises.push(
+        db.update(teachers).set(updatePayload).where(eq(teachers.id, decision.teacherId))
+      );
 
-      // Sync lookup tables for newly added phones/emails
       for (const p of decision.phonesToAdd) {
-        await db.insert(phoneLookup).values({ phone: p, teacherId: decision.teacherId }).onConflictDoNothing();
+        allPhoneLookups.push({ phone: p, teacherId: decision.teacherId });
       }
       for (const e of decision.emailsToAdd) {
-        await db.insert(emailLookup).values({ email: e, teacherId: decision.teacherId }).onConflictDoNothing();
+        allEmailLookups.push({ email: e, teacherId: decision.teacherId });
       }
+    }
+
+    // Flush all teacher updates in parallel
+    if (teacherUpdatePromises.length > 0) {
+      await Promise.all(teacherUpdatePromises);
+    }
+
+    // Bulk insert all phone/email lookups (one query each instead of N queries)
+    if (allPhoneLookups.length > 0) {
+      await db.insert(phoneLookup).values(allPhoneLookups).onConflictDoNothing();
+    }
+    if (allEmailLookups.length > 0) {
+      await db.insert(emailLookup).values(allEmailLookups).onConflictDoNothing();
     }
   }
 

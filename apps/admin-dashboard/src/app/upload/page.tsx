@@ -118,10 +118,11 @@ type MergeDecision =
   | null; // null = not yet decided
 
 type SheetDuplicateGroup = {
-  key: string;          // "phone:XXXXXX" or "email:xxx@xxx"
-  type: "phone" | "email";
-  value: string;        // normalized phone or email
-  rowIndices: number[]; // indices of rows sharing this phone/email
+  key: string;
+  type: "phone" | "email" | "combined";
+  value: string;
+  matchReasons: string[]; // e.g. ["Phone: 6399989772", "Email: khwaish@gmail.com"]
+  rowIndices: number[];
 };
 
 type SheetMergeConfig = {
@@ -199,23 +200,32 @@ function findInSheetDuplicates(rows: UploadRow[]): SheetDuplicateGroup[] {
     if (members.length < 2) continue;
     members.sort((a, b) => a - b);
 
-    // Determine match type — check what signals connected these rows
+    // Collect all match signals for this group
     const memberSet = new Set(members);
-    let hasPhone = false, hasEmail = false;
-    let matchValue = "";
+    const matchReasons: string[] = [];
+    const matchedPhones: string[] = [];
+    const matchedEmails: string[] = [];
+
     for (const [phone, indices] of phoneGroups) {
-      if (indices.length > 1 && indices.some((i) => memberSet.has(i))) { hasPhone = true; matchValue = phone; }
+      if (indices.length > 1 && indices.some((i) => memberSet.has(i))) {
+        matchedPhones.push(phone);
+        matchReasons.push(`Phone: ${phone}`);
+      }
     }
     for (const [email, indices] of emailGroups) {
-      if (indices.length > 1 && indices.some((i) => memberSet.has(i))) { hasEmail = true; if (!matchValue) matchValue = email; }
+      if (indices.length > 1 && indices.some((i) => memberSet.has(i))) {
+        matchedEmails.push(email);
+        matchReasons.push(`Email: ${email}`);
+      }
     }
 
-    const type: "phone" | "email" = hasPhone ? "phone" : "email";
-    const key = hasPhone && hasEmail
-      ? `combined:${members.join("-")}`
-      : `${type}:${matchValue}`;
+    const hasPhone = matchedPhones.length > 0;
+    const hasEmail = matchedEmails.length > 0;
+    const type: "phone" | "email" | "combined" = hasPhone && hasEmail ? "combined" : hasPhone ? "phone" : "email";
+    const value = matchedPhones[0] || matchedEmails[0] || "";
+    const key = `${type}:${members.join("-")}`;
 
-    groups.push({ key, type, value: matchValue, rowIndices: members });
+    groups.push({ key, type, value, matchReasons, rowIndices: members });
   }
 
   groups.sort((a, b) => (a.rowIndices[0] ?? 0) - (b.rowIndices[0] ?? 0));
@@ -831,7 +841,7 @@ export default function UploadPage() {
               <div>
                 <h3 className="text-base font-semibold text-foreground">Configure Merge</h3>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  {group.rowIndices.length} rows share <span className="font-mono font-semibold">{group.value}</span>. Choose what to keep.
+                  {group.rowIndices.length} rows matched: {group.matchReasons.join(", ")}. Choose what to keep.
                 </p>
                 <p className="text-xs text-blue-600 dark:text-blue-400 mt-1.5 font-medium">
                   The primary email and phone will be used for sending WhatsApp and Email messages.
@@ -1439,16 +1449,20 @@ export default function UploadPage() {
                       {/* Group header */}
                       <div className="mb-3 flex items-center justify-between">
                         <div className="flex items-center gap-2 text-xs">
-                          <span className={[
-                            "rounded-full px-2 py-0.5 font-semibold",
-                            group.type === "phone"
-                              ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                              : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
-                          ].join(" ")}>
-                            {group.type === "phone" ? "Phone" : "Email"}
-                          </span>
-                          <span className="font-mono font-semibold text-foreground">{group.value}</span>
-                          <span className="text-muted-foreground">· {group.rowIndices.length} rows share this {group.type}</span>
+                          {group.matchReasons.map((reason, ri) => {
+                            const isPhone = reason.startsWith("Phone");
+                            return (
+                              <span key={ri} className={[
+                                "rounded-full px-2 py-0.5 font-semibold",
+                                isPhone
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
+                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+                              ].join(" ")}>
+                                {reason}
+                              </span>
+                            );
+                          })}
+                          <span className="text-muted-foreground">· {group.rowIndices.length} rows — same teacher</span>
                           {isMerged && (
                             <span className="rounded-full bg-blue-100 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
                               ✓ Merged → 1 teacher

@@ -20,6 +20,7 @@ export function useBatches(params: BatchListParams = {}) {
   return useQuery({
     queryKey: ["batches", params],
     queryFn: () => listBatches(params),
+    refetchInterval: 10_000,
   });
 }
 
