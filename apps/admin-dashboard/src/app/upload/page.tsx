@@ -109,7 +109,7 @@ function mapRowToUploadRow(row: Record<string, unknown>): UploadRow {
 // ---------------------------------------------------------------------------
 
 type ChannelOption = "whatsapp" | "email" | "both";
-type Step = 1 | 2 | 3;
+type Step = 1 | 2 | 3 | 4;
 
 type MergeDecision =
   | { action: "merge"; nameChoice: "file" | "db" }
@@ -239,7 +239,8 @@ function findInSheetDuplicates(rows: UploadRow[]): SheetDuplicateGroup[] {
 const STEPS = [
   { id: 1, label: "Preview" },
   { id: 2, label: "Channels" },
-  { id: 3, label: "Duplicates" },
+  { id: 3, label: "File Review" },
+  { id: 4, label: "DB Review" },
 ];
 
 function StepIndicator({ current }: { current: Step }) {
@@ -252,19 +253,19 @@ function StepIndicator({ current }: { current: Step }) {
           <div key={step.id} className="flex items-center">
             <div className="flex flex-col items-center">
               <div className={[
-                "flex h-8 w-8 items-center justify-center rounded-full border-2 text-sm font-semibold transition-colors",
-                isCompleted ? "border-blue-600 bg-blue-600 text-white"
-                  : isCurrent ? "border-blue-600 bg-card text-blue-600"
+                "flex h-6 w-6 items-center justify-center rounded-full border-2 text-xs font-semibold transition-colors",
+                isCompleted ? "border-primary bg-primary text-primary-foreground"
+                  : isCurrent ? "border-primary bg-card text-primary"
                   : "border-border bg-card text-muted-foreground",
               ].join(" ")}>
-                {isCompleted ? <CheckCircle className="h-4 w-4" /> : step.id}
+                {isCompleted ? <CheckCircle className="h-3 w-3" /> : step.id}
               </div>
-              <span className={["mt-1 text-xs font-medium", isCurrent ? "text-blue-600" : "text-muted-foreground"].join(" ")}>
+              <span className={["mt-0.5 text-[10px] font-medium", isCurrent ? "text-primary" : "text-muted-foreground"].join(" ")}>
                 {step.label}
               </span>
             </div>
             {idx < STEPS.length - 1 && (
-              <div className={["mb-4 h-0.5 w-12 transition-colors", isCompleted ? "bg-blue-600" : "bg-border"].join(" ")} />
+              <div className={["mb-3 h-0.5 w-6 transition-colors", isCompleted ? "bg-primary" : "bg-border"].join(" ")} />
             )}
           </div>
         );
@@ -306,7 +307,7 @@ function ChannelPill({
             "px-2.5 py-1 transition-colors",
             value === opt.key && !opt.disabled
               ? opt.key === "whatsapp" ? "bg-green-600 text-white"
-                : opt.key === "email" ? "bg-blue-600 text-white"
+                : opt.key === "email" ? "bg-primary text-primary-foreground"
                 : "bg-purple-600 text-white"
               : opt.disabled
               ? "bg-muted/30 text-muted-foreground/40 cursor-not-allowed"
@@ -396,6 +397,7 @@ export default function UploadPage() {
   const [mergeDecisions, setMergeDecisions] = useState<Map<number, MergeDecision>>(new Map());
   // Unmapped book codes: codes in the file that have no entry in book_mappings
   const [unmappedBookCodes, setUnmappedBookCodes] = useState<string[] | null>(null);
+  const [mappedBookDetails, setMappedBookDetails] = useState<Array<{ bookCode: string; productTitle: string }>>([]);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -541,36 +543,43 @@ export default function UploadPage() {
   // Step navigation
   // ---------------------------------------------------------------------------
 
-  const goToStep3 = async () => {
+  // Step 3: Within-file duplicate check (instant, client-side)
+  const goToStep3 = () => {
     setStep(3);
     setSkippedRows(new Set());
     setMergedSheetGroups(new Set());
     setSheetMergeConfigs(new Map());
     setMergeDialogGroup(null);
     setPendingConfig(null);
+
+    const sheetGroups = findInSheetDuplicates(parsedRows);
+    setInSheetDuplicates(sheetGroups);
+  };
+
+  // Step 4: DB duplicate check + book code lookup (async)
+  const goToStep4 = async () => {
+    setStep(4);
     setDuplicateMatches(null);
     setMergeDecisions(new Map());
     setUnmappedBookCodes(null);
 
-    // 1. In-sheet duplicate check (instant, client-side)
-    const sheetGroups = findInSheetDuplicates(parsedRows);
-    setInSheetDuplicates(sheetGroups);
-
-    // 2. DB duplicate check + book code lookup (parallel async)
     setIsDuplicateChecking(true);
     try {
-      // Strip salutation prefix from name for DB matching (DB stores raw names)
-      const rowsToCheck = parsedRows.map((r) => {
+      // Only check surviving rows (exclude rows skipped/merged in Step 3)
+      const rowsToCheck = parsedRows.map((r, idx) => {
+        if (skippedRows.has(idx)) return null; // merged away — skip
         let matchName = r.name ?? "";
         if (r.salutation && matchName.startsWith(r.salutation)) {
           matchName = matchName.slice(r.salutation.length).trim();
         }
-        return { name: matchName, phone: r.phone ?? "", email: r.email ?? "", school: r.school ?? "" };
-      });
+        return { name: matchName, phone: r.phone ?? "", email: r.email ?? "", school: r.school ?? "", _origIdx: idx };
+      }).filter((r): r is NonNullable<typeof r> => r !== null);
 
-      // Collect all unique book codes from the file
+      // Collect all unique book codes from surviving rows only
       const allCodes = new Set<string>();
-      for (const row of parsedRows) {
+      for (let idx = 0; idx < parsedRows.length; idx++) {
+        if (skippedRows.has(idx)) continue;
+        const row = parsedRows[idx];
         const books = (row.books ?? row.booksAssigned ?? "").trim();
         if (books) {
           for (const code of books.split(",")) {
@@ -580,8 +589,13 @@ export default function UploadPage() {
         }
       }
 
-      const [matches, bookLookupResult] = await Promise.all([
-        checkDuplicatesAgainstDB(rowsToCheck),
+      // Build index remap: API rowIndex → original parsedRows index
+      const filteredToOriginal = rowsToCheck.map((r) => r._origIdx);
+      // Send to API without _origIdx
+      const apiRows = rowsToCheck.map(({ _origIdx, ...rest }) => rest);
+
+      const [rawMatches, bookLookupResult] = await Promise.all([
+        checkDuplicatesAgainstDB(apiRows),
         allCodes.size > 0
           ? lookupBookCodes([...allCodes])
               .then((res) => ({ ok: true as const, mappings: res.mappings }))
@@ -589,16 +603,21 @@ export default function UploadPage() {
           : Promise.resolve({ ok: true as const, mappings: [] }),
       ]);
 
+      // Remap rowIndex back to original parsedRows indices
+      const matches = rawMatches.map((m) => ({
+        ...m,
+        rowIndex: filteredToOriginal[m.rowIndex] ?? m.rowIndex,
+      }));
+
       setDuplicateMatches(matches);
 
       if (bookLookupResult.ok) {
-        // Only mark as unmapped if the lookup actually succeeded
         const mappedCodes = new Set(bookLookupResult.mappings.map((m) => m.bookCode));
         setUnmappedBookCodes([...allCodes].filter((c) => !mappedCodes.has(c)));
+        setMappedBookDetails(bookLookupResult.mappings.map((m) => ({ bookCode: m.bookCode, productTitle: m.productTitle })));
       }
-      // If lookup failed, leave unmappedBookCodes as null (UI shows nothing)
 
-      // Default: use_db for all matches — uses DB teacher ID but sends to file's phone/email
+      // Default: use_db for all matches
       const defaults = new Map<number, MergeDecision>();
       for (const m of matches) {
         defaults.set(m.rowIndex, { action: "use_db" });
@@ -843,7 +862,7 @@ export default function UploadPage() {
                 <p className="text-sm text-muted-foreground mt-0.5">
                   {group.rowIndices.length} rows matched: {group.matchReasons.join(", ")}. Choose what to keep.
                 </p>
-                <p className="text-xs text-blue-600 dark:text-blue-400 mt-1.5 font-medium">
+                <p className="text-xs text-primary dark:text-primary mt-1.5 font-medium">
                   The primary email and phone will be used for sending WhatsApp and Email messages.
                 </p>
               </div>
@@ -896,7 +915,7 @@ export default function UploadPage() {
                           />
                           <span className="text-sm font-mono text-foreground flex-1">{phone}</span>
                           {isPrimary && included && (
-                            <span className="rounded-full bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-400">Primary</span>
+                            <span className="rounded-full bg-primary/15 dark:bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary dark:text-primary">Primary</span>
                           )}
                           {!isPrimary && included && (
                             <button
@@ -937,7 +956,7 @@ export default function UploadPage() {
                           />
                           <span className="text-sm font-mono text-foreground flex-1">{email}</span>
                           {isPrimary && included && (
-                            <span className="rounded-full bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:text-blue-400">Primary</span>
+                            <span className="rounded-full bg-primary/15 dark:bg-primary/20 px-2 py-0.5 text-[10px] font-bold text-primary dark:text-primary">Primary</span>
                           )}
                           {!isPrimary && included && (
                             <button
@@ -957,7 +976,7 @@ export default function UploadPage() {
 
               {/* Preview */}
               <div className="rounded-lg border border-blue-400/40 bg-blue-500/5 p-3">
-                <p className="text-xs font-semibold text-blue-700 dark:text-blue-400 mb-2">Merged Teacher Preview</p>
+                <p className="text-xs font-semibold text-primary dark:text-primary mb-2">Merged Teacher Preview</p>
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
                   <div>
                     <span className="text-muted-foreground block">Name</span>
@@ -989,7 +1008,7 @@ export default function UploadPage() {
                 </button>
                 <button
                   onClick={handleMergeConfirm}
-                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-700 transition-colors"
+                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-primary/90 transition-colors"
                 >
                   Confirm Merge
                 </button>
@@ -1054,7 +1073,7 @@ export default function UploadPage() {
                             {hit.authors && hit.authors.length > 0 && (
                               <span className="ml-2 text-xs text-muted-foreground">by {hit.authors.map((a) => a.title).join(", ")}</span>
                             )}
-                            {alreadyAdded && <span className="ml-2 text-xs text-blue-600 font-medium">Added</span>}
+                            {alreadyAdded && <span className="ml-2 text-xs text-primary font-medium">Added</span>}
                           </button>
                         );
                       })
@@ -1105,7 +1124,7 @@ export default function UploadPage() {
               <button
                 onClick={handleQuickMapSave}
                 disabled={quickMapProducts.length === 0 || quickMapSaving}
-                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                className="flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-primary/90 disabled:opacity-50 transition-colors"
               >
                 {quickMapSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : <CheckCircle className="h-4 w-4" />}
                 Save {quickMapProducts.length > 0 ? `${quickMapProducts.length} Mapping${quickMapProducts.length > 1 ? "s" : ""}` : "Mapping"}
@@ -1115,37 +1134,39 @@ export default function UploadPage() {
         </div>
       )}
 
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Upload Specimen</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Upload an Excel or CSV file to start a new distribution batch
-        </p>
+      {/* Header + Step indicator on same row */}
+      <div className="flex items-start justify-between gap-4">
+        <div className="shrink-0">
+          <h1 className="text-2xl font-bold text-foreground">Upload Specimen</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">
+            Upload an Excel or CSV file to start a new distribution batch
+          </p>
+        </div>
+        {parsedRows.length > 0 && (
+          <div className="shrink-0">
+            <StepIndicator current={step} />
+          </div>
+        )}
       </div>
 
       {/* Download Template — only shown before a file is uploaded */}
       {step === 1 && parsedRows.length === 0 && (
-        <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="font-semibold text-foreground">Specimen Template</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <h2 className="font-semibold text-foreground text-sm">Specimen Template</h2>
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 Download the template, fill in teacher data, then upload below.
               </p>
             </div>
             <button
               onClick={handleDownloadTemplate}
-              className="flex items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted/50"
+              className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-muted/50"
             >
-              <Download className="h-4 w-4" />
+              <Download className="h-3.5 w-3.5" />
               Download Template
             </button>
           </div>
-        </div>
-      )}
-
-      {parsedRows.length > 0 && (
-        <div className="flex items-center justify-center">
-          <StepIndicator current={step} />
         </div>
       )}
 
@@ -1198,7 +1219,7 @@ export default function UploadPage() {
                 </button>
                 <button
                   onClick={() => setStep(2)}
-                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700"
+                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-primary/90"
                 >
                   Next: Select Channels <ChevronRight className="h-4 w-4" />
                 </button>
@@ -1229,9 +1250,9 @@ export default function UploadPage() {
               />
               <ChannelCard
                 value="email" selected={globalChannel === "email"} onSelect={handleGlobalChannelChange}
-                icon={<Mail className={`h-6 w-6 ${globalChannel === "email" ? "text-white" : "text-blue-600"}`} />}
+                icon={<Mail className={`h-6 w-6 ${globalChannel === "email" ? "text-white" : "text-primary"}`} />}
                 label="Email Only" description="Send via email to teachers with an email address"
-                accentClass="bg-blue-600/10 border-blue-600"
+                accentClass="bg-primary/10 border-primary"
               />
               <ChannelCard
                 value="both" selected={globalChannel === "both"} onSelect={handleGlobalChannelChange}
@@ -1276,7 +1297,7 @@ export default function UploadPage() {
                   <span className="font-medium text-foreground">[E]</span> Email &nbsp;
                   <span className="font-medium text-foreground">[B]</span> Both
                   {overrideCount > 0 && (
-                    <span className="ml-2 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
+                    <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 text-xs font-medium text-primary dark:bg-primary/20 dark:text-primary">
                       {overrideCount} override{overrideCount !== 1 ? "s" : ""}
                     </span>
                   )}
@@ -1378,15 +1399,15 @@ export default function UploadPage() {
               <ChevronLeft className="h-4 w-4" /> Back
             </button>
             <button onClick={goToStep3}
-              className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700">
-              Next: Review Duplicates <ChevronRight className="h-4 w-4" />
+              className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              Next: File Review <ChevronRight className="h-4 w-4" />
             </button>
           </div>
         </div>
       )}
 
       {/* ------------------------------------------------------------------ */}
-      {/* Step 3: Duplicate Review — git-diff style                           */}
+      {/* Step 3: Within-File Duplicates                                      */}
       {/* ------------------------------------------------------------------ */}
       {step === 3 && (
         <div className="space-y-6">
@@ -1409,7 +1430,7 @@ export default function UploadPage() {
                 <div className="flex items-center gap-3">
                   {skippedRows.size > 0 && <span className="text-xs text-muted-foreground">{skippedRows.size} row{skippedRows.size !== 1 ? "s" : ""} skipped</span>}
                   {mergedSheetGroups.size > 0 && <span className="text-xs text-muted-foreground">{mergedSheetGroups.size} group{mergedSheetGroups.size !== 1 ? "s" : ""} merged</span>}
-                  <button onClick={() => { setSkippedRows(new Set()); setMergedSheetGroups(new Set()); }} className="text-xs text-blue-600 hover:underline">Reset all</button>
+                  <button onClick={() => { setSkippedRows(new Set()); setMergedSheetGroups(new Set()); }} className="text-xs text-primary hover:underline">Reset all</button>
                 </div>
               )}
             </div>
@@ -1456,7 +1477,7 @@ export default function UploadPage() {
                                 "rounded-full px-2 py-0.5 font-semibold",
                                 isPhone
                                   ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                                  : "bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-400",
+                                  : "bg-primary/15 text-primary dark:bg-primary/20 dark:text-primary",
                               ].join(" ")}>
                                 {reason}
                               </span>
@@ -1464,7 +1485,7 @@ export default function UploadPage() {
                           })}
                           <span className="text-muted-foreground">· {group.rowIndices.length} rows — same teacher</span>
                           {isMerged && (
-                            <span className="rounded-full bg-blue-100 px-2 py-0.5 font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                            <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary dark:bg-primary/20 dark:text-primary">
                               ✓ Merged → 1 teacher
                             </span>
                           )}
@@ -1477,7 +1498,7 @@ export default function UploadPage() {
                             </button>
                           ) : (
                             <button onClick={handleMerge}
-                              className="rounded-md bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-blue-700">
+                              className="rounded-md bg-blue-600 px-3 py-1 text-xs font-semibold text-white hover:bg-primary/90">
                               Merge into 1 Teacher
                             </button>
                           )}
@@ -1557,7 +1578,7 @@ export default function UploadPage() {
                         const otherEmails = cfg ? [...cfg.chosenEmails].filter((e) => e !== cfg.primaryEmail).length : Math.max(0, allEmails.length - 1);
                         return (
                           <div className="mt-3 rounded-lg border border-blue-400/40 bg-blue-500/5 p-3">
-                            <p className="mb-2 text-xs font-semibold text-blue-700 dark:text-blue-400">Final Teacher Record</p>
+                            <p className="mb-2 text-xs font-semibold text-primary dark:text-primary">Final Teacher Record</p>
                             <div className="grid grid-cols-2 gap-x-6 gap-y-1 text-xs sm:grid-cols-4">
                               <div>
                                 <span className="text-muted-foreground">Name</span>
@@ -1588,6 +1609,27 @@ export default function UploadPage() {
             )}
           </div>
 
+          {/* Next step button */}
+          <div className="flex items-center justify-between border-t border-border pt-6">
+            <button onClick={() => setStep(2)} className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+              <ChevronLeft className="h-4 w-4" /> Back to Channels
+            </button>
+            <button
+              onClick={goToStep4}
+              className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+            >
+              Next: DB Review <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------------ */}
+      {/* Step 4: DB Review — book codes + database duplicates               */}
+      {/* ------------------------------------------------------------------ */}
+      {step === 4 && (
+        <div className="space-y-6">
+
           {/* ── Section 2: Unmapped book codes ─────────────────────────── */}
           {unmappedBookCodes !== null && (
             <div className={[
@@ -1610,9 +1652,29 @@ export default function UploadPage() {
               </div>
               <div className="px-5 py-4">
                 {unmappedBookCodes.length === 0 ? (
-                  <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
-                    <CheckCircle className="h-4 w-4 shrink-0" />
-                    All book codes in this file have product mappings. Orders will generate correctly.
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
+                      <CheckCircle className="h-4 w-4 shrink-0" />
+                      All book codes mapped. Orders will generate correctly.
+                    </div>
+                    {mappedBookDetails.length > 0 && (
+                      <div className="flex flex-wrap gap-1.5 mt-1">
+                        {(() => {
+                          const grouped = new Map<string, string[]>();
+                          mappedBookDetails.forEach((m) => {
+                            if (!grouped.has(m.bookCode)) grouped.set(m.bookCode, []);
+                            grouped.get(m.bookCode)!.push(m.productTitle);
+                          });
+                          return [...grouped.entries()].map(([code, products]) => (
+                            <span key={code} className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-2 py-1 text-xs" title={products.join(", ")}>
+                              <span className="font-mono font-semibold text-foreground">{code}</span>
+                              <span className="text-muted-foreground">→</span>
+                              <span className="text-muted-foreground truncate max-w-[200px]">{products.join(", ")}</span>
+                            </span>
+                          ));
+                        })()}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -1656,7 +1718,7 @@ export default function UploadPage() {
           {/* Loading */}
           {isDuplicateChecking && (
             <div className="flex items-center justify-center gap-3 rounded-xl border border-border bg-card p-16 shadow-sm">
-              <Loader2 className="h-6 w-6 animate-spin text-blue-600" />
+              <Loader2 className="h-6 w-6 animate-spin text-primary/70" />
               <div>
                 <p className="font-medium text-foreground">Checking for duplicates…</p>
                 <p className="text-sm text-muted-foreground mt-0.5">Matching phones, emails and names</p>
@@ -1686,7 +1748,7 @@ export default function UploadPage() {
                       <p className="text-xs text-muted-foreground mt-0.5">Has changes to review</p>
                     </div>
                     <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center dark:border-blue-800 dark:bg-blue-950/20">
-                      <p className="text-xl font-bold text-blue-700 dark:text-blue-400">
+                      <p className="text-xl font-bold text-primary dark:text-primary">
                         {[...mergeDecisions.values()].filter(d => d?.action === "merge").length}
                       </p>
                       <p className="text-xs text-muted-foreground mt-0.5">Approved merges</p>
@@ -1703,7 +1765,7 @@ export default function UploadPage() {
                     </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
+                  <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
                     {duplicateMatches.map((match) => {
                       const decision = mergeDecisions.get(match.rowIndex) ?? null;
                       const isUseDb = decision?.action === "use_db";
@@ -1713,21 +1775,17 @@ export default function UploadPage() {
                       return (
                         <div key={match.rowIndex} className={[
                           "rounded-xl border shadow-sm overflow-hidden",
-                          isUseDb ? "border-green-400/60" : isMerging ? "border-blue-400/60" : isCreatingNew ? "border-muted" : "border-orange-400/60",
+                          isUseDb ? "border-primary/60" : isMerging ? "border-primary/40" : isCreatingNew ? "border-muted" : "border-primary/30",
                         ].join(" ")}>
                           {/* Card header */}
                           <div className={[
                             "flex flex-wrap items-center justify-between gap-2 px-4 py-2.5 text-xs font-medium",
-                            isUseDb ? "bg-green-50 dark:bg-green-950/20" : isMerging ? "bg-blue-50 dark:bg-blue-950/30" : isCreatingNew ? "bg-muted/30" : "bg-orange-50 dark:bg-orange-950/20",
+                            isUseDb ? "bg-primary/10" : isMerging ? "bg-primary/5" : isCreatingNew ? "bg-muted/30" : "bg-primary/5",
                           ].join(" ")}>
                             <div className="flex items-center gap-2 flex-wrap">
                               <span className="text-muted-foreground">Row #{match.rowIndex + 1}</span>
                               <span className="text-muted-foreground">·</span>
-                              <span className={[
-                                "rounded-full px-2 py-0.5 font-semibold",
-                                match.confidence >= 90 ? "bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-400"
-                                  : "bg-orange-100 text-orange-700 dark:bg-orange-900/40 dark:text-orange-400",
-                              ].join(" ")}>
+                              <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary">
                                 {match.confidence}% match
                               </span>
                               <span className="text-muted-foreground">{match.matchReasons.join(" · ")}</span>
@@ -1742,8 +1800,8 @@ export default function UploadPage() {
                                 className={[
                                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                                   isUseDb
-                                    ? "bg-green-600 text-white"
-                                    : "text-muted-foreground hover:bg-green-100 hover:text-green-700",
+                                    ? "bg-primary text-primary-foreground"
+                                    : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
                                 ].join(" ")}
                               >
                                 {isUseDb ? "✓ Use DB" : "Use DB"}
@@ -1764,8 +1822,8 @@ export default function UploadPage() {
                                 className={[
                                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                                   isMerging
-                                    ? "bg-blue-600 text-white"
-                                    : "text-muted-foreground hover:bg-blue-100 hover:text-blue-700",
+                                    ? "bg-primary text-primary-foreground"
+                                    : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
                                 ].join(" ")}
                               >
                                 {isMerging ? "✓ Merge" : "Merge"}
@@ -1774,39 +1832,53 @@ export default function UploadPage() {
                           </div>
 
                           {/* Compact summary — shown for Use DB and Create New */}
-                          {(isUseDb || isCreatingNew) && (
-                            <div className="px-4 py-2.5 text-xs flex flex-wrap gap-x-6 gap-y-1 border-t border-border/50">
-                              <div>
-                                <span className="text-muted-foreground">DB name: </span>
-                                <span className="font-medium text-foreground">{match.existingTeacher.name}</span>
+                          {(isUseDb || isCreatingNew) && (() => {
+                            const ch = getEffectiveChannel(match.rowIndex);
+                            return (
+                              <div className="px-4 py-2 text-xs flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border/50">
+                                <div>
+                                  <span className="text-muted-foreground">DB: </span>
+                                  <span className="font-medium text-foreground">{match.existingTeacher.name}</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">File: </span>
+                                  <span className="font-medium text-foreground">{match.row.name}</span>
+                                </div>
+                                <div>
+                                  <span className="text-muted-foreground">Send to: </span>
+                                  <span className="font-mono text-foreground">{match.row.phone || match.row.email || "—"}</span>
+                                </div>
+                                <div className="flex items-center gap-1.5 ml-auto">
+                                  <span className="text-muted-foreground">Channel:</span>
+                                  <select
+                                    value={ch}
+                                    onChange={(e) => setTeacherChannel(match.rowIndex, e.target.value as ChannelOption)}
+                                    className="rounded border border-border bg-background px-1.5 py-0.5 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                  >
+                                    <option value="both">Both</option>
+                                    <option value="whatsapp">WhatsApp</option>
+                                    <option value="email">Email</option>
+                                  </select>
+                                </div>
                               </div>
-                              <div>
-                                <span className="text-muted-foreground">File name: </span>
-                                <span className="font-medium text-foreground">{match.row.name}</span>
-                              </div>
-                              <div>
-                                <span className="text-muted-foreground">Send to: </span>
-                                <span className="font-mono text-foreground">{match.row.phone || match.row.email || "—"}</span>
-                                <span className="text-muted-foreground ml-1">(from file)</span>
-                              </div>
-                            </div>
-                          )}
+                            );
+                          })()}
 
                           {/* Merge detail — only shown when Merge is selected */}
                           {isMerging && (
                             <div className="px-4 py-3 border-t border-border/50 text-xs space-y-2">
                               <div className="flex items-center gap-4">
-                                <span className="font-medium text-blue-700 dark:text-blue-400">Which name to keep?</span>
+                                <span className="font-medium text-primary">Which name to keep?</span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                   <input type="radio" name={`name-${match.rowIndex}`} checked={decision?.action === "merge" && decision.nameChoice === "db"}
                                     onChange={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "merge", nameChoice: "db" }); return n; })}
-                                    className="accent-blue-600" />
+                                    className="accent-primary" />
                                   <span className="text-foreground">DB: <strong>{match.existingTeacher.name}</strong></span>
                                 </label>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                   <input type="radio" name={`name-${match.rowIndex}`} checked={decision?.action === "merge" && decision.nameChoice === "file"}
                                     onChange={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "merge", nameChoice: "file" }); return n; })}
-                                    className="accent-blue-600" />
+                                    className="accent-primary" />
                                   <span className="text-foreground">File: <strong>{match.row.name}</strong></span>
                                 </label>
                               </div>
@@ -1828,9 +1900,9 @@ export default function UploadPage() {
           })()}
 
           <div className="flex items-center justify-between">
-            <button onClick={() => setStep(2)} disabled={isUploading}
+            <button onClick={() => setStep(3)} disabled={isUploading}
               className="flex items-center gap-2 rounded-lg border border-border bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50 disabled:opacity-50">
-              <ChevronLeft className="h-4 w-4" /> Back
+              <ChevronLeft className="h-4 w-4" /> Back to File Review
             </button>
             {(() => {
               const unresolvedNameConflicts = duplicateMatches
@@ -1845,7 +1917,7 @@ export default function UploadPage() {
                   onClick={handleCreateBatch}
                   disabled={isUploading || isDuplicateChecking || unresolvedNameConflicts > 0}
                   title={unresolvedNameConflicts > 0 ? `Resolve ${unresolvedNameConflicts} name conflict(s) first` : undefined}
-                  className="flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-2.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isUploading ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Creating Batch…</>

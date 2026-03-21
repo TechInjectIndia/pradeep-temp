@@ -212,18 +212,26 @@ export class TeacherService {
       let confidence = 0;
       const matchReasons: string[] = [];
 
+      let phoneMatched = false;
+      let emailMatched = false;
+
       if (normPhone) {
         const tid = phoneToTeacherId.get(normPhone);
-        if (tid) { teacherId = tid; confidence = 95; matchReasons.push('Phone match'); }
+        if (tid) { teacherId = tid; phoneMatched = true; matchReasons.push('Phone match'); }
       }
       if (normEmail) {
         const tid = emailToTeacherId.get(normEmail);
         if (tid) {
           if (!teacherId) { teacherId = tid; }
-          if (confidence < 90) confidence = 90;
+          emailMatched = true;
           matchReasons.push('Email match');
         }
       }
+
+      // Confidence: both=100%, phone only=95%, email only=90%
+      if (phoneMatched && emailMatched) confidence = 100;
+      else if (phoneMatched) confidence = 95;
+      else if (emailMatched) confidence = 90;
 
       if (teacherId) {
         const teacher = teacherMap.get(teacherId);
