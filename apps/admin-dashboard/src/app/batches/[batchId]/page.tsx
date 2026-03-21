@@ -19,7 +19,7 @@ import {
   useBatch, usePauseBatch, useResumeBatch, useCancelBatch,
   useRetryResolution, useRetryOrderCreation, useRetryDispatching,
 } from "@/hooks/useBatches";
-import { getBatchLogs, getBatchTeachers, listCommLogs, type CommLogEntry } from "@/services/api";
+import { getBatchLogs, getBatchTeachers, getBatchOrders, listCommLogs, type CommLogEntry, type BatchOrder } from "@/services/api";
 
 export default function BatchDetailPage() {
   const params = useParams();
@@ -28,12 +28,14 @@ export default function BatchDetailPage() {
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  const [activeTab, setActiveTab] = useState<"logs" | "messages" | "teachers">("messages");
+  const [activeTab, setActiveTab] = useState<"orders" | "messages" | "logs" | "teachers">("orders");
   const [teachersPage, setTeachersPage] = useState(1);
   const [messagesPage, setMessagesPage] = useState(1);
   const [messagesChannel, setMessagesChannel] = useState<"" | "WHATSAPP" | "EMAIL">("");
+  const [ordersPage, setOrdersPage] = useState(1);
   const TEACHERS_PAGE_SIZE = 100;
   const MESSAGES_PAGE_SIZE = 50;
+  const ORDERS_PAGE_SIZE = 50;
 
   const { data: batch, isLoading, error } = useBatch(batchId);
 
@@ -48,6 +50,13 @@ export default function BatchDetailPage() {
     queryKey: ["batchTeachers", batchId, teachersPage],
     queryFn: () => getBatchTeachers(batchId, { page: teachersPage, pageSize: TEACHERS_PAGE_SIZE }),
     enabled: !!batchId,
+  });
+
+  const { data: ordersData } = useQuery({
+    queryKey: ["batchOrders", batchId, ordersPage],
+    queryFn: () => getBatchOrders(batchId, { page: ordersPage, pageSize: ORDERS_PAGE_SIZE }),
+    enabled: !!batchId,
+    refetchInterval: 5000,
   });
 
   const { data: messagesData } = useQuery({
@@ -230,16 +239,16 @@ export default function BatchDetailPage() {
               const state = getStageState(stage, batch.status, batch.statusHistory);
               return (
                 <div key={stage} className="flex items-center">
-                  <div className={clsx(
-                    "flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold",
-                    state === "completed" && "bg-emerald-500 text-white",
-                    state === "active" && "bg-primary text-primary-foreground ring-2 ring-primary/20",
+                  <span className={clsx(
+                    "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                    state === "completed" && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                    state === "active" && "bg-primary/15 text-primary ring-1 ring-primary/30",
                     state === "pending" && "bg-muted text-muted-foreground"
                   )}>
-                    {state === "completed" ? "✓" : i + 1}
-                  </div>
+                    {stage}
+                  </span>
                   {i < PIPELINE_STAGES.length - 1 && (
-                    <div className={clsx("mx-0.5 h-px w-4", state === "completed" ? "bg-emerald-500" : "bg-border")} />
+                    <div className={clsx("mx-1 h-px w-3", state === "completed" ? "bg-emerald-500/50" : "bg-border")} />
                   )}
                 </div>
               );
@@ -250,18 +259,126 @@ export default function BatchDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg bg-muted/40 p-1">
-        {(["messages", "logs", "teachers"] as const).map((tab) => (
+        {(["orders", "messages", "logs", "teachers"] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={clsx(
               "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors",
               activeTab === tab ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}>
-            {tab === "messages" ? `Messages (${messagesData?.total ?? 0})`
-              : tab === "logs" ? "Batch Logs"
+            {tab === "orders" ? `Orders (${ordersData?.total ?? 0})`
+              : tab === "messages" ? `Messages (${messagesData?.total ?? 0})`
+              : tab === "logs" ? "Logs"
               : `Teachers (${teachersData?.total ?? batchTeachers.length})`}
           </button>
         ))}
       </div>
+
+      {/* Orders */}
+      {activeTab === "orders" && (
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="px-4 py-3 border-b border-border/60 flex items-center gap-2">
+            <Package className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Orders</h2>
+            <span className="ml-auto text-xs text-muted-foreground">{ordersData?.total ?? 0} total</span>
+          </div>
+
+          {!ordersData || ordersData.data.length === 0 ? (
+            <BatchProcessingStatus status={batch.status} stats={stats} />
+          ) : (
+            <div className="divide-y divide-border/60">
+              {ordersData.data.map((order) => {
+                const books = Array.isArray(order.books) ? order.books : [];
+                const waMsg = order.messages?.find((m) => m.channel === "WHATSAPP");
+                const emailMsg = order.messages?.find((m) => m.channel === "EMAIL");
+                return (
+                  <div key={order.id} className="px-4 py-3 hover:bg-muted/20 transition-colors">
+                    <div className="flex items-start justify-between gap-3">
+                      {/* Teacher info */}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-sm font-semibold text-foreground">{order.teacherName}</span>
+                          {order.school && <span className="text-xs text-muted-foreground">· {order.school}</span>}
+                        </div>
+                        <div className="flex items-center gap-3 mt-0.5 text-xs text-muted-foreground font-mono">
+                          {order.teacherPhone && <span>{order.teacherPhone}</span>}
+                          {order.teacherEmail && <span>{order.teacherEmail}</span>}
+                        </div>
+                        {/* Books */}
+                        <div className="flex flex-wrap gap-1 mt-1.5">
+                          {books.map((b, i) => (
+                            <span key={i} className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
+                              {b.title}
+                            </span>
+                          ))}
+                          {books.length === 0 && <span className="text-[10px] text-muted-foreground">No books assigned</span>}
+                        </div>
+                      </div>
+
+                      {/* Message status */}
+                      <div className="flex flex-col items-end gap-1 shrink-0">
+                        {waMsg && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-muted-foreground">WA</span>
+                            <span className={clsx(
+                              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
+                              waMsg.status === "SENT" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                              waMsg.status === "QUEUED" && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                              waMsg.status === "FAILED" || waMsg.status === "DLQ" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "",
+                            )}>
+                              {waMsg.status}
+                            </span>
+                          </div>
+                        )}
+                        {emailMsg && (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-[10px] text-muted-foreground">Email</span>
+                            <span className={clsx(
+                              "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
+                              emailMsg.status === "SENT" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                              emailMsg.status === "QUEUED" && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                              emailMsg.status === "FAILED" || emailMsg.status === "DLQ" ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400" : "",
+                            )}>
+                              {emailMsg.status}
+                            </span>
+                          </div>
+                        )}
+                        {!waMsg && !emailMsg && (
+                          <span className="text-[10px] text-muted-foreground">Pending</span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Login link */}
+                    <div className="mt-1.5 flex items-center gap-1.5">
+                      <Link2 className="h-3 w-3 text-muted-foreground shrink-0" />
+                      <a href={order.loginLink} target="_blank" rel="noreferrer"
+                        className="text-[10px] font-mono text-primary hover:underline truncate">
+                        {order.loginLink}
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {(ordersData?.total ?? 0) > ORDERS_PAGE_SIZE && (
+            <div className="flex items-center justify-between border-t border-border/60 px-4 py-3">
+              <span className="text-xs text-muted-foreground">
+                Page {ordersPage} of {Math.ceil((ordersData?.total ?? 0) / ORDERS_PAGE_SIZE)}
+              </span>
+              <div className="flex items-center gap-1">
+                <button onClick={() => setOrdersPage((p) => Math.max(1, p - 1))} disabled={ordersPage <= 1}
+                  className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:opacity-40">Prev</button>
+                <button onClick={() => setOrdersPage((p) => p + 1)}
+                  disabled={ordersPage >= Math.ceil((ordersData?.total ?? 0) / ORDERS_PAGE_SIZE)}
+                  className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:opacity-40">Next</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Messages */}
       {activeTab === "messages" && (
@@ -284,7 +401,7 @@ export default function BatchDetailPage() {
           </div>
           <div className="overflow-x-auto">
             {batchMessages.length === 0 ? (
-              <p className="py-10 text-center text-sm text-muted-foreground">No messages yet</p>
+              <BatchProcessingStatus status={batch.status} stats={stats} />
             ) : (
               <table className="min-w-full text-sm">
                 <thead className="sticky top-0 bg-muted/60 z-10">
@@ -470,6 +587,95 @@ export default function BatchDetailPage() {
           )}
         </div>
       )}
+    </div>
+  );
+}
+
+// ─── Animated Batch Processing Status ────────────────────────────────────────
+
+const PROCESSING_STEPS = [
+  { status: "UPLOADED", label: "File uploaded", desc: "Your file has been received", icon: "📄" },
+  { status: "VALIDATING", label: "Validating teachers", desc: "Checking teacher records...", icon: "🔍" },
+  { status: "ORDERING", label: "Creating orders", desc: "Resolving teachers and creating orders...", icon: "📦" },
+  { status: "MESSAGING", label: "Sending messages", desc: "Dispatching WhatsApp & Email messages...", icon: "✉️" },
+  { status: "COMPLETE", label: "Batch complete", desc: "All messages have been processed", icon: "✅" },
+] as const;
+
+function BatchProcessingStatus({ status, stats }: { status: string; stats: Record<string, number> }) {
+  const isTerminal = ["COMPLETE", "CANCELLED", "FAILED", "PARTIAL_FAILURE"].includes(status);
+
+  if (isTerminal && status === "COMPLETE") {
+    return (
+      <div className="py-12 text-center">
+        <div className="text-3xl mb-2">✅</div>
+        <p className="text-sm font-medium text-foreground">All messages sent</p>
+        <p className="text-xs text-muted-foreground mt-1">
+          {stats.messagesProcessed ?? 0} messages processed successfully
+        </p>
+      </div>
+    );
+  }
+
+  if (isTerminal) {
+    return (
+      <div className="py-12 text-center">
+        <p className="text-sm text-muted-foreground">Batch is {status.toLowerCase()}</p>
+      </div>
+    );
+  }
+
+  // Find current step
+  const currentIdx = PROCESSING_STEPS.findIndex((s) => s.status === status);
+
+  return (
+    <div className="py-8 px-6">
+      <div className="max-w-md mx-auto space-y-3">
+        {PROCESSING_STEPS.map((step, i) => {
+          const isDone = i < currentIdx;
+          const isCurrent = i === currentIdx;
+          const isPending = i > currentIdx;
+
+          return (
+            <div key={step.status} className={clsx(
+              "flex items-center gap-3 rounded-lg px-4 py-2.5 transition-all",
+              isCurrent && "bg-primary/10 border border-primary/20",
+              isDone && "opacity-60",
+              isPending && "opacity-30"
+            )}>
+              {/* Icon / Spinner */}
+              <div className="shrink-0 w-8 text-center">
+                {isDone ? (
+                  <span className="text-emerald-500 text-lg">✓</span>
+                ) : isCurrent ? (
+                  <div className="h-5 w-5 mx-auto rounded-full border-2 border-primary border-t-transparent animate-spin" />
+                ) : (
+                  <span className="text-lg">{step.icon}</span>
+                )}
+              </div>
+              {/* Text */}
+              <div className="flex-1 min-w-0">
+                <p className={clsx("text-sm font-medium", isCurrent ? "text-foreground" : "text-muted-foreground")}>
+                  {step.label}
+                </p>
+                {isCurrent && (
+                  <p className="text-xs text-muted-foreground mt-0.5 animate-pulse">{step.desc}</p>
+                )}
+              </div>
+              {/* Stats for current step */}
+              {isCurrent && step.status === "ORDERING" && (stats.ordersCreated ?? 0) > 0 && (
+                <span className="text-xs font-mono text-primary">
+                  {stats.ordersCreated}/{stats.expectedOrders ?? "?"}
+                </span>
+              )}
+              {isCurrent && step.status === "MESSAGING" && (stats.messagesProcessed ?? 0) > 0 && (
+                <span className="text-xs font-mono text-primary">
+                  {stats.messagesProcessed}/{stats.messagesQueued ?? "?"}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

@@ -210,15 +210,18 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
   const { Resend } = await import('resend');
   const resend = new Resend(config.resend.apiKey);
 
+  const loginLink = job.specimenDetails; // Now contains the login URL
+
   const { data, error } = await resend.emails.send({
     from: `${config.resend.fromName} <${config.resend.fromEmail}>`,
     to: job.email,
-    subject: `Your specimen books from VSDS`,
+    subject: `Your Digital Content from Pradeep Publications`,
     html: `
       <p>Dear ${job.name},</p>
-      <p>Your specimen books are ready. Here are your download links:</p>
-      <p>${job.specimenDetails}</p>
-      <p>Best regards,<br/>VSDS Team</p>
+      <p>Your digital content is ready. Click the link below to access your books:</p>
+      <p><a href="${loginLink}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Access Digital Content</a></p>
+      <p style="color:#666;font-size:13px;">Or copy this link: <a href="${loginLink}">${loginLink}</a></p>
+      <p>Best regards,<br/>Pradeep Publications</p>
     `,
   });
 

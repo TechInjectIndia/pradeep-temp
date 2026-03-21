@@ -69,26 +69,28 @@ async function handleValidating(batchId: string) {
 
 // --- MESSAGING: fetch links, create commLogs, queue messages ---
 
+const DIGITAL_CONTENT_BASE = 'https://pradeeppublications.com/digital-content/login';
+
+function buildLoginLink(email: string | null, phone: string | null): string {
+  const params = new URLSearchParams();
+  if (email) params.set('email', email);
+  if (phone) params.set('phone', phone);
+  return `${DIGITAL_CONTENT_BASE}?${params.toString()}`;
+}
+
 async function handleMessaging(batchId: string) {
-  await BatchService.addLog(batchId, 'aggregation', 'Fetching specimen links from LMS API...');
+  await BatchService.addLog(batchId, 'aggregation', 'Generating specimen links from LMS API...');
 
-  // 1. Generate specimen links for all orders
-  let linkResult: { teacherCount: number; linkCount: number };
-  try {
-    linkResult = await LinkService.generateForBatch(batchId);
-    await BatchService.addLog(
-      batchId,
-      'aggregation_complete',
-      `Links fetched: ${linkResult.teacherCount} teachers, ${linkResult.linkCount} total links`
-    );
-    console.log(`[batch-advance] batch=${batchId} links: ${linkResult.linkCount} across ${linkResult.teacherCount} teachers`);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    await BatchService.addLog(batchId, 'error', `Failed to fetch specimen links: ${msg}`);
-    throw err;
-  }
+  // 1. Call LMS API to generate specimen links — REQUIRED before sending messages
+  const linkResult = await LinkService.generateForBatch(batchId);
+  await BatchService.addLog(
+    batchId,
+    'aggregation_complete',
+    `Links generated: ${linkResult.teacherCount} teachers, ${linkResult.linkCount} total links`
+  );
+  console.log(`[batch-advance] batch=${batchId} links: ${linkResult.linkCount} across ${linkResult.teacherCount} teachers`);
 
-  // 2. Load all orders with their resolved books
+  // 2. Load all orders (now enriched with book links from LMS)
   const batchOrders = await db.query.orders.findMany({
     where: eq(orders.batchId, batchId),
   });
@@ -98,16 +100,16 @@ async function handleMessaging(batchId: string) {
     return;
   }
 
+  await BatchService.addLog(batchId, 'aggregation_complete', `${batchOrders.length} teachers ready for messaging`);
+
   let queued = 0;
 
   for (const order of batchOrders) {
-    const books = (order.books ?? []).map((b) => ({
-      title: b.title,
-      specimenUrl: b.specimenUrl,
-      productId: b.productId,
-    }));
-
-    const specimenDetails = books.map((b) => `${b.title}: ${b.specimenUrl}`).join('\n');
+    // Build personalized login link
+    const loginLink = buildLoginLink(order.teacherEmail, order.teacherPhone);
+    // Books assigned to this teacher (from the Excel)
+    const booksList = (order.books ?? []).map((b) => b.title).join(', ');
+    const specimenDetails = `Login: ${loginLink}\nBooks: ${booksList}`;
 
     // --- WhatsApp ---
     if (order.sendWhatsApp && order.teacherPhone) {
@@ -126,7 +128,7 @@ async function handleMessaging(batchId: string) {
           channel: 'WHATSAPP',
           teacherPhone: order.teacherPhone,
           teacherName: order.teacherName,
-          books: books.map((b) => b.title).join(', '),
+          books: booksList,
           status: 'QUEUED',
         })
         .onConflictDoNothing()
@@ -143,10 +145,10 @@ async function handleMessaging(batchId: string) {
           school: order.school ?? undefined,
           city: order.city ?? undefined,
           email: order.teacherEmail ?? undefined,
-          specimenDetails,
+          specimenDetails: loginLink,
           commLogId: hash,
           retryCount: 0,
-          books,
+          books: (order.books ?? []).map((b) => ({ title: b.title, specimenUrl: loginLink, productId: b.productId })),
         };
 
         await addJob(QUEUES.WHATSAPP_MESSAGES, waJob);
@@ -155,7 +157,7 @@ async function handleMessaging(batchId: string) {
         await BatchService.addLog(
           batchId,
           'outbox_queued',
-          `WhatsApp queued for ${order.teacherName} (${books.length} books)`,
+          `WhatsApp queued for ${order.teacherName} · ${loginLink}`,
           order.teacherPhone
         );
       } else {
@@ -180,7 +182,7 @@ async function handleMessaging(batchId: string) {
           channel: 'EMAIL',
           teacherEmail: order.teacherEmail,
           teacherName: order.teacherName,
-          books: books.map((b) => b.title).join(', '),
+          books: booksList,
           status: 'QUEUED',
         })
         .onConflictDoNothing()
@@ -194,7 +196,7 @@ async function handleMessaging(batchId: string) {
           teacherMasterId: order.teacherMasterId ?? '',
           email: order.teacherEmail,
           name: order.teacherName,
-          specimenDetails,
+          specimenDetails: loginLink,
           commLogId: hash,
           retryCount: 0,
         };
@@ -205,7 +207,7 @@ async function handleMessaging(batchId: string) {
         await BatchService.addLog(
           batchId,
           'outbox_queued',
-          `Email queued for ${order.teacherName} (${books.length} books)`,
+          `Email queued for ${order.teacherName} · ${loginLink}`,
           order.teacherEmail
         );
       } else {

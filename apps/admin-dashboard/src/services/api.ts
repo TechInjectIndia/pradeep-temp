@@ -243,6 +243,34 @@ export async function retryDispatching(batchId: string): Promise<{ batchId: stri
   return { batchId, totalMessages: res.retriedCount };
 }
 
+export interface BatchOrder {
+  id: string;
+  batchId: string;
+  teacherRecordId: string;
+  teacherMasterId: string | null;
+  teacherName: string;
+  teacherPhone: string | null;
+  teacherEmail: string | null;
+  school: string | null;
+  books: Array<{ productId: string; title: string; specimenUrl: string; expiresAt: string }>;
+  totalBooks: number;
+  sendWhatsApp: boolean;
+  sendEmail: boolean;
+  status: string;
+  loginLink: string;
+  messages: Array<{ channel: string; status: string; lastError: string | null }>;
+  createdAt: string;
+}
+
+export async function getBatchOrders(
+  batchId: string,
+  params?: { page?: number; pageSize?: number }
+): Promise<PaginatedResponse<BatchOrder>> {
+  return request<PaginatedResponse<BatchOrder>>(
+    `/batches/${batchId}/orders${toQueryString(params ?? {})}`
+  );
+}
+
 export async function getBatchLogs(
   batchId: string,
   params?: { step?: string; page?: number; pageSize?: number }
