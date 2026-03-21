@@ -210,7 +210,7 @@ export async function processUpload(
       name: row.name ?? '',
       phone: row.phone,
       email: row.email,
-      school: row.school,
+      school: row.school || row.institutionName || '',
       city: row.city,
       books: row.books ?? row.booksAssigned,
       recordId: row.recordId,

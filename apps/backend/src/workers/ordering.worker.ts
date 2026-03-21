@@ -33,10 +33,15 @@ createWorker<OrderCreationJob>(QUEUES.ORDER_CREATION, async (job: Job<OrderCreat
     let teacherSchool: string | null | undefined;
     let teacherCity: string | null | undefined;
 
+    // Build display name with salutation prefix
+    const rawName = rawTeacher.name ?? 'Unknown';
+    const salutation = rawTeacher.salutation;
+    const displayName = salutation && !rawName.startsWith(salutation) ? `${salutation} ${rawName}` : rawName;
+
     if (rawTeacher.resolutionStatus === 'RESOLVED' && rawTeacher.teacherMasterId) {
       // Pre-resolved by admin during upload (approved merge) -- skip upsert entirely
       teacherMasterId = rawTeacher.teacherMasterId;
-      teacherName = rawTeacher.name ?? 'Unknown';
+      teacherName = displayName;
       teacherPhone = rawTeacher.phone ?? null;
       teacherEmail = rawTeacher.email ?? null;
       teacherSchool = rawTeacher.school ?? rawTeacher.institutionName;
@@ -61,7 +66,7 @@ createWorker<OrderCreationJob>(QUEUES.ORDER_CREATION, async (job: Job<OrderCreat
       });
 
       teacherMasterId = teacher.id;
-      teacherName = rawTeacher.name ?? teacher.name;
+      teacherName = displayName;
       teacherPhone = rawTeacher.phone ?? teacher.phones[0] ?? null;
       teacherEmail = rawTeacher.email ?? teacher.emails[0] ?? null;
       teacherSchool = rawTeacher.school ?? rawTeacher.institutionName ?? teacher.school;

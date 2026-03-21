@@ -20,7 +20,7 @@ import {
   useRetryResolution, useRetryOrderCreation, useRetryDispatching,
   useGenerateLinks,
 } from "@/hooks/useBatches";
-import { getBatchLogs, getBatchTeachers } from "@/services/api";
+import { getBatchLogs, getBatchTeachers, listCommLogs, type CommLogEntry } from "@/services/api";
 
 export default function BatchDetailPage() {
   const params = useParams();
@@ -29,9 +29,12 @@ export default function BatchDetailPage() {
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  const [activeTab, setActiveTab] = useState<"logs" | "teachers">("logs");
+  const [activeTab, setActiveTab] = useState<"logs" | "messages" | "teachers">("messages");
   const [teachersPage, setTeachersPage] = useState(1);
+  const [messagesPage, setMessagesPage] = useState(1);
+  const [messagesChannel, setMessagesChannel] = useState<"" | "WHATSAPP" | "EMAIL">("");
   const TEACHERS_PAGE_SIZE = 100;
+  const MESSAGES_PAGE_SIZE = 50;
 
   const { data: batch, isLoading, error } = useBatch(batchId);
 
@@ -48,8 +51,21 @@ export default function BatchDetailPage() {
     enabled: !!batchId,
   });
 
+  const { data: messagesData } = useQuery({
+    queryKey: ["batchMessages", batchId, messagesPage, messagesChannel],
+    queryFn: () => listCommLogs({
+      batchId,
+      page: messagesPage,
+      pageSize: MESSAGES_PAGE_SIZE,
+      ...(messagesChannel ? { channel: messagesChannel } : {}),
+    }),
+    enabled: !!batchId,
+    refetchInterval: 5000,
+  });
+
   const batchLogs = logsData?.data ?? [];
   const batchTeachers = teachersData?.data ?? [];
+  const batchMessages = messagesData?.data ?? [];
 
   const pauseMutation = usePauseBatch();
   const resumeMutation = useResumeBatch();
@@ -253,16 +269,115 @@ export default function BatchDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg bg-muted/40 p-1">
-        {(["logs", "teachers"] as const).map((tab) => (
+        {(["messages", "logs", "teachers"] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={clsx(
               "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors",
               activeTab === tab ? "bg-card text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"
             )}>
-            {tab === "logs" ? "Batch Logs" : `Teachers (${teachersData?.total ?? batchTeachers.length})`}
+            {tab === "messages" ? `Messages (${messagesData?.total ?? 0})`
+              : tab === "logs" ? "Batch Logs"
+              : `Teachers (${teachersData?.total ?? batchTeachers.length})`}
           </button>
         ))}
       </div>
+
+      {/* Messages */}
+      {activeTab === "messages" && (
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="px-4 py-3 border-b border-border/60 flex flex-wrap items-center gap-3">
+            <MessageSquare className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">Message Logs</h2>
+            <div className="flex items-center gap-1.5 ml-auto">
+              <select
+                value={messagesChannel}
+                onChange={(e) => { setMessagesChannel(e.target.value as "" | "WHATSAPP" | "EMAIL"); setMessagesPage(1); }}
+                className="rounded border border-border bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                <option value="">All Channels</option>
+                <option value="WHATSAPP">WhatsApp</option>
+                <option value="EMAIL">Email</option>
+              </select>
+              <span className="text-xs text-muted-foreground">{messagesData?.total ?? 0} total</span>
+            </div>
+          </div>
+          <div className="overflow-x-auto">
+            {batchMessages.length === 0 ? (
+              <p className="py-10 text-center text-sm text-muted-foreground">No messages yet</p>
+            ) : (
+              <table className="min-w-full text-sm">
+                <thead className="sticky top-0 bg-muted/60 z-10">
+                  <tr className="border-b border-border">
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Teacher</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Channel</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Status</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Attempts</th>
+                    <th className="px-4 py-2.5 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">Error</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border/60">
+                  {batchMessages.map((msg) => (
+                    <tr key={msg.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="px-4 py-2 text-xs font-medium text-foreground">{msg.teacherName ?? "—"}</td>
+                      <td className="px-4 py-2 font-mono text-xs text-muted-foreground">
+                        {msg.channel === "WHATSAPP" ? msg.teacherPhone : msg.teacherEmail}
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className={clsx(
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                          msg.channel === "WHATSAPP"
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                        )}>
+                          {msg.channel}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2">
+                        <span className={clsx(
+                          "rounded-full px-2 py-0.5 text-[10px] font-semibold",
+                          msg.status === "SENT" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                          msg.status === "DELIVERED" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                          msg.status === "QUEUED" && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                          msg.status === "FAILED" && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                          msg.status === "DLQ" && "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+                          msg.status === "CANCELLED" && "bg-muted text-muted-foreground",
+                        )}>
+                          {msg.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 text-xs text-muted-foreground">{msg.attemptCount}</td>
+                      <td className="px-4 py-2 text-xs text-red-500 max-w-[200px] truncate" title={msg.lastError}>
+                        {msg.lastError || "—"}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+          {/* Pagination */}
+          {(messagesData?.total ?? 0) > MESSAGES_PAGE_SIZE && (
+            <div className="flex items-center justify-between border-t border-border/60 px-4 py-3">
+              <span className="text-xs text-muted-foreground">
+                Page {messagesPage} of {Math.ceil((messagesData?.total ?? 0) / MESSAGES_PAGE_SIZE)}
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={() => setMessagesPage((p) => Math.max(1, p - 1))}
+                  disabled={messagesPage <= 1}
+                  className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:opacity-40"
+                >Prev</button>
+                <button
+                  onClick={() => setMessagesPage((p) => p + 1)}
+                  disabled={messagesPage >= Math.ceil((messagesData?.total ?? 0) / MESSAGES_PAGE_SIZE)}
+                  className="rounded px-2 py-1 text-xs text-muted-foreground hover:bg-muted disabled:opacity-40"
+                >Next</button>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Batch Logs */}
       {activeTab === "logs" && (
