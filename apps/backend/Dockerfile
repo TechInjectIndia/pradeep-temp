@@ -1,9 +1,9 @@
-FROM oven/bun:1.1-alpine AS base
+FROM oven/bun:latest AS base
 WORKDIR /app
 
 # Install dependencies
 COPY package.json bun.lock* ./
-RUN bun install --frozen-lockfile --production
+RUN bun install --production
 
 # Copy source
 COPY . .

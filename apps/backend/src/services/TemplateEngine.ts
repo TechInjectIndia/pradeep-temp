@@ -23,8 +23,8 @@ export type TemplateContext = {
   }>;
 };
 
-// WATI template parameter character limit — error #132005 if exceeded
-const WATI_PARAM_MAX_LEN = 60;
+// WATI template parameter character limit — URLs need up to 1024 chars
+const WATI_PARAM_MAX_LEN = 1024;
 
 function truncate(value: string, max = WATI_PARAM_MAX_LEN): string {
   return value.length <= max ? value : value.slice(0, max - 1) + '…';
