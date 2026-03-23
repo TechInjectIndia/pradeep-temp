@@ -336,6 +336,65 @@ export class TeacherService {
     return { matches, total: matches.length };
   }
 
+  /**
+   * Add phone/email to a teacher who has no contacts.
+   * Checks uniqueness: rejects if the phone/email is already owned by a DIFFERENT teacher.
+   */
+  static async addContacts(
+    teacherId: string,
+    data: { phone?: string; email?: string }
+  ): Promise<{ teacher: Teacher; conflicts: { field: 'phone' | 'email'; ownerId: string; ownerName: string }[] }> {
+    const teacher = await this.getById(teacherId);
+    if (!teacher) throw new Error('Teacher not found');
+
+    const conflicts: { field: 'phone' | 'email'; ownerId: string; ownerName: string }[] = [];
+
+    const normPhone = data.phone ? normalizePhone(data.phone) : undefined;
+    const normEmail = data.email ? normalizeEmail(data.email) : undefined;
+
+    // Uniqueness checks
+    if (normPhone) {
+      const existing = await db.query.phoneLookup.findFirst({ where: eq(phoneLookup.phone, normPhone) });
+      if (existing && existing.teacherId !== teacherId) {
+        const owner = await this.getById(existing.teacherId);
+        conflicts.push({ field: 'phone', ownerId: existing.teacherId, ownerName: owner?.name ?? 'Unknown' });
+      }
+    }
+    if (normEmail) {
+      const existing = await db.query.emailLookup.findFirst({ where: eq(emailLookup.email, normEmail) });
+      if (existing && existing.teacherId !== teacherId) {
+        const owner = await this.getById(existing.teacherId);
+        conflicts.push({ field: 'email', ownerId: existing.teacherId, ownerName: owner?.name ?? 'Unknown' });
+      }
+    }
+
+    if (conflicts.length > 0) {
+      return { teacher, conflicts };
+    }
+
+    // Apply updates
+    const newPhones = new Set(teacher.phones ?? []);
+    const newEmails = new Set(teacher.emails ?? []);
+    if (normPhone) newPhones.add(normPhone);
+    if (normEmail) newEmails.add(normEmail);
+
+    const [updated] = await db
+      .update(teachers)
+      .set({
+        phones: [...newPhones],
+        emails: [...newEmails],
+        ...(normPhone && !teacher.phones?.length ? { phone: normPhone } : {}),
+        ...(normEmail && !teacher.emails?.length ? { email: normEmail } : {}),
+        updatedAt: new Date(),
+      })
+      .where(eq(teachers.id, teacherId))
+      .returning();
+
+    await this.syncLookups(teacherId, [...newPhones], [...newEmails]);
+
+    return { teacher: updated, conflicts: [] };
+  }
+
   private static async syncLookups(teacherId: string, phones: string[], emails: string[]) {
     if (phones.length > 0) {
       await db

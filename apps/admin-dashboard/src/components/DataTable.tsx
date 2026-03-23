@@ -18,6 +18,7 @@ interface Props<T> {
   data: T[];
   keyExtractor: (row: T, index: number) => string;
   onRowClick?: (row: T) => void;
+  rowClassName?: (row: T) => string;
   pagination?: {
     page: number;
     pageSize: number;
@@ -34,6 +35,7 @@ export default function DataTable<T>({
   data,
   keyExtractor,
   onRowClick,
+  rowClassName,
   pagination,
   isLoading,
   emptyMessage = "No data found.",
@@ -89,7 +91,8 @@ export default function DataTable<T>({
                   onClick={() => onRowClick?.(row)}
                   className={clsx(
                     "transition-colors",
-                    onRowClick ? "cursor-pointer hover:bg-muted/50" : ""
+                    onRowClick ? "cursor-pointer hover:bg-muted/50" : "",
+                    rowClassName?.(row)
                   )}
                 >
                   {columns.map((col) => (
@@ -130,7 +133,8 @@ export default function DataTable<T>({
               onClick={() => onRowClick?.(row)}
               className={clsx(
                 "space-y-2 px-4 py-4 transition-colors",
-                onRowClick ? "cursor-pointer active:bg-muted/50" : ""
+                onRowClick ? "cursor-pointer active:bg-muted/50" : "",
+                rowClassName?.(row)
               )}
             >
               {visibleColumns.map((col) => (

@@ -23,6 +23,28 @@ export const teacherRoutes = new Elysia({ prefix: '/teachers' })
     if (!teacher) { set.status = 404; return { message: 'Teacher not found' }; }
     return teacher;
   })
+  .patch(
+    '/:id/contacts',
+    async ({ params, body, set }) => {
+      try {
+        const result = await TeacherService.addContacts(params.id, body);
+        if (result.conflicts.length > 0) {
+          set.status = 409;
+          return { conflicts: result.conflicts };
+        }
+        return result.teacher;
+      } catch (e) {
+        set.status = 400;
+        return { message: e instanceof Error ? e.message : 'Failed to update contacts' };
+      }
+    },
+    {
+      body: t.Object({
+        phone: t.Optional(t.String()),
+        email: t.Optional(t.String()),
+      }),
+    }
+  )
   .post(
     '/check-duplicates',
     async ({ body, set }) => {

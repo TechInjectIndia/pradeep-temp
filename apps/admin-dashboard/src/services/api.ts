@@ -405,6 +405,34 @@ export async function listTeachers(params: TeacherListParams = {}): Promise<Pagi
   return request<PaginatedResponse<Teacher>>(`/teachers${toQueryString(params)}`);
 }
 
+export interface ContactConflict {
+  field: "phone" | "email";
+  ownerId: string;
+  ownerName: string;
+}
+
+export async function addTeacherContacts(
+  teacherId: string,
+  data: { phone?: string; email?: string }
+): Promise<{ teacher?: Teacher; conflicts?: ContactConflict[] }> {
+  try {
+    const teacher = await request<Teacher>(`/teachers/${teacherId}/contacts`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+    return { teacher };
+  } catch (err) {
+    if (err instanceof Error && err.message.startsWith("Conflict:")) {
+      const body = err.message.replace("Conflict: ", "");
+      try {
+        const parsed = JSON.parse(body);
+        return { conflicts: parsed.conflicts };
+      } catch {}
+    }
+    throw err;
+  }
+}
+
 export interface TeacherRef {
   id: string;
   name: string;
