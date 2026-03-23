@@ -77,10 +77,15 @@ function resolvePath(path: string, ctx: TemplateContext): string {
  * and a resolved context.
  */
 export function resolveParams(
-  params: WatiTemplateParam[],
+  params: WatiTemplateParam[] | string | unknown,
   ctx: TemplateContext
 ): Array<{ name: string; value: string }> {
-  return params.map(({ paramName, dataPath, fallback }) => ({
+  // params may be stored as a JSON string in the DB — parse it if so
+  const list: WatiTemplateParam[] = typeof params === 'string'
+    ? JSON.parse(params)
+    : Array.isArray(params) ? params : [];
+
+  return list.map(({ paramName, dataPath, fallback }) => ({
     name: paramName,
     // WATI rejects blank parameters — use 'Pradeep Publications' as last resort
     value: resolvePath(dataPath, ctx) || fallback || 'Pradeep Publications',

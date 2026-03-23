@@ -148,7 +148,7 @@ async function handleMessaging(batchId: string) {
           specimenDetails: loginLink,
           commLogId: hash,
           retryCount: 0,
-          books: (order.books ?? []).map((b) => ({ title: b.title, specimenUrl: loginLink, productId: b.productId })),
+          books: (order.books ?? []).map((b) => ({ title: b.title, specimenUrl: loginLink, productId: b.productId, author: b.author ?? undefined })),
         };
 
         await addJob(QUEUES.WHATSAPP_MESSAGES, waJob);

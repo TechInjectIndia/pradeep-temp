@@ -28,7 +28,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
           limit: pageSize,
           offset,
         }),
-        db.select({ count: sql<number>`count(*)::int` }).from(bookMappings).where(where),
+        db.select({ count: sql<number>`count(distinct ${bookMappings.bookCode})::int` }).from(bookMappings).where(where),
       ]);
 
       return {

@@ -76,7 +76,8 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
   let templateName: string;
   let parameters: { name: string; value: string }[];
 
-  if (tmpl && tmpl.params && tmpl.params.length > 0) {
+  const parsedParams = typeof tmpl?.params === 'string' ? JSON.parse(tmpl.params) : (tmpl?.params ?? []);
+  if (tmpl && parsedParams.length > 0) {
     templateName = tmpl.templateName;
     parameters = resolveParams(tmpl.params, {
       teacherName: job.name,

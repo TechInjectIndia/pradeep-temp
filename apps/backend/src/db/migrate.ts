@@ -356,7 +356,7 @@ Please confirm books receipt by selecting an option below.`;
       { paramName: '2', dataPath: 'order.link', fallback: '' },
       ...Array.from({ length: n }, (_, i) => ([
         { paramName: String(3 + i * 2), dataPath: `books.${i}.title`, fallback: '' },
-        { paramName: String(4 + i * 2), dataPath: `books.${i}.author`, fallback: 'Pradeep' },
+        { paramName: String(4 + i * 2), dataPath: `books.${i}.author`, fallback: '' },
       ])).flat(),
     ];
 
