@@ -13,8 +13,23 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const { status } = useSession();
   const pathname = usePathname();
 
-  // Render bare children for unauthenticated pages (login)
-  if (status !== "authenticated" || pathname === "/login") {
+  // Login page: always bare (no shell)
+  if (pathname === "/login") {
+    return <>{children}</>;
+  }
+
+  // Session still loading: show shell skeleton to avoid jitter
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen bg-background">
+        <div className="fixed top-0 left-0 right-0 z-40 h-14 border-b border-border bg-card" />
+        <main className="min-w-0 flex-1 pt-14" />
+      </div>
+    );
+  }
+
+  // Not authenticated: render bare (middleware will redirect to /login)
+  if (status === "unauthenticated") {
     return <>{children}</>;
   }
 
