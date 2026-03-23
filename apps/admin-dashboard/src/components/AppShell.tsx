@@ -1,13 +1,22 @@
 "use client";
 
 import { useState } from "react";
-import { Menu } from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { clsx } from "clsx";
+import { signOut, useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 import Sidebar from "./Sidebar";
 import ErrorBoundary from "./ErrorBoundary";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { status } = useSession();
+  const pathname = usePathname();
+
+  // Render bare children for unauthenticated pages (login)
+  if (status !== "authenticated" || pathname === "/login") {
+    return <>{children}</>;
+  }
 
   return (
     <div className="flex min-h-screen bg-background transition-colors duration-300">
@@ -33,6 +42,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
           <span className="font-semibold text-foreground">Virtual Specimen Dispatch System</span>
         </div>
+        <button
+          onClick={() => signOut({ callbackUrl: "/login" })}
+          className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none transition-colors"
+          aria-label="Sign out"
+          title="Sign out"
+        >
+          <LogOut className="h-5 w-5" />
+        </button>
       </header>
 
       {/* Main content — shifts right when sidebar is open */}
