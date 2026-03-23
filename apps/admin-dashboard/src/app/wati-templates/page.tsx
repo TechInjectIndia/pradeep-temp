@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
+import Pagination from "@/components/Pagination";
 import {
   Plus, Pencil, X, Check, Zap, ZapOff, Eye, RefreshCw, ChevronDown, ChevronUp, MessageSquare, Download,
 } from "lucide-react";
@@ -627,6 +628,8 @@ export default function WatiTemplatesPage() {
   const [editTarget, setEditTarget] = useState<WatiTemplate | null>(null);
   const [previewTarget, setPreviewTarget] = useState<WatiTemplate | null>(null);
   const [showSync, setShowSync] = useState(false);
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 10;
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -653,6 +656,11 @@ export default function WatiTemplatesPage() {
   };
 
   const activeTemplates = templates.filter((t) => t.isActive);
+  const totalPages = Math.ceil(templates.length / PAGE_SIZE);
+  const pagedTemplates = useMemo(
+    () => templates.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [templates, page]
+  );
 
   return (
     <div className="space-y-6">
@@ -717,7 +725,7 @@ export default function WatiTemplatesPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {templates.map((tmpl) => (
+          {pagedTemplates.map((tmpl) => (
             <TemplateCard
               key={tmpl.id}
               tmpl={tmpl}
@@ -727,6 +735,7 @@ export default function WatiTemplatesPage() {
               onPreview={() => setPreviewTarget(tmpl)}
             />
           ))}
+          <Pagination page={page} totalPages={totalPages} total={templates.length} onPageChange={setPage} />
         </div>
       )}
 

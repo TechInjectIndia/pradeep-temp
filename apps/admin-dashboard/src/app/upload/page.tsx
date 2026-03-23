@@ -1798,17 +1798,17 @@ export default function UploadPage() {
                               </span>
                               {match.isSplitMatch ? (
                                 <>
-                                  <span className="rounded-full bg-orange-100 dark:bg-orange-950/40 px-2 py-0.5 text-orange-700 dark:text-orange-400 font-medium">
+                                  <span className="rounded-full bg-orange-100 px-2 py-0.5 text-orange-700 font-medium text-[10px]">
                                     Split match
                                   </span>
                                   {match.phoneMatchTeacher && (
-                                    <span className="rounded-full bg-blue-100 dark:bg-blue-950/40 px-2 py-0.5 text-blue-700 dark:text-blue-400 font-mono text-[10px]" title={`Phone matched DB teacher ID: ${match.phoneMatchTeacher.id}`}>
-                                      Phone → {match.phoneMatchTeacher.name}
+                                    <span className="rounded-full bg-blue-50 border border-blue-200 px-2 py-0.5 text-blue-700 text-[10px]" title={`Phone match · DB ID: ${match.phoneMatchTeacher.id}`}>
+                                      📞 {match.phoneMatchTeacher.name} · {match.phoneMatchTeacher.phones[0] ?? match.row.phone}
                                     </span>
                                   )}
                                   {match.emailMatchTeacher && (
-                                    <span className="rounded-full bg-purple-100 dark:bg-purple-950/40 px-2 py-0.5 text-purple-700 dark:text-purple-400 font-mono text-[10px]" title={`Email matched DB teacher ID: ${match.emailMatchTeacher.id}`}>
-                                      Email → {match.emailMatchTeacher.name}
+                                    <span className="rounded-full bg-purple-50 border border-purple-200 px-2 py-0.5 text-purple-700 text-[10px]" title={`Email match · DB ID: ${match.emailMatchTeacher.id}`}>
+                                      ✉ {match.emailMatchTeacher.name} · {match.emailMatchTeacher.emails[0] ?? match.row.email}
                                     </span>
                                   )}
                                 </>
@@ -1852,17 +1852,6 @@ export default function UploadPage() {
                               >
                                 Create New
                               </button>
-                              <button
-                                onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "merge", nameChoice: "db" }); return n; })}
-                                className={[
-                                  "rounded-md px-3 py-1 text-xs font-medium transition-colors",
-                                  isMerging
-                                    ? "bg-primary text-primary-foreground"
-                                    : "text-muted-foreground hover:bg-primary/10 hover:text-primary",
-                                ].join(" ")}
-                              >
-                                {isMerging ? "✓ Merge" : "Merge"}
-                              </button>
                             </div>
                           </div>
 
@@ -1880,32 +1869,28 @@ export default function UploadPage() {
                                     <button
                                       onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db", teacherId: match.phoneMatchTeacher!.id }); return n; })}
                                       className={[
-                                        "rounded-lg border px-3 py-2 text-left transition-colors",
+                                        "rounded-full border px-3 py-1 text-[11px] font-medium transition-colors",
                                         chosenTeacherId === match.phoneMatchTeacher.id
-                                          ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40"
-                                          : "border-border hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20",
+                                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                                          : "border-border text-muted-foreground hover:border-blue-400 hover:bg-blue-50 hover:text-blue-700",
                                       ].join(" ")}
+                                      title="Phone match"
                                     >
-                                      <div className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold mb-0.5">Phone match</div>
-                                      <div className="font-medium text-foreground">{match.phoneMatchTeacher.name}</div>
-                                      <div className="text-muted-foreground">{match.phoneMatchTeacher.phones[0] ?? match.row.phone}</div>
-                                      {match.phoneMatchTeacher.school && <div className="text-muted-foreground">{match.phoneMatchTeacher.school}</div>}
+                                      📞 {match.phoneMatchTeacher.name} · {match.phoneMatchTeacher.phones[0] ?? match.row.phone}
                                     </button>
                                   )}
                                   {match.emailMatchTeacher && (
                                     <button
                                       onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db", teacherId: match.emailMatchTeacher!.id }); return n; })}
                                       className={[
-                                        "rounded-lg border px-3 py-2 text-left transition-colors",
+                                        "rounded-full border px-3 py-1 text-[11px] font-medium transition-colors",
                                         chosenTeacherId === match.emailMatchTeacher.id
-                                          ? "border-purple-500 bg-purple-50 dark:bg-purple-950/40"
-                                          : "border-border hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20",
+                                          ? "border-purple-500 bg-purple-50 text-purple-700"
+                                          : "border-border text-muted-foreground hover:border-purple-400 hover:bg-purple-50 hover:text-purple-700",
                                       ].join(" ")}
+                                      title="Email match"
                                     >
-                                      <div className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold mb-0.5">Email match</div>
-                                      <div className="font-medium text-foreground">{match.emailMatchTeacher.name}</div>
-                                      <div className="text-muted-foreground">{match.emailMatchTeacher.emails[0] ?? match.row.email}</div>
-                                      {match.emailMatchTeacher.school && <div className="text-muted-foreground">{match.emailMatchTeacher.school}</div>}
+                                      ✉ {match.emailMatchTeacher.name} · {match.emailMatchTeacher.emails[0] ?? match.row.email}
                                     </button>
                                   )}
                                 </div>

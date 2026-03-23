@@ -6,6 +6,7 @@ import Link from "next/link";
 import { formatDateTime } from "@/utils/date";
 import { listCommLogs, type CommLogEntry, type BatchCommSummary } from "@/services/api";
 import SkeletonTable from "@/components/SkeletonTable";
+import Pagination from "@/components/Pagination";
 
 const STATUS_COLORS: Record<string, string> = {
   QUEUED:    "bg-yellow-100 text-yellow-800",
@@ -163,28 +164,7 @@ export default function MessagesPage() {
 
               <LogsTable logs={logs} />
 
-              {/* Pagination */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>{total} total · page {page}/{totalPages}</span>
-                  <div className="flex gap-2">
-                    <button
-                      disabled={page <= 1}
-                      onClick={() => setPage(page - 1)}
-                      className="rounded border border-border px-3 py-2 disabled:opacity-40 hover:bg-muted"
-                    >
-                      Prev
-                    </button>
-                    <button
-                      disabled={page >= totalPages}
-                      onClick={() => setPage(page + 1)}
-                      className="rounded border border-border px-3 py-2 disabled:opacity-40 hover:bg-muted"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
-              )}
+              <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
             </>
           )}
         </>
