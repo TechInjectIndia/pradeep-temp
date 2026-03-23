@@ -3,6 +3,15 @@ import { db } from '@/db';
 import { failedMessages, commLog, orders } from '@/db/schema';
 import { addJob, QUEUES } from '@/queue';
 
+const DIGITAL_CONTENT_BASE = 'https://pradeeppublications.com/digital-content/login';
+
+function buildLoginLink(email: string | null | undefined, phone: string | null | undefined): string {
+  const params = new URLSearchParams();
+  if (email) params.set('email', email);
+  if (phone) params.set('phone', phone);
+  return `${DIGITAL_CONTENT_BASE}?${params.toString()}`;
+}
+
 export class DLQService {
   static async list(params: {
     page: number;
@@ -47,49 +56,66 @@ export class DLQService {
     let retriedCount = 0;
 
     for (const msg of messages) {
-      // Look up the original commLog and order to rebuild the full job
-      const log = msg.commLogId ? await db.query.commLog.findFirst({ where: eq(commLog.id, msg.commLogId) }) : null;
-      const order = log?.teacherRecordId
-        ? await db.query.orders.findFirst({ where: eq(orders.teacherRecordId, log.teacherRecordId) })
+      // Resolve the original commLog to get teacherRecordId
+      const log = msg.commLogId
+        ? await db.query.commLog.findFirst({ where: eq(commLog.id, msg.commLogId) })
         : null;
 
-      const teacherName = log?.teacherName ?? order?.teacherName ?? '';
-      const loginLink = `https://pradeeppublications.com/digital-content/login?email=${encodeURIComponent(msg.teacherEmail ?? '')}&phone=${encodeURIComponent(msg.teacherPhone ?? '')}`;
-      const books = (order?.books ?? []).map((b: any) => ({ title: b.title, specimenUrl: loginLink, productId: b.productId ?? '' }));
+      // Look up the order using batchId + teacherRecordId (from commLog) as the source of truth
+      const order = log?.teacherRecordId
+        ? await db.query.orders.findFirst({
+            where: and(
+              eq(orders.batchId, msg.batchId!),
+              eq(orders.teacherRecordId, log.teacherRecordId)
+            ),
+          })
+        : null;
 
-      const queue = msg.channel === 'WHATSAPP' ? QUEUES.WHATSAPP_MESSAGES : QUEUES.EMAIL_MESSAGES;
+      if (!order) {
+        console.warn(`[DLQ] No order found for commLog=${msg.commLogId} batch=${msg.batchId} — skipping`);
+        continue;
+      }
+
+      // Rebuild job payload exactly as batchAdvance.worker.ts does
+      const loginLink = buildLoginLink(order.teacherEmail, order.teacherPhone);
+      const books = (order.books ?? []).map((b: any) => ({
+        title: b.title ?? '',
+        specimenUrl: loginLink,
+        productId: b.productId ?? '',
+        author: b.author ?? undefined,
+      }));
 
       if (msg.channel === 'WHATSAPP') {
-        await addJob(queue, {
+        await addJob(QUEUES.WHATSAPP_MESSAGES, {
           type: 'WHATSAPP',
-          batchId: msg.batchId,
-          teacherRecordId: msg.teacherRecordId ?? '',
-          teacherMasterId: msg.teacherMasterId ?? '',
-          phone: msg.teacherPhone ?? '',
-          name: teacherName,
-          school: order?.school ?? undefined,
-          city: order?.city ?? undefined,
-          email: msg.teacherEmail ?? undefined,
+          batchId: order.batchId,
+          teacherRecordId: order.teacherRecordId,
+          teacherMasterId: order.teacherMasterId ?? '',
+          phone: order.teacherPhone ?? '',
+          name: order.teacherName,
+          school: order.school ?? undefined,
+          city: order.city ?? undefined,
+          email: order.teacherEmail ?? undefined,
           specimenDetails: loginLink,
           commLogId: msg.commLogId ?? '',
           retryCount: 0,
           books,
         });
       } else {
-        await addJob(queue, {
+        await addJob(QUEUES.EMAIL_MESSAGES, {
           type: 'EMAIL',
-          batchId: msg.batchId,
-          teacherRecordId: msg.teacherRecordId ?? '',
-          teacherMasterId: msg.teacherMasterId ?? '',
-          email: msg.teacherEmail ?? '',
-          name: teacherName,
+          batchId: order.batchId,
+          teacherRecordId: order.teacherRecordId,
+          teacherMasterId: order.teacherMasterId ?? '',
+          email: order.teacherEmail ?? '',
+          name: order.teacherName,
           specimenDetails: loginLink,
           commLogId: msg.commLogId ?? '',
           retryCount: 0,
         });
       }
 
-      // Reset commLog status back to QUEUED
+      // Reset commLog to QUEUED
       if (msg.commLogId) {
         await db.update(commLog)
           .set({ status: 'QUEUED', lastError: null, updatedAt: new Date() })

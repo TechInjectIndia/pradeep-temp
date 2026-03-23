@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback } from "react";
 import {
-  Plus, Pencil, Trash2, X, Check, Zap, ZapOff, Eye, RefreshCw, ChevronDown, ChevronUp, MessageSquare, Download,
+  Plus, Pencil, X, Check, Zap, ZapOff, Eye, RefreshCw, ChevronDown, ChevronUp, MessageSquare, Download,
 } from "lucide-react";
 import {
-  listWatiTemplates, createWatiTemplate, updateWatiTemplate, deleteWatiTemplate,
+  listWatiTemplates, createWatiTemplate, updateWatiTemplate,
   activateWatiTemplate, deactivateWatiTemplate, parseWatiVariables, previewWatiTemplate,
   fetchWatiTemplatesFromApi,
   type WatiTemplate, type WatiTemplateParam, type WatiRemoteTemplate,
@@ -42,6 +42,7 @@ function labelForPath(path: string) {
 
 /** Auto-map known WATI param names to data paths */
 function autoMapParam(paramName: string): string {
+  // Named params (legacy templates)
   if (paramName === "name") return "teacher.name";
   if (paramName === "phone") return "teacher.phone";
   if (paramName === "email") return "teacher.email";
@@ -62,11 +63,18 @@ function autoMapParam(paramName: string): string {
     return `books.${idx}.author`;
   }
 
-  // amz1..12 → books.0..11.specimenUrl
-  const amzMatch = paramName.match(/^amz(\d+)$/);
-  if (amzMatch) {
-    const idx = parseInt(amzMatch[1]!) - 1;
-    return `books.${idx}.specimenUrl`;
+  // Positional params (sbtemp_* style): {{1}}=name, {{2}}=order link,
+  // then odd=title, even=author starting from 3
+  const posMatch = paramName.match(/^(\d+)$/);
+  if (posMatch) {
+    const pos = parseInt(posMatch[1]!);
+    if (pos === 1) return "teacher.name";
+    if (pos === 2) return "order.link";
+    if (pos >= 3) {
+      const bookIdx = Math.floor((pos - 3) / 2);
+      const isTitle = (pos - 3) % 2 === 0;
+      return isTitle ? `books.${bookIdx}.title` : `books.${bookIdx}.author`;
+    }
   }
 
   return "";
@@ -341,13 +349,12 @@ function PreviewModal({ tmpl, onClose }: { tmpl: WatiTemplate; onClose: () => vo
 interface TemplateCardProps {
   tmpl: WatiTemplate;
   onEdit: () => void;
-  onDelete: () => void;
   onActivate: () => void;
   onDeactivate: () => void;
   onPreview: () => void;
 }
 
-function TemplateCard({ tmpl, onEdit, onDelete, onActivate, onDeactivate, onPreview }: TemplateCardProps) {
+function TemplateCard({ tmpl, onEdit, onActivate, onDeactivate, onPreview }: TemplateCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
@@ -385,9 +392,6 @@ function TemplateCard({ tmpl, onEdit, onDelete, onActivate, onDeactivate, onPrev
               <Zap className="h-3.5 w-3.5" />
             </button>
           )}
-          <button onClick={onDelete} className="rounded-md p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors" title="Delete">
-            <Trash2 className="h-3.5 w-3.5" />
-          </button>
           <button onClick={() => setExpanded((v) => !v)} className="rounded-md p-1.5 text-muted-foreground hover:bg-muted transition-colors">
             {expanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
           </button>
@@ -638,16 +642,6 @@ export default function WatiTemplatesPage() {
 
   useEffect(() => { load(); }, [load]);
 
-  const handleDelete = async (tmpl: WatiTemplate) => {
-    if (!confirm(`Delete "${tmpl.displayName}"?`)) return;
-    try {
-      await deleteWatiTemplate(tmpl.id);
-      load();
-    } catch (e) {
-      alert(e instanceof Error ? e.message : "Delete failed");
-    }
-  };
-
   const handleActivate = async (tmpl: WatiTemplate) => {
     try { await activateWatiTemplate(tmpl.id); load(); }
     catch (e) { alert(e instanceof Error ? e.message : "Activate failed"); }
@@ -658,7 +652,7 @@ export default function WatiTemplatesPage() {
     catch (e) { alert(e instanceof Error ? e.message : "Deactivate failed"); }
   };
 
-  const activeTemplate = templates.find((t) => t.isActive);
+  const activeTemplates = templates.filter((t) => t.isActive);
 
   return (
     <div className="space-y-6">
@@ -688,26 +682,22 @@ export default function WatiTemplatesPage() {
         </div>
       </div>
 
-      {/* Active template banner */}
-      {activeTemplate && (
+      {/* Active templates banner */}
+      {activeTemplates.length > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-emerald-500/40 bg-emerald-50/50 dark:bg-emerald-950/20 px-4 py-3">
           <MessageSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
-          <div>
-            <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
-              Active template: <span className="font-semibold">{activeTemplate.displayName}</span>
-            </p>
-            <p className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
-              WATI name: <code className="font-mono">{activeTemplate.templateName}</code> · {activeTemplate.params.length} parameters
-            </p>
-          </div>
+          <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">
+            {activeTemplates.length} active template{activeTemplates.length > 1 ? 's' : ''} —{' '}
+            <span className="font-normal">{activeTemplates.map((t) => t.templateName).join(', ')}</span>
+          </p>
         </div>
       )}
 
-      {!activeTemplate && !loading && templates.length > 0 && (
+      {activeTemplates.length === 0 && !loading && templates.length > 0 && (
         <div className="flex items-center gap-3 rounded-xl border border-amber-500/40 bg-amber-50/50 dark:bg-amber-950/20 px-4 py-3">
           <ZapOff className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
           <p className="text-sm text-amber-700 dark:text-amber-300">
-            No active template — WhatsApp messages cannot be sent until you activate one.
+            No active templates — WhatsApp messages cannot be sent until you activate at least one.
           </p>
         </div>
       )}
@@ -732,7 +722,6 @@ export default function WatiTemplatesPage() {
               key={tmpl.id}
               tmpl={tmpl}
               onEdit={() => { setEditTarget(tmpl); setShowForm(true); }}
-              onDelete={() => handleDelete(tmpl)}
               onActivate={() => handleActivate(tmpl)}
               onDeactivate={() => handleDeactivate(tmpl)}
               onPreview={() => setPreviewTarget(tmpl)}

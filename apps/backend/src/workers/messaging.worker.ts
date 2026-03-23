@@ -12,7 +12,7 @@ import type { Job } from 'bullmq';
 import { config } from '@/config';
 import { db } from '@/db';
 import { commLog, failedMessages, messageSendLog, batches, watiTemplates, type BatchStats } from '@/db/schema';
-import { eq, gte, asc, desc, sql } from 'drizzle-orm';
+import { eq, gte, asc, desc, sql, and } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { resolveParams } from '@/services/TemplateEngine';
 import { BatchService } from '@/services/BatchService';
@@ -21,6 +21,8 @@ import { BatchService } from '@/services/BatchService';
 
 const templateCache = new Map<number, { template: unknown; cachedAt: number }>();
 const CACHE_TTL = 60_000;
+
+export function clearTemplateCache() { templateCache.clear(); }
 
 async function getCachedTemplate(bookCount: number) {
   const cached = templateCache.get(bookCount);
@@ -32,13 +34,14 @@ async function getCachedTemplate(bookCount: number) {
 
 async function getTemplateForBookCount(bookCount: number) {
   const fitting = await db.query.watiTemplates.findMany({
-    where: gte(watiTemplates.bookCount, bookCount),
+    where: and(eq(watiTemplates.isActive, true), gte(watiTemplates.bookCount, bookCount)),
     orderBy: [asc(watiTemplates.bookCount)],
     limit: 1,
   });
   if (fitting.length > 0) return fitting[0]!;
 
   const largest = await db.query.watiTemplates.findMany({
+    where: eq(watiTemplates.isActive, true),
     orderBy: [desc(watiTemplates.bookCount)],
     limit: 1,
   });
@@ -133,6 +136,7 @@ type BulkWhatsAppMessage = {
   school?: string;
   city?: string;
   email?: string;
+  specimenDetails?: string;
 };
 
 async function sendWhatsAppBulk(
@@ -306,6 +310,12 @@ async function processMessage(job: Job<WhatsAppMessageJob | EmailMessageJob>) {
     externalMessageId: externalId,
   });
 
+  // If this was a retried DLQ message, mark it resolved
+  await db
+    .update(failedMessages)
+    .set({ status: 'RESOLVED', updatedAt: new Date() })
+    .where(and(eq(failedMessages.commLogId, commLogId), eq(failedMessages.status, 'RETRYING')));
+
   await incrementAndCheckComplete(batchId);
 }
 
@@ -345,19 +355,38 @@ for (const worker of [waWorker, emailWorker]) {
     if (job.attemptsMade >= maxAttempts) {
       const errorMessage = err.message;
       try {
-        await db.insert(failedMessages).values({
-          id: nanoid(),
-          commLogId: data.commLogId,
-          batchId: data.batchId,
-          channel: data.type,
-          teacherPhone: data.type === 'WHATSAPP' ? (data as WhatsAppMessageJob).phone : undefined,
-          teacherEmail: data.type === 'EMAIL' ? (data as EmailMessageJob).email : undefined,
-          errorType: errorMessage.includes('RATE') ? 'RATE_LIMIT' : 'UNKNOWN',
-          errorMessage,
-          attemptCount: job.attemptsMade,
-          isRetryable: true,
-          status: 'FAILED',
+        // If a RETRYING record exists (from a previous retry), reset it to FAILED
+        // Otherwise insert a new DLQ record
+        const existing = await db.query.failedMessages.findFirst({
+          where: and(eq(failedMessages.commLogId, data.commLogId), eq(failedMessages.status, 'RETRYING')),
         });
+
+        if (existing) {
+          await db
+            .update(failedMessages)
+            .set({
+              errorMessage,
+              errorType: errorMessage.includes('RATE') ? 'RATE_LIMIT' : 'UNKNOWN',
+              attemptCount: job.attemptsMade,
+              status: 'FAILED',
+              updatedAt: new Date(),
+            })
+            .where(eq(failedMessages.id, existing.id));
+        } else {
+          await db.insert(failedMessages).values({
+            id: nanoid(),
+            commLogId: data.commLogId,
+            batchId: data.batchId,
+            channel: data.type,
+            teacherPhone: data.type === 'WHATSAPP' ? (data as WhatsAppMessageJob).phone : undefined,
+            teacherEmail: data.type === 'EMAIL' ? (data as EmailMessageJob).email : undefined,
+            errorType: errorMessage.includes('RATE') ? 'RATE_LIMIT' : 'UNKNOWN',
+            errorMessage,
+            attemptCount: job.attemptsMade,
+            isRetryable: true,
+            status: 'FAILED',
+          });
+        }
 
         await db
           .update(commLog)

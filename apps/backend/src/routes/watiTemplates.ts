@@ -117,7 +117,7 @@ export const watiTemplateRoutes = new Elysia({ prefix: '/wati-templates' })
     }
   )
 
-  // Activate (deactivates all others)
+  // Activate (independent — does not affect other templates)
   .post(
     '/:id/activate',
     async ({ params, set }) => {
@@ -126,8 +126,6 @@ export const watiTemplateRoutes = new Elysia({ prefix: '/wati-templates' })
       });
       if (!existing) { set.status = 404; return { message: 'Template not found' }; }
 
-      // Deactivate all, then activate this one
-      await db.update(watiTemplates).set({ isActive: false, updatedAt: new Date() });
       const [row] = await db
         .update(watiTemplates)
         .set({ isActive: true, updatedAt: new Date() })
@@ -266,16 +264,12 @@ export const watiTemplateRoutes = new Elysia({ prefix: '/wati-templates' })
     }
   )
 
-  // Delete
+  // Delete is intentionally disabled — templates cannot be deleted
   .delete(
     '/:id',
-    async ({ params, set }) => {
-      const deleted = await db
-        .delete(watiTemplates)
-        .where(eq(watiTemplates.id, params.id))
-        .returning({ id: watiTemplates.id });
-      if (deleted.length === 0) { set.status = 404; return { message: 'Template not found' }; }
-      return { success: true };
+    async ({ set }) => {
+      set.status = 403;
+      return { message: 'Templates cannot be deleted' };
     },
     { params: t.Object({ id: t.String() }) }
   );

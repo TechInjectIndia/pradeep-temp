@@ -3,6 +3,7 @@
  *
  * Available data paths:
  *   teacher.name | teacher.phone | teacher.email | teacher.school | teacher.city
+ *   order.link   (https://pradeeppublications.com/digital-content/login?email=…&phone=…)
  *   books.{N}.title | books.{N}.specimenUrl | books.{N}.productId | books.{N}.author  (N = 0–11)
  *   batch.id
  */
@@ -41,6 +42,14 @@ function resolvePath(path: string, ctx: TemplateContext): string {
     if (field === 'email') return ctx.teacherEmail ?? '';
     if (field === 'school') return ctx.school ?? '';
     if (field === 'city') return ctx.city ?? '';
+  }
+
+  if (parts[0] === 'order') {
+    if (parts[1] === 'link') {
+      const email = encodeURIComponent(ctx.teacherEmail ?? '');
+      const phone = encodeURIComponent(ctx.teacherPhone ?? '');
+      return `https://pradeeppublications.com/digital-content/login?email=${email}&phone=${phone}`;
+    }
   }
 
   if (parts[0] === 'batch') {

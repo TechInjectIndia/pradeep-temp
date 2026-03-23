@@ -618,9 +618,7 @@ export async function deactivateWatiTemplate(id: string): Promise<WatiTemplate> 
   return request(`/wati-templates/${id}/deactivate`, { method: "POST" });
 }
 
-export async function deleteWatiTemplate(id: string): Promise<void> {
-  await request(`/wati-templates/${id}`, { method: "DELETE" });
-}
+
 
 export async function parseWatiVariables(bodyPreview: string): Promise<{ variables: string[] }> {
   return request("/wati-templates/parse-variables", {
