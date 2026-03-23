@@ -1,10 +1,11 @@
 /**
- * Messaging Worker — processes WHATSAPP_MESSAGES and EMAIL_MESSAGES queues
- * via BullMQ and calls WATI / Resend APIs to send messages.
+ * Messaging Worker — processes individual WHATSAPP_MESSAGES and EMAIL_MESSAGES jobs.
  *
- * Rate limiting: BullMQ limiter handles 1 msg/sec for emails.
+ * WhatsApp: used for DLQ retries only. Initial sends go via WatiService.sendWhatsAppBulk.
+ * Email: processes all email sends (Resend has no bulk API).
+ *
+ * Rate limiting: 1 msg/sec sleep for WhatsApp retries, BullMQ limiter for emails.
  * Retries: BullMQ handles automatic retries with exponential backoff.
- * Template caching: In-memory cache with 60s TTL avoids per-message DB queries.
  */
 import { createWorker, addJob, QUEUES } from '@/queue';
 import type { WhatsAppMessageJob, EmailMessageJob } from '@/queue/types';
@@ -12,57 +13,15 @@ import type { Job } from 'bullmq';
 import { config } from '@/config';
 import { db } from '@/db';
 import { commLog, failedMessages, messageSendLog, batches, watiTemplates, type BatchStats } from '@/db/schema';
-import { eq, gte, asc, desc, sql, and } from 'drizzle-orm';
+import { eq, and, sql } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { resolveParams } from '@/services/TemplateEngine';
 import { BatchService } from '@/services/BatchService';
+import { getCachedTemplate, normalizeIndianPhone, clearTemplateCache } from '@/services/WatiService';
 
-// ─── Template cache (60s TTL) ────────────────────────────────────────────────
+export { clearTemplateCache };
 
-const templateCache = new Map<number, { template: unknown; cachedAt: number }>();
-const CACHE_TTL = 60_000;
-
-export function clearTemplateCache() { templateCache.clear(); }
-
-async function getCachedTemplate(bookCount: number) {
-  const cached = templateCache.get(bookCount);
-  if (cached && Date.now() - cached.cachedAt < CACHE_TTL) return cached.template;
-  const template = await getTemplateForBookCount(bookCount);
-  templateCache.set(bookCount, { template, cachedAt: Date.now() });
-  return template;
-}
-
-async function getTemplateForBookCount(bookCount: number) {
-  const fitting = await db.query.watiTemplates.findMany({
-    where: and(eq(watiTemplates.isActive, true), gte(watiTemplates.bookCount, bookCount)),
-    orderBy: [asc(watiTemplates.bookCount)],
-    limit: 1,
-  });
-  if (fitting.length > 0) return fitting[0]!;
-
-  const largest = await db.query.watiTemplates.findMany({
-    where: eq(watiTemplates.isActive, true),
-    orderBy: [desc(watiTemplates.bookCount)],
-    limit: 1,
-  });
-  if (largest.length > 0 && largest[0]!.bookCount !== null) return largest[0]!;
-
-  return db.query.watiTemplates.findFirst({
-    where: eq(watiTemplates.isActive, true),
-  });
-}
-
-// ─── Phone number normalization ───────────────────────────────────────────────
-
-function normalizeIndianPhone(phone: string): string {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length === 10) return `91${digits}`;
-  if (digits.length === 12 && digits.startsWith('91')) return digits;
-  if (digits.length === 13 && digits.startsWith('091')) return digits.slice(1);
-  return digits;
-}
-
-// ─── WATI ────────────────────────────────────────────────────────────────────
+// ─── WATI single-message send (used for DLQ retries) ─────────────────────────
 
 async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
   if (!config.wati.baseUrl || !config.wati.apiKey) {
@@ -123,90 +82,6 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
   return data.local_message_id ?? data.id ?? 'unknown';
 }
 
-// ─── WATI Bulk Send (available for future use) ────────────────────────────────
-// This function uses WATI's v2 bulk broadcast API to send up to 100 messages
-// per request. It is NOT currently wired into the main per-message flow above,
-// which remains simpler to debug and rate-limit. Enable this when bulk sending
-// is needed for high-throughput batches (e.g. 10K+ teachers).
-
-type BulkWhatsAppMessage = {
-  phone: string;
-  name: string;
-  books: { title: string; specimenUrl: string; productId: string; author?: string | null }[];
-  batchId: string;
-  school?: string;
-  city?: string;
-  email?: string;
-  specimenDetails?: string;
-};
-
-async function sendWhatsAppBulk(
-  messages: BulkWhatsAppMessage[]
-): Promise<{ sent: number; failed: number }> {
-  if (!config.wati.baseUrl || !config.wati.apiKey) {
-    throw new Error('WATI not configured');
-  }
-
-  const BULK_CHUNK_SIZE = 100;
-  let sent = 0;
-  let failed = 0;
-
-  for (let i = 0; i < messages.length; i += BULK_CHUNK_SIZE) {
-    const chunk = messages.slice(i, i + BULK_CHUNK_SIZE);
-
-    // All messages in a chunk must use the same template; pick based on first message's book count
-    const bookCount = chunk[0]?.books?.length ?? 0;
-    const tmpl = await getCachedTemplate(bookCount) as typeof watiTemplates.$inferSelect | undefined;
-    const templateName = tmpl?.templateName ?? config.wati.templateName ?? 'specimen_dispatch';
-
-    const receivers = chunk.map((msg) => {
-      const params = tmpl?.params && tmpl.params.length > 0
-        ? resolveParams(tmpl.params, {
-            teacherName: msg.name,
-            teacherPhone: msg.phone,
-            teacherEmail: msg.email,
-            school: msg.school,
-            city: msg.city,
-            batchId: msg.batchId,
-            books: msg.books ?? [],
-          })
-        : [
-            { name: 'name', value: msg.name },
-            { name: 'specimen_details', value: msg.books.map((b) => `${b.title}: ${b.specimenUrl}`).join('\n') },
-          ];
-
-      return {
-        whatsappNumber: normalizeIndianPhone(msg.phone),
-        customParams: params.map((p) => ({ name: p.name, value: p.value })),
-      };
-    });
-
-    const url = `${config.wati.baseUrl}/api/v2/sendTemplateMessages`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${config.wati.apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        template_name: templateName,
-        broadcast_name: chunk[0]?.batchId ?? 'bulk',
-        receivers,
-      }),
-    });
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error(`[messaging] WATI bulk API error ${response.status}: ${text}`);
-      failed += chunk.length;
-    } else {
-      sent += chunk.length;
-    }
-  }
-
-  return { sent, failed };
-}
-
 // ─── Resend ───────────────────────────────────────────────────────────────────
 
 async function sendEmail(job: EmailMessageJob): Promise<string> {
@@ -215,7 +90,7 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
   const { Resend } = await import('resend');
   const resend = new Resend(config.resend.apiKey);
 
-  const loginLink = job.specimenDetails; // Now contains the login URL
+  const loginLink = job.specimenDetails;
 
   const { data, error } = await resend.emails.send({
     from: `${config.resend.fromName} <${config.resend.fromEmail}>`,
@@ -238,7 +113,6 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
 
 async function incrementAndCheckComplete(batchId: string) {
   try {
-    // Atomically increment messagesProcessed counter
     const [updated] = await db
       .update(batches)
       .set({
@@ -274,7 +148,6 @@ async function incrementAndCheckComplete(batchId: string) {
 async function processMessage(job: Job<WhatsAppMessageJob | EmailMessageJob>) {
   const { commLogId, batchId } = job.data;
 
-  // Check if message was cancelled before sending
   const log = await db.query.commLog.findFirst({ where: eq(commLog.id, commLogId) });
   if (log?.status === 'CANCELLED') {
     console.log(`[messaging] batch=${batchId} commLog=${commLogId} — cancelled, skipping`);
@@ -289,7 +162,6 @@ async function processMessage(job: Job<WhatsAppMessageJob | EmailMessageJob>) {
     externalId = await sendEmail(job.data as EmailMessageJob);
   }
 
-  // Mark sent
   await db
     .update(commLog)
     .set({
@@ -311,7 +183,6 @@ async function processMessage(job: Job<WhatsAppMessageJob | EmailMessageJob>) {
     externalMessageId: externalId,
   });
 
-  // If this was a retried DLQ message, mark it resolved
   await db
     .update(failedMessages)
     .set({ status: 'RESOLVED', updatedAt: new Date() })
@@ -322,7 +193,7 @@ async function processMessage(job: Job<WhatsAppMessageJob | EmailMessageJob>) {
 
 // ─── BullMQ Workers ──────────────────────────────────────────────────────────
 
-// WhatsApp worker — 1 msg/sec via sleep (WATI rate limit)
+// WhatsApp worker — handles DLQ retries only (initial sends go via bulk)
 const waWorker = createWorker<WhatsAppMessageJob>(
   QUEUES.WHATSAPP_MESSAGES,
   async (job) => {
@@ -352,12 +223,9 @@ for (const worker of [waWorker, emailWorker]) {
     const data = job.data as WhatsAppMessageJob | EmailMessageJob;
     const maxAttempts = job.opts?.attempts ?? 3;
 
-    // Only DLQ on final failure
     if (job.attemptsMade >= maxAttempts) {
       const errorMessage = err.message;
       try {
-        // If a RETRYING record exists (from a previous retry), reset it to FAILED
-        // Otherwise insert a new DLQ record
         const existing = await db.query.failedMessages.findFirst({
           where: and(eq(failedMessages.commLogId, data.commLogId), eq(failedMessages.status, 'RETRYING')),
         });
@@ -401,7 +269,6 @@ for (const worker of [waWorker, emailWorker]) {
         console.error(`[messaging] DLQ insert failed:`, (dlqErr as Error).message);
       }
     } else {
-      // Update commLog with error for intermediate failures
       await db
         .update(commLog)
         .set({ lastError: err.message, attemptCount: job.attemptsMade, lastAttemptAt: new Date(), updatedAt: new Date() })
@@ -410,4 +277,4 @@ for (const worker of [waWorker, emailWorker]) {
   });
 }
 
-console.log('[messaging-worker] Ready (WhatsApp: 1/sec, Email: 1/sec via limiter)');
+console.log('[messaging-worker] Ready (WhatsApp retries: 1/sec, Email: 1/sec via limiter)');

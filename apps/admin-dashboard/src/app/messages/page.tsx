@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { formatDateTime } from "@/utils/date";
 import { listCommLogs, type CommLogEntry, type BatchCommSummary } from "@/services/api";
 import SkeletonTable from "@/components/SkeletonTable";
 import Pagination from "@/components/Pagination";
+import ChannelBadge from "@/components/ChannelBadge";
 
 const STATUS_COLORS: Record<string, string> = {
   QUEUED:    "bg-yellow-100 text-yellow-800",
@@ -18,12 +19,9 @@ const STATUS_COLORS: Record<string, string> = {
   SKIPPED:   "bg-gray-100 text-gray-500",
 };
 
-const CHANNEL_COLORS: Record<string, string> = {
-  WHATSAPP: "bg-green-50 text-green-700 border border-green-200",
-  EMAIL:    "bg-blue-50 text-blue-700 border border-blue-200",
-};
 
 export default function MessagesPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState<"batches" | "logs">("batches");
   const [batchFilter, setBatchFilter] = useState("");
   const [channelFilter, setChannelFilter] = useState<"WHATSAPP" | "EMAIL" | "">("");
@@ -100,7 +98,7 @@ export default function MessagesPage() {
       )}
 
       {/* Tabs */}
-      <div className="flex items-center gap-4 border-b border-border">
+      <div className="sticky top-14 z-20 -mx-4 flex items-center gap-4 border-b border-border bg-card px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8">
         {(["batches", "logs"] as const).map((tab) => (
           <button
             key={tab}
@@ -243,12 +241,12 @@ function BatchProgressView({
             return (
               <tr key={b.batchId} className="hover:bg-muted/40">
                 <td className="whitespace-nowrap px-4 py-3">
-                  <Link
-                    href={`/batches/${b.batchId}`}
-                    className="font-mono text-xs font-semibold text-blue-600 hover:underline"
+                  <button
+                    onClick={() => router.push(`/batches/${b.batchId}`)}
+                    className="rounded-md bg-blue-50 border border-blue-200 px-2 py-1 font-mono text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
                   >
-                    {b.batchId}
-                  </Link>
+                    {b.batchId.slice(0, 16)}…
+                  </button>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
                   {b.fileName && b.fileName !== b.batchId ? b.fileName : "—"}
@@ -292,6 +290,7 @@ function BatchProgressView({
 // ─── Logs Table ───────────────────────────────────────────────────────────────
 
 function LogsTable({ logs }: { logs: CommLogEntry[] }) {
+  const router = useRouter();
   if (logs.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-muted-foreground">
@@ -320,12 +319,12 @@ function LogsTable({ logs }: { logs: CommLogEntry[] }) {
             {logs.map((log) => (
               <tr key={log.id} className="hover:bg-muted/40">
                 <td className="whitespace-nowrap px-4 py-3 text-sm">
-                  <Link
-                    href={`/batches/${log.batchId}`}
-                    className="font-mono text-xs font-medium text-blue-600 hover:underline"
+                  <button
+                    onClick={() => router.push(`/batches/${log.batchId}`)}
+                    className="rounded-md bg-blue-50 border border-blue-200 px-2 py-1 font-mono text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
                   >
                     {log.batchId.slice(0, 16)}…
-                  </Link>
+                  </button>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-foreground">
                   {log.teacherName ?? "—"}
@@ -334,9 +333,7 @@ function LogsTable({ logs }: { logs: CommLogEntry[] }) {
                   {log.channel === "WHATSAPP" ? log.teacherPhone : log.teacherEmail}
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
-                  <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${CHANNEL_COLORS[log.channel] ?? ""}`}>
-                    {log.channel === "WHATSAPP" ? "WA" : "✉"}
-                  </span>
+                  <ChannelBadge channel={log.channel} />
                 </td>
                 <td className="whitespace-nowrap px-4 py-3">
                   <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_COLORS[log.status] ?? "bg-muted text-foreground"}`}>

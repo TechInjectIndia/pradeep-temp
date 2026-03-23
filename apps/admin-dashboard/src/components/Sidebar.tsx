@@ -18,7 +18,7 @@ import {
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/upload", label: "Trigger", icon: Upload },
-  { href: "/batches", label: "Batches Logs", icon: Layers },
+  { href: "/batches", label: "Batch Logs", icon: Layers },
   { href: "/messages", label: "Message Logs", icon: MessageSquare },
   { href: "/teachers", label: "Teachers", icon: Users },
   { href: "/duplicates", label: "Duplicates", icon: Copy },

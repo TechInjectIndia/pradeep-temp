@@ -42,11 +42,13 @@ export default function BatchesPage() {
       key: "id",
       header: "Batch ID",
       render: (row) => (
-        <div>
+        <div className="flex items-center gap-1.5">
           {row.displayId && (
-            <span className="text-xs font-semibold text-foreground mr-1.5">{row.displayId}</span>
+            <span className="text-xs font-semibold text-foreground">{row.displayId}</span>
           )}
-          <span className="font-mono text-sm font-medium text-blue-600">{row.id}</span>
+          <span className="rounded-md bg-blue-50 border border-blue-200 px-2 py-0.5 font-mono text-xs font-medium text-blue-700">
+            {row.id}
+          </span>
         </div>
       ),
     },

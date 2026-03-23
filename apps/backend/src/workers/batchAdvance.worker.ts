@@ -3,18 +3,20 @@
  *
  * VALIDATING -> queues ORDER_CREATION for all teachers, advances batch to ORDERING
  * ORDERING   -> no-op; ordering.worker processes individual teachers
- * MESSAGING  -> fetches specimen links, creates commLogs, queues WHATSAPP/EMAIL jobs
+ * MESSAGING  -> fetches specimen links, creates commLogs, sends WhatsApp in bulk, queues emails
  * COMPLETE   -> logs completion
  */
 import { createHash } from 'crypto';
 import { createWorker, addJob, QUEUES } from '@/queue';
-import type { BatchAdvanceJob, WhatsAppMessageJob, EmailMessageJob } from '@/queue/types';
+import type { BatchAdvanceJob, EmailMessageJob } from '@/queue/types';
 import type { Job } from 'bullmq';
 import { db } from '@/db';
-import { teachersRaw, orders, commLog, batches } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { teachersRaw, orders, commLog, batches, failedMessages } from '@/db/schema';
+import { eq, inArray } from 'drizzle-orm';
+import { nanoid } from 'nanoid';
 import { LinkService } from '@/services/LinkService';
 import { BatchService } from '@/services/BatchService';
+import { sendWhatsAppBulk, type BulkWAMessage } from '@/services/WatiService';
 
 // Stage ordering -- used to skip stale messages
 const STAGE_ORDER: Record<string, number> = {
@@ -67,7 +69,7 @@ async function handleValidating(batchId: string) {
   console.log(`[batch-advance] batch=${batchId} -> ORDERING (${rawTeachers.length} jobs queued)`);
 }
 
-// --- MESSAGING: fetch links, create commLogs, queue messages ---
+// --- MESSAGING: fetch links, create commLogs, bulk-send WhatsApp, queue emails ---
 
 const DIGITAL_CONTENT_BASE = 'https://pradeeppublications.com/digital-content/login';
 
@@ -102,16 +104,14 @@ async function handleMessaging(batchId: string) {
 
   await BatchService.addLog(batchId, 'aggregation_complete', `${batchOrders.length} teachers ready for messaging`);
 
-  let queued = 0;
+  const waBulkMessages: BulkWAMessage[] = [];
+  let emailQueued = 0;
 
   for (const order of batchOrders) {
-    // Build personalized login link
     const loginLink = buildLoginLink(order.teacherEmail, order.teacherPhone);
-    // Books assigned to this teacher (from the Excel)
     const booksList = (order.books ?? []).map((b) => b.title).join(', ');
-    const specimenDetails = `Login: ${loginLink}\nBooks: ${booksList}`;
 
-    // --- WhatsApp ---
+    // --- WhatsApp: collect for bulk send ---
     if (order.sendWhatsApp && order.teacherPhone) {
       const hash = createHash('sha256')
         .update(`${order.teacherPhone}:${batchId}:WHATSAPP`)
@@ -135,37 +135,25 @@ async function handleMessaging(batchId: string) {
         .returning({ id: commLog.id });
 
       if (waInserted) {
-        const waJob: WhatsAppMessageJob = {
-          type: 'WHATSAPP',
-          batchId,
-          teacherRecordId: order.teacherRecordId,
-          teacherMasterId: order.teacherMasterId ?? '',
+        waBulkMessages.push({
+          commLogId: hash,
           phone: order.teacherPhone,
           name: order.teacherName,
           school: order.school ?? undefined,
           city: order.city ?? undefined,
           email: order.teacherEmail ?? undefined,
-          specimenDetails: loginLink,
-          commLogId: hash,
-          retryCount: 0,
-          books: (order.books ?? []).map((b) => ({ title: b.title, specimenUrl: loginLink, productId: b.productId, author: b.author ?? undefined })),
-        };
-
-        await addJob(QUEUES.WHATSAPP_MESSAGES, waJob);
-        queued++;
-
-        await BatchService.addLog(
           batchId,
-          'outbox_queued',
-          `WhatsApp queued for ${order.teacherName} · ${loginLink}`,
-          order.teacherPhone
-        );
-      } else {
-        console.log(`[batch-advance] batch=${batchId} WhatsApp already queued for ${order.teacherName} -- skipping`);
+          books: (order.books ?? []).map((b) => ({
+            title: b.title,
+            specimenUrl: loginLink,
+            productId: b.productId,
+            author: b.author ?? undefined,
+          })),
+        });
       }
     }
 
-    // --- Email ---
+    // --- Email: individual BullMQ jobs (Resend has no bulk API) ---
     if (order.sendEmail && order.teacherEmail) {
       const hash = createHash('sha256')
         .update(`${order.teacherEmail}:${batchId}:EMAIL`)
@@ -202,7 +190,7 @@ async function handleMessaging(batchId: string) {
         };
 
         await addJob(QUEUES.EMAIL_MESSAGES, emailJob);
-        queued++;
+        emailQueued++;
 
         await BatchService.addLog(
           batchId,
@@ -210,27 +198,84 @@ async function handleMessaging(batchId: string) {
           `Email queued for ${order.teacherName} · ${loginLink}`,
           order.teacherEmail
         );
-      } else {
-        console.log(`[batch-advance] batch=${batchId} Email already queued for ${order.teacherName} -- skipping`);
       }
     }
   }
 
-  // 3. Update stats
-  await BatchService.updateStats(batchId, { messagesQueued: queued });
+  // 3. Send all WhatsApp messages in bulk
+  const waTotal = waBulkMessages.length;
+  let waSent = 0;
+  let waFailed = 0;
+
+  if (waTotal > 0) {
+    await BatchService.addLog(batchId, 'outbox_queued', `Sending ${waTotal} WhatsApp messages in bulk...`);
+    const { sentIds, failedIds } = await sendWhatsAppBulk(waBulkMessages);
+    waSent = sentIds.length;
+    waFailed = failedIds.length;
+
+    const now = new Date();
+
+    if (sentIds.length > 0) {
+      await db
+        .update(commLog)
+        .set({ status: 'SENT', attemptCount: 1, lastAttemptAt: now, updatedAt: now })
+        .where(inArray(commLog.id, sentIds));
+    }
+
+    if (failedIds.length > 0) {
+      await db
+        .update(commLog)
+        .set({ status: 'DLQ', lastError: 'Bulk send chunk failed', updatedAt: now })
+        .where(inArray(commLog.id, failedIds));
+
+      // Insert DLQ entries so the user can retry from the failed messages page
+      const msgMap = new Map(waBulkMessages.map((m) => [m.commLogId, m]));
+      for (const commLogId of failedIds) {
+        const msg = msgMap.get(commLogId);
+        if (!msg) continue;
+        await db.insert(failedMessages).values({
+          id: nanoid(),
+          commLogId,
+          batchId,
+          channel: 'WHATSAPP',
+          teacherPhone: msg.phone,
+          errorType: 'UNKNOWN',
+          errorMessage: 'Bulk send chunk failed — retryable individually',
+          attemptCount: 1,
+          isRetryable: true,
+          status: 'FAILED',
+        }).onConflictDoNothing();
+      }
+    }
+
+    console.log(`[batch-advance] batch=${batchId} bulk WA: ${waSent} sent, ${waFailed} failed`);
+    await BatchService.addLog(
+      batchId,
+      'batch_advanced',
+      `WhatsApp bulk send complete: ${waSent} sent, ${waFailed} failed`
+    );
+  }
+
+  // 4. Update stats — WA all processed now; emails processed incrementally
+  const totalQueued = waTotal + emailQueued;
+  await BatchService.updateStats(batchId, {
+    messagesQueued: totalQueued,
+    messagesProcessed: waTotal, // WA done synchronously; email worker increments as each email sends
+  });
+
   await BatchService.addLog(
     batchId,
     'batch_advanced',
-    `Messaging started: ${queued} messages queued across ${batchOrders.length} teachers`
+    `Messaging: ${waSent} WA sent, ${waFailed} WA failed, ${emailQueued} emails queued`
   );
 
-  console.log(`[batch-advance] batch=${batchId} -> MESSAGING: ${queued} messages queued`);
+  console.log(`[batch-advance] batch=${batchId} -> MESSAGING done: WA=${waSent}/${waTotal}, email=${emailQueued} queued`);
 
-  // If no messages were queued (e.g. all duplicates or no contacts), auto-advance to COMPLETE
-  if (queued === 0) {
+  // 5. Auto-advance if nothing left to process (no emails, or nothing at all)
+  if (totalQueued === 0 || emailQueued === 0) {
     try {
-      await BatchService.advance(batchId, 'auto_no_messages');
-      console.log(`[batch-advance] batch=${batchId} no messages to send -> COMPLETE`);
+      await BatchService.advance(batchId, 'auto_messaging_complete');
+      console.log(`[batch-advance] batch=${batchId} all messages processed -> COMPLETE`);
     } catch {
       // Already advanced -- safe to ignore
     }

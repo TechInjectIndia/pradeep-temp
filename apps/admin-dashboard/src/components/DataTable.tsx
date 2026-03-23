@@ -45,76 +45,81 @@ export default function DataTable<T>({
   const visibleColumns = columns.filter((c) => !c.mobileHidden);
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-colors">
-      {/* Desktop table */}
-      <div className="hidden overflow-x-auto sm:block">
-        <table className="min-w-full divide-y divide-border">
-          <thead className="bg-muted/50">
-            <tr>
-              {columns.map((col) => (
-                <th
-                  key={col.key}
-                  className={clsx(
-                    "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground lg:px-6",
-                    col.className
-                  )}
-                >
-                  {col.header}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border bg-card">
-            {isLoading ? (
+    <div className="rounded-xl border border-border bg-card shadow-sm transition-colors">
+      {/* Desktop table
+          overflow-x-clip (not auto/scroll) lets wide tables be clipped horizontally
+          WITHOUT creating a new scroll container, so position:sticky on thead
+          works against the page scroll rather than an internal container. */}
+      <div className="hidden sm:block" style={{ overflowX: "clip" }}>
+        <div style={{ overflowX: "auto" }}>
+          <table className="min-w-full divide-y divide-border">
+            <thead className="sticky top-14 z-10 bg-muted shadow-sm">
               <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-6 py-12 text-center text-sm text-muted-foreground"
-                >
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-primary" />
-                    Loading...
-                  </div>
-                </td>
+                {columns.map((col) => (
+                  <th
+                    key={col.key}
+                    className={clsx(
+                      "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground lg:px-6",
+                      col.className
+                    )}
+                  >
+                    {col.header}
+                  </th>
+                ))}
               </tr>
-            ) : data.length === 0 ? (
-              <tr>
-                <td
-                  colSpan={columns.length}
-                  className="px-6 py-12 text-center text-sm text-muted-foreground"
-                >
-                  {emptyMessage}
-                </td>
-              </tr>
-            ) : (
-              data.map((row, idx) => (
-                <tr
-                  key={keyExtractor(row, idx)}
-                  onClick={() => onRowClick?.(row)}
-                  className={clsx(
-                    "transition-colors",
-                    onRowClick ? "cursor-pointer hover:bg-muted/50" : "",
-                    rowClassName?.(row)
-                  )}
-                >
-                  {columns.map((col) => (
-                    <td
-                      key={col.key}
-                      className={clsx(
-                        "whitespace-nowrap px-4 py-4 text-sm text-foreground lg:px-6",
-                        col.className
-                      )}
-                    >
-                      {col.render
-                        ? col.render(row)
-                        : String((row as Record<string, unknown>)[col.key] ?? "")}
-                    </td>
-                  ))}
+            </thead>
+            <tbody className="divide-y divide-border bg-card">
+              {isLoading ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+                  >
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="h-5 w-5 animate-spin rounded-full border-2 border-muted border-t-primary" />
+                      Loading...
+                    </div>
+                  </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : data.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={columns.length}
+                    className="px-6 py-12 text-center text-sm text-muted-foreground"
+                  >
+                    {emptyMessage}
+                  </td>
+                </tr>
+              ) : (
+                data.map((row, idx) => (
+                  <tr
+                    key={keyExtractor(row, idx)}
+                    onClick={() => onRowClick?.(row)}
+                    className={clsx(
+                      "transition-colors",
+                      onRowClick ? "cursor-pointer hover:bg-muted/50" : "",
+                      rowClassName?.(row)
+                    )}
+                  >
+                    {columns.map((col) => (
+                      <td
+                        key={col.key}
+                        className={clsx(
+                          "whitespace-nowrap px-4 py-4 text-sm text-foreground lg:px-6",
+                          col.className
+                        )}
+                      >
+                        {col.render
+                          ? col.render(row)
+                          : String((row as Record<string, unknown>)[col.key] ?? "")}
+                      </td>
+                    ))}
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Mobile card list */}

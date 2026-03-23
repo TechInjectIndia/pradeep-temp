@@ -10,6 +10,7 @@ import {
   MessageSquare, AlertTriangle, Link2,
 } from "lucide-react";
 import BatchStateIndicator from "@/components/BatchStateIndicator";
+import ChannelBadge from "@/components/ChannelBadge";
 import SkeletonTable from "@/components/SkeletonTable";
 import { Loader2 } from "lucide-react";
 import { clsx } from "clsx";
@@ -318,7 +319,7 @@ export default function BatchDetailPage() {
                       <div className="flex flex-col items-end gap-1 shrink-0">
                         {waMsg && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-muted-foreground">WA</span>
+                            <ChannelBadge channel="WHATSAPP" variant="icon" />
                             <span className={clsx(
                               "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
                               waMsg.status === "SENT" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
@@ -331,7 +332,7 @@ export default function BatchDetailPage() {
                         )}
                         {emailMsg && (
                           <div className="flex items-center gap-1.5">
-                            <span className="text-[10px] text-muted-foreground">Email</span>
+                            <ChannelBadge channel="EMAIL" variant="icon" />
                             <span className={clsx(
                               "rounded-full px-1.5 py-0.5 text-[9px] font-semibold",
                               emailMsg.status === "SENT" && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
@@ -422,14 +423,7 @@ export default function BatchDetailPage() {
                         {msg.channel === "WHATSAPP" ? msg.teacherPhone : msg.teacherEmail}
                       </td>
                       <td className="px-4 py-2">
-                        <span className={clsx(
-                          "rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                          msg.channel === "WHATSAPP"
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                        )}>
-                          {msg.channel}
-                        </span>
+                        <ChannelBadge channel={msg.channel} size="xs" />
                       </td>
                       <td className="px-4 py-2">
                         <span className={clsx(

@@ -4,6 +4,7 @@ import { useState } from "react";
 import DataTable, { type Column } from "./DataTable";
 import type { DLQEntry } from "@/types";
 import { clsx } from "clsx";
+import ChannelBadge from "./ChannelBadge";
 
 interface Props {
   entries: DLQEntry[];
@@ -68,14 +69,7 @@ export default function DLQTable({
     {
       key: "channel",
       header: "Channel",
-      render: (row) => (
-        <span className={clsx(
-          "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-          row.channel === "WHATSAPP" ? "bg-emerald-100 text-emerald-700" : "bg-blue-100 text-blue-700"
-        )}>
-          {row.channel}
-        </span>
-      ),
+      render: (row) => <ChannelBadge channel={row.channel} />,
     },
     {
       key: "attemptCount",
