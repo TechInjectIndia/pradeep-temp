@@ -11,7 +11,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background transition-colors duration-300">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar open={sidebarOpen} />
 
       {/* Top bar with hamburger — shifts right when sidebar is open */}
       <header
@@ -21,17 +21,17 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <button
-          onClick={() => setSidebarOpen(true)}
+          onClick={() => setSidebarOpen(prev => !prev)}
           className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none transition-colors"
           aria-label="Open navigation"
         >
           <Menu className="h-5 w-5" />
         </button>
-        <div className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-xs font-bold text-primary-foreground">
+        <div className="flex flex-1 items-center justify-center gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary p-1 text-xs font-bold text-primary-foreground">
             V
           </div>
-          <span className="font-semibold text-foreground">VSDS Admin</span>
+          <span className="font-semibold text-foreground">Virtual Specimen Dispatch System</span>
         </div>
       </header>
 

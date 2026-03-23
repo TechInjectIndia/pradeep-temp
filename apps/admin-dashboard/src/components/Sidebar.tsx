@@ -11,23 +11,14 @@ import {
   Users,
   Copy,
   AlertTriangle,
-  X,
   MessageSquare,
   BookOpen,
 } from "lucide-react";
-import { ThemeToggle } from "./ThemeToggle";
-
-const themes = [
-  { name: "blue", color: "bg-blue-500" },
-  { name: "purple", color: "bg-purple-500" },
-  { name: "green", color: "bg-green-500" },
-  { name: "orange", color: "bg-orange-500" },
-];
 
 const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/upload", label: "Upload", icon: Upload },
-  { href: "/batches", label: "Batches", icon: Layers },
+  { href: "/upload", label: "Trigger", icon: Upload },
+  { href: "/batches", label: "Batches Logs", icon: Layers },
   { href: "/messages", label: "Message Logs", icon: MessageSquare },
   { href: "/teachers", label: "Teachers", icon: Users },
   { href: "/duplicates", label: "Duplicates", icon: Copy },
@@ -38,15 +29,13 @@ const navItems = [
 
 interface Props {
   open: boolean;
-  onClose: () => void;
 }
 
-export default function Sidebar({ open, onClose }: Props) {
+export default function Sidebar({ open }: Props) {
   const pathname = usePathname();
 
   useEffect(() => {
-    const saved = localStorage.getItem("vsds-theme");
-    if (saved) document.documentElement.dataset.theme = saved;
+    document.documentElement.dataset.theme = "purple";
   }, []);
 
   return (
@@ -57,23 +46,6 @@ export default function Sidebar({ open, onClose }: Props) {
           open ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Header */}
-        <div className="flex h-14 items-center justify-between border-b border-border px-4 lg:px-6">
-          <div className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-sm font-bold text-primary-foreground shadow-sm">
-              V
-            </div>
-            <span className="text-lg font-semibold text-foreground tracking-tight">VSDS Admin</span>
-          </div>
-          <button
-            onClick={onClose}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none transition-colors"
-            aria-label="Close navigation"
-          >
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
         {/* Navigation */}
         <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {navItems.map((item) => {
@@ -99,26 +71,6 @@ export default function Sidebar({ open, onClose }: Props) {
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="border-t border-border px-6 py-4 space-y-3">
-          <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-muted-foreground">VSDS v1.0.0</p>
-            <ThemeToggle />
-          </div>
-          <div className="flex items-center gap-1.5">
-            {themes.map((t) => (
-              <button
-                key={t.name}
-                onClick={() => {
-                  document.documentElement.dataset.theme = t.name;
-                  localStorage.setItem("vsds-theme", t.name);
-                }}
-                className={`h-5 w-5 rounded-full ${t.color} ring-2 ring-transparent hover:ring-border transition-all`}
-                title={t.name}
-              />
-            ))}
-          </div>
-        </div>
       </aside>
     </>
   );

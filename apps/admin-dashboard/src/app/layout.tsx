@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" data-theme="purple" suppressHydrationWarning>
       <body className={inter.className} suppressHydrationWarning>
         <Providers>
           <AppShell>{children}</AppShell>

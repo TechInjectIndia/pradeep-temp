@@ -181,4 +181,5 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
       return { message: 'No links generated yet for this batch' };
     }
     return record;
-  });
+  })
+

@@ -10,6 +10,7 @@ import { useTeachers } from "@/hooks/useTeachers";
 import { formatDate } from "@/utils/date";
 
 const columns: Column<Teacher>[] = [
+  { key: "id", header: "DB ID", mobileHidden: true, render: (row) => <span className="font-mono text-xs text-muted-foreground">{row.id}</span> },
   { key: "recordId", header: "Record Id", mobileHidden: true },
   {
     key: "name",

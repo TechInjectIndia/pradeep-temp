@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Search, Plus, Pencil, Trash2, RefreshCw, X, Check, BookOpen, Database } from "lucide-react";
+import { Search, Plus, Pencil, Trash2, RefreshCw, X, Check, BookOpen } from "lucide-react";
 import {
   listBookMappings,
   createBookMapping,
@@ -16,7 +16,7 @@ import {
   type AlgoliaHit,
 } from "@/services/api";
 
-type Tab = "mappings" | "products";
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Book Mappings Tab
@@ -57,9 +57,6 @@ function BookMappingsTab() {
   const [editForm, setEditForm] = useState<EditFormState>({ bookCode: "", productId: "", productTitle: "", notes: "", authors: [] });
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
-
-  // Author input state
-  const [authorInputs, setAuthorInputs] = useState<Record<string, string>>({});
 
   // Algolia search (shared for both modals)
   const [algoliaQuery, setAlgoliaQuery] = useState("");
@@ -398,52 +395,16 @@ function BookMappingsTab() {
                             placeholder="Notes (optional)"
                             className="mt-1.5 w-full rounded-md border border-input bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
                           />
-                          {/* Authors */}
+                          {/* Authors (from Algolia — read only) */}
                           {p.authors.length > 0 && (
                             <div className="mt-1.5 flex flex-wrap gap-1">
                               {p.authors.map((a) => (
                                 <span key={a.id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">
                                   {a.title}
-                                  <button
-                                    type="button"
-                                    onClick={() => setSelectedProducts((prev) => prev.map((x) => x.productId === p.productId ? { ...x, authors: x.authors.filter((au) => au.id !== a.id) } : x))}
-                                    className="ml-0.5 rounded-full hover:bg-primary/20 p-0.5"
-                                  >
-                                    <X className="h-2.5 w-2.5" />
-                                  </button>
                                 </span>
                               ))}
                             </div>
                           )}
-                          <div className="mt-1.5 flex gap-1">
-                            <input
-                              value={authorInputs[p.productId] ?? ""}
-                              onChange={(e) => setAuthorInputs((prev) => ({ ...prev, [p.productId]: e.target.value }))}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  e.preventDefault();
-                                  const val = (authorInputs[p.productId] ?? "").trim();
-                                  if (!val) return;
-                                  setSelectedProducts((prev) => prev.map((x) => x.productId === p.productId ? { ...x, authors: [...x.authors, { id: Math.random().toString(36).slice(2), title: val }] } : x));
-                                  setAuthorInputs((prev) => ({ ...prev, [p.productId]: "" }));
-                                }
-                              }}
-                              placeholder="Author name"
-                              className="flex-1 rounded-md border border-input bg-background px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
-                            />
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const val = (authorInputs[p.productId] ?? "").trim();
-                                if (!val) return;
-                                setSelectedProducts((prev) => prev.map((x) => x.productId === p.productId ? { ...x, authors: [...x.authors, { id: Math.random().toString(36).slice(2), title: val }] } : x));
-                                setAuthorInputs((prev) => ({ ...prev, [p.productId]: "" }));
-                              }}
-                              className="rounded-md border border-border px-2 py-1 text-xs hover:bg-muted transition-colors"
-                            >
-                              Add
-                            </button>
-                          </div>
                         </div>
                         <button onClick={() => removeProduct(p.productId)} className="mt-0.5 rounded-md p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors shrink-0">
                           <X className="h-3.5 w-3.5" />
@@ -530,55 +491,19 @@ function BookMappingsTab() {
                 <label className="block text-sm font-medium text-foreground mb-1">Notes</label>
                 <input value={editForm.notes} onChange={(e) => setEditForm((f) => ({ ...f, notes: e.target.value }))} placeholder="Optional notes" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
-              {/* Authors */}
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1">Authors</label>
-                {editForm.authors.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-2">
+              {/* Authors (from Algolia — read only) */}
+              {editForm.authors.length > 0 && (
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1">Authors</label>
+                  <div className="flex flex-wrap gap-1">
                     {editForm.authors.map((a) => (
-                      <span key={a.id} className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary">
+                      <span key={a.id} className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-1 text-xs text-primary">
                         {a.title}
-                        <button
-                          type="button"
-                          onClick={() => setEditForm((f) => ({ ...f, authors: f.authors.filter((au) => au.id !== a.id) }))}
-                          className="ml-0.5 rounded-full hover:bg-primary/20 p-0.5"
-                        >
-                          <X className="h-2.5 w-2.5" />
-                        </button>
                       </span>
                     ))}
                   </div>
-                )}
-                <div className="flex gap-2">
-                  <input
-                    value={authorInputs["__edit__"] ?? ""}
-                    onChange={(e) => setAuthorInputs((prev) => ({ ...prev, "__edit__": e.target.value }))}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter") {
-                        e.preventDefault();
-                        const val = (authorInputs["__edit__"] ?? "").trim();
-                        if (!val) return;
-                        setEditForm((f) => ({ ...f, authors: [...f.authors, { id: Math.random().toString(36).slice(2), title: val }] }));
-                        setAuthorInputs((prev) => ({ ...prev, "__edit__": "" }));
-                      }
-                    }}
-                    placeholder="Author name"
-                    className="flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const val = (authorInputs["__edit__"] ?? "").trim();
-                      if (!val) return;
-                      setEditForm((f) => ({ ...f, authors: [...f.authors, { id: Math.random().toString(36).slice(2), title: val }] }));
-                      setAuthorInputs((prev) => ({ ...prev, "__edit__": "" }));
-                    }}
-                    className="rounded-lg border border-border px-3 py-2 text-sm hover:bg-muted transition-colors"
-                  >
-                    Add
-                  </button>
                 </div>
-              </div>
+              )}
             </div>
             <div className="flex items-center justify-end gap-3 border-t border-border px-5 py-4">
               <button onClick={closeEdit} className="rounded-lg border border-border px-4 py-2 text-sm hover:bg-muted transition-colors">Cancel</button>
@@ -851,8 +776,6 @@ function AlgoliaProductsTab() {
 // ─────────────────────────────────────────────────────────────────────────────
 
 export default function BookMappingsPage() {
-  const [tab, setTab] = useState<Tab>("mappings");
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -863,34 +786,7 @@ export default function BookMappingsPage() {
         </p>
       </div>
 
-      {/* Tabs */}
-      <div className="flex gap-1 rounded-lg border border-border bg-muted p-1 w-fit">
-        <button
-          onClick={() => setTab("mappings")}
-          className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-            tab === "mappings"
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <BookOpen className="h-4 w-4" />
-          Book Mappings
-        </button>
-        <button
-          onClick={() => setTab("products")}
-          className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-            tab === "products"
-              ? "bg-card text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
-          }`}
-        >
-          <Database className="h-4 w-4" />
-          Product Library
-        </button>
-      </div>
-
-      {/* Tab Content */}
-      {tab === "mappings" ? <BookMappingsTab /> : <AlgoliaProductsTab />}
+      <BookMappingsTab />
     </div>
   );
 }
