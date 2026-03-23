@@ -205,6 +205,7 @@ function BatchProgressView({
   onPageChange: (p: number) => void;
   onPageSizeChange: (s: number) => void;
 }) {
+  const router = useRouter();
   if (batches.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-muted-foreground">

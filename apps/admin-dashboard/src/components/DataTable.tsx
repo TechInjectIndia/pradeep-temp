@@ -30,6 +30,8 @@ interface Props<T> {
   };
   isLoading?: boolean;
   emptyMessage?: string;
+  /** When set, wraps table in overflow-auto with this max height for sticky header scroll (e.g. "24rem") */
+  maxHeight?: string;
 }
 
 export default function DataTable<T>({
@@ -41,25 +43,29 @@ export default function DataTable<T>({
   pagination,
   isLoading,
   emptyMessage = "No data found.",
+  maxHeight,
 }: Props<T>) {
   const visibleColumns = columns.filter((c) => !c.mobileHidden);
 
+  const tableWrapperClass = maxHeight
+    ? "hidden min-w-0 sm:block overflow-auto"
+    : "hidden min-w-0 sm:block overflow-x-auto";
+  const tableWrapperStyle = maxHeight ? { maxHeight } : undefined;
+
   return (
-    <div className="rounded-xl border border-border bg-card shadow-sm transition-colors">
-      {/* Desktop table
-          overflow-x-clip (not auto/scroll) lets wide tables be clipped horizontally
-          WITHOUT creating a new scroll container, so position:sticky on thead
-          works against the page scroll rather than an internal container. */}
-      <div className="hidden sm:block" style={{ overflowX: "clip" }}>
-        <div style={{ overflowX: "auto" }}>
+    <div className="rounded-xl border border-border bg-card shadow-sm transition-colors overflow-hidden">
+      {/* Desktop table: when maxHeight is set, overflow-auto creates scroll container so sticky thead works */}
+      <div className={tableWrapperClass} style={tableWrapperStyle}>
           <table className="min-w-full divide-y divide-border">
-            <thead className="sticky top-14 z-10 bg-muted shadow-sm">
+            <thead className={clsx("sticky z-20 bg-muted shadow-sm border-b border-border", maxHeight ? "top-0" : "top-0")}>
               <tr>
-                {columns.map((col) => (
+                {columns.map((col, i) => (
                   <th
                     key={col.key}
                     className={clsx(
-                      "px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground lg:px-6",
+                      "bg-muted px-4 py-1.5 text-left text-xs font-semibold uppercase tracking-wider lg:px-4",
+                      i === 0 && "rounded-tl-xl",
+                      i === columns.length - 1 && "rounded-tr-xl",
                       col.className
                     )}
                   >
@@ -119,7 +125,6 @@ export default function DataTable<T>({
               )}
             </tbody>
           </table>
-        </div>
       </div>
 
       {/* Mobile card list */}

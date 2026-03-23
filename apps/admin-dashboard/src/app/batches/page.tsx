@@ -117,7 +117,7 @@ export default function BatchesPage() {
       {isLoading ? (
         <SkeletonTable rows={8} cols={6} />
       ) : (
-        <div className="overflow-x-auto -mx-4 sm:mx-0">
+        <div className="min-w-0 -mx-4 sm:mx-0">
         <DataTable
           columns={columns}
           data={batches}

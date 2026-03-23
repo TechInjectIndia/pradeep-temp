@@ -1212,13 +1212,12 @@ export default function UploadPage() {
 
               <div className="min-w-0 w-full">
                 <h2 className="mb-4 text-lg font-semibold text-foreground">Preview</h2>
-                <div className="w-full overflow-x-auto overflow-y-auto max-h-96">
-                  <DataTable
-                    columns={previewColumns}
-                    data={parsedRows}
-                    keyExtractor={(_, idx) => String(idx)}
-                  />
-                </div>
+                <DataTable
+                  columns={previewColumns}
+                  data={parsedRows}
+                  keyExtractor={(_, idx) => String(idx)}
+                  maxHeight="24rem"
+                />
               </div>
 
               <div className="flex items-center justify-end gap-3">
