@@ -617,10 +617,14 @@ export default function UploadPage() {
         setMappedBookDetails(bookLookupResult.mappings.map((m) => ({ bookCode: m.bookCode, productTitle: m.productTitle })));
       }
 
-      // Default: use_db for all matches; leave split matches unresolved (need teacher choice)
+      // Default: use_db for all matches
+      // Split matches: auto-select phone-matched teacher first; fall back to email-matched
       const defaults = new Map<number, MergeDecision>();
       for (const m of matches) {
-        if (!m.isSplitMatch) {
+        if (m.isSplitMatch) {
+          const autoTeacherId = m.phoneMatchTeacher?.id ?? m.emailMatchTeacher?.id;
+          defaults.set(m.rowIndex, { action: "use_db", teacherId: autoTeacherId });
+        } else {
           defaults.set(m.rowIndex, { action: "use_db" });
         }
       }
@@ -2054,16 +2058,7 @@ export default function UploadPage() {
                     return d === null || d === undefined;
                   }).length
                 : 0;
-              const unresolvedSplitMatches = duplicateMatches
-                ? duplicateMatches.filter((m) => {
-                    if (!m.isSplitMatch) return false;
-                    const d = mergeDecisions.get(m.rowIndex);
-                    if (!d) return true; // no action chosen at all
-                    if (d.action === "use_db" && !(d as { action: "use_db"; teacherId?: string }).teacherId) return true; // use_db but no teacher chosen
-                    return false;
-                  }).length
-                : 0;
-              const blockCount = unresolvedNameConflicts + unresolvedSplitMatches;
+              const blockCount = unresolvedNameConflicts;
               return (
                 <button
                   onClick={handleCreateBatch}
