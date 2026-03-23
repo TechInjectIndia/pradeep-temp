@@ -182,6 +182,40 @@ export async function processUpload(
         .map(([origIdx]) => (teacherChannels[origIdx] ?? 'both') as Channel)
     : undefined;
 
+  // For "create_new" rows: find which phones/emails already belong to another teacher in DB
+  // so we can blank them out (avoid duplicate contact info across teachers)
+  const createNewIndices = new Set<number>();
+  for (const [idx, d] of decisionMap.entries()) {
+    if (d.action === 'create_new') createNewIndices.add(idx);
+  }
+
+  const takenPhones = new Set<string>();
+  const takenEmails = new Set<string>();
+
+  if (createNewIndices.size > 0) {
+    const createNewPhones = rows
+      .filter((_, i) => createNewIndices.has(i))
+      .map((r) => r.phone?.trim())
+      .filter(Boolean) as string[];
+    const createNewEmails = rows
+      .filter((_, i) => createNewIndices.has(i))
+      .map((r) => r.email?.trim())
+      .filter(Boolean) as string[];
+
+    if (createNewPhones.length > 0) {
+      const existing = await db.select({ phone: phoneLookup.phone })
+        .from(phoneLookup)
+        .where(inArray(phoneLookup.phone, createNewPhones));
+      for (const r of existing) takenPhones.add(r.phone);
+    }
+    if (createNewEmails.length > 0) {
+      const existing = await db.select({ email: emailLookup.email })
+        .from(emailLookup)
+        .where(inArray(emailLookup.email, createNewEmails));
+      for (const r of existing) takenEmails.add(r.email);
+    }
+  }
+
   const rawRecords = rows.map((row, idx) => {
     const effectiveChannel = activeTeacherChannels?.[idx] ?? channel;
     let sendWhatsApp: boolean;
@@ -203,13 +237,22 @@ export async function processUpload(
 
     const decision = decisionMap.get(idx);
     const isMerge = decision?.action === 'merge';
+    const isCreateNew = decision?.action === 'create_new';
+
+    // For create_new: blank phone/email if already owned by another teacher in DB
+    const phone = isCreateNew
+      ? (takenPhones.has(row.phone?.trim() ?? '') ? undefined : row.phone)
+      : row.phone;
+    const email = isCreateNew
+      ? (takenEmails.has(row.email?.trim() ?? '') ? undefined : row.email)
+      : row.email;
 
     return {
       id: `tr_${nanoid(12)}`,
       batchId: batch.id,
       name: row.name ?? '',
-      phone: row.phone,
-      email: row.email,
+      phone,
+      email,
       school: row.school || row.institutionName || '',
       city: row.city,
       books: row.books ?? row.booksAssigned,
@@ -250,22 +293,14 @@ export async function processUpload(
     const teacherMap = new Map(existingTeachers.map((t) => [t.id, t]));
 
     // Build all updates in parallel — each teacher has different data so can't batch into one query
-    const allPhoneLookups: { phone: string; teacherId: string }[] = [];
-    const allEmailLookups: { email: string; teacherId: string }[] = [];
     const teacherUpdatePromises: Promise<unknown>[] = [];
 
     for (const decision of mergeUpdates) {
       const existing = teacherMap.get(decision.teacherId);
       if (!existing) continue;
 
-      const phones = new Set(existing.phones);
-      const emails = new Set(existing.emails);
-      for (const p of decision.phonesToAdd) phones.add(p);
-      for (const e of decision.emailsToAdd) emails.add(e);
-
+      // Always keep existing DB phones/emails — never add new ones from file
       const updatePayload: Partial<typeof teachers.$inferInsert> = {
-        phones: [...phones],
-        emails: [...emails],
         updatedAt: new Date(),
       };
       if (decision.nameChoice === 'file' && decision.newName) {
@@ -275,13 +310,7 @@ export async function processUpload(
       teacherUpdatePromises.push(
         db.update(teachers).set(updatePayload).where(eq(teachers.id, decision.teacherId))
       );
-
-      for (const p of decision.phonesToAdd) {
-        allPhoneLookups.push({ phone: p, teacherId: decision.teacherId });
-      }
-      for (const e of decision.emailsToAdd) {
-        allEmailLookups.push({ email: e, teacherId: decision.teacherId });
-      }
+      // No phoneLookup/emailLookup inserts — existing contacts are preserved as-is
     }
 
     // Flush all teacher updates in parallel
@@ -289,13 +318,6 @@ export async function processUpload(
       await Promise.all(teacherUpdatePromises);
     }
 
-    // Bulk insert all phone/email lookups (one query each instead of N queries)
-    if (allPhoneLookups.length > 0) {
-      await db.insert(phoneLookup).values(allPhoneLookups).onConflictDoNothing();
-    }
-    if (allEmailLookups.length > 0) {
-      await db.insert(emailLookup).values(allEmailLookups).onConflictDoNothing();
-    }
   }
 
   const resolvedCount = mergeDecisions?.filter((d) => d.action === 'merge').length ?? 0;

@@ -405,17 +405,19 @@ export async function listTeachers(params: TeacherListParams = {}): Promise<Pagi
   return request<PaginatedResponse<Teacher>>(`/teachers${toQueryString(params)}`);
 }
 
+export interface TeacherRef {
+  id: string;
+  name: string;
+  phones: string[];
+  emails: string[];
+  school: string;
+  city: string;
+}
+
 export interface DBDuplicateMatch {
   rowIndex: number;
   row: { name: string; phone: string; email: string; school: string };
-  existingTeacher: {
-    id: string;
-    name: string;
-    phones: string[];
-    emails: string[];
-    school: string;
-    city: string;
-  };
+  existingTeacher: TeacherRef;
   /** 0–100 */
   confidence: number;
   matchReasons: string[];
@@ -426,6 +428,10 @@ export interface DBDuplicateMatch {
     schoolConflict: boolean;
     noChanges: boolean; // 100% match — nothing to update
   };
+  // Set when phone and email match DIFFERENT teachers in DB
+  isSplitMatch?: boolean;
+  phoneMatchTeacher?: TeacherRef;
+  emailMatchTeacher?: TeacherRef;
 }
 
 export async function checkDuplicatesAgainstDB(

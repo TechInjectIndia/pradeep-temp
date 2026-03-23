@@ -114,7 +114,7 @@ type Step = 1 | 2 | 3 | 4;
 type MergeDecision =
   | { action: "merge"; nameChoice: "file" | "db" }
   | { action: "create_new" }
-  | { action: "use_db" } // use DB teacher ID, but send to file's phone/email
+  | { action: "use_db"; teacherId?: string } // teacherId required for split matches
   | null; // null = not yet decided
 
 type SheetDuplicateGroup = {
@@ -617,10 +617,12 @@ export default function UploadPage() {
         setMappedBookDetails(bookLookupResult.mappings.map((m) => ({ bookCode: m.bookCode, productTitle: m.productTitle })));
       }
 
-      // Default: use_db for all matches
+      // Default: use_db for all matches; leave split matches unresolved (need teacher choice)
       const defaults = new Map<number, MergeDecision>();
       for (const m of matches) {
-        defaults.set(m.rowIndex, { action: "use_db" });
+        if (!m.isSplitMatch) {
+          defaults.set(m.rowIndex, { action: "use_db" });
+        }
       }
       setMergeDecisions(defaults);
     } catch (err) {
@@ -672,10 +674,12 @@ export default function UploadPage() {
               }
               if (decision.action === "use_db") {
                 // Link to DB teacher ID but don't update DB record — file's phone/email used for sending
+                // For split matches, decision.teacherId holds the user-chosen teacher
+                const teacherId = (decision as { action: "use_db"; teacherId?: string }).teacherId ?? match.existingTeacher.id;
                 return {
                   rowIndex: match.rowIndex,
                   action: "merge" as const,
-                  teacherId: match.existingTeacher.id,
+                  teacherId,
                   nameChoice: "db" as const,
                   noChanges: true, // don't update DB record
                   phonesToAdd: [] as string[],
@@ -1788,15 +1792,42 @@ export default function UploadPage() {
                               <span className="rounded-full bg-primary/15 px-2 py-0.5 font-semibold text-primary">
                                 {match.confidence}% match
                               </span>
-                              <span className="text-muted-foreground">{match.matchReasons.join(" · ")}</span>
-                              <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground font-mono" title="Database teacher ID">
-                                DB: {match.existingTeacher.id}
-                              </span>
+                              {match.isSplitMatch ? (
+                                <>
+                                  <span className="rounded-full bg-orange-100 dark:bg-orange-950/40 px-2 py-0.5 text-orange-700 dark:text-orange-400 font-medium">
+                                    Split match
+                                  </span>
+                                  {match.phoneMatchTeacher && (
+                                    <span className="rounded-full bg-blue-100 dark:bg-blue-950/40 px-2 py-0.5 text-blue-700 dark:text-blue-400 font-mono text-[10px]" title={`Phone matched DB teacher ID: ${match.phoneMatchTeacher.id}`}>
+                                      Phone → {match.phoneMatchTeacher.name}
+                                    </span>
+                                  )}
+                                  {match.emailMatchTeacher && (
+                                    <span className="rounded-full bg-purple-100 dark:bg-purple-950/40 px-2 py-0.5 text-purple-700 dark:text-purple-400 font-mono text-[10px]" title={`Email matched DB teacher ID: ${match.emailMatchTeacher.id}`}>
+                                      Email → {match.emailMatchTeacher.name}
+                                    </span>
+                                  )}
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-muted-foreground">{match.matchReasons.join(" · ")}</span>
+                                  <span className="rounded-full bg-muted px-2 py-0.5 text-muted-foreground font-mono" title="Database teacher ID">
+                                    DB: {match.existingTeacher.id}
+                                  </span>
+                                </>
+                              )}
                             </div>
                             {/* Action buttons */}
                             <div className="flex items-center gap-1.5">
                               <button
-                                onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db" }); return n; })}
+                                onClick={() => {
+                                  if (match.isSplitMatch) {
+                                    // For split matches, toggle to use_db state without a specific teacher (will show picker below)
+                                    setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db", teacherId: undefined }); return n; });
+                                  } else {
+                                    setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db" }); return n; });
+                                  }
+                                }}
                                 className={[
                                   "rounded-md px-3 py-1 text-xs font-medium transition-colors",
                                   isUseDb
@@ -1831,34 +1862,140 @@ export default function UploadPage() {
                             </div>
                           </div>
 
-                          {/* Compact summary — shown for Use DB and Create New */}
-                          {(isUseDb || isCreatingNew) && (() => {
+                          {/* Split match + Use DB: teacher picker */}
+                          {isUseDb && match.isSplitMatch && (() => {
+                            const chosenTeacherId = (decision as { action: "use_db"; teacherId?: string } | null)?.teacherId;
                             const ch = getEffectiveChannel(match.rowIndex);
                             return (
-                              <div className="px-4 py-2 text-xs flex flex-wrap items-center gap-x-5 gap-y-1 border-t border-border/50">
-                                <div>
-                                  <span className="text-muted-foreground">DB: </span>
-                                  <span className="font-medium text-foreground">{match.existingTeacher.name}</span>
+                              <div className="px-4 py-3 border-t border-border/50 text-xs space-y-2">
+                                <p className="font-medium text-orange-600 dark:text-orange-400">
+                                  Two different teachers matched — choose which DB teacher to link this record to:
+                                </p>
+                                <div className="flex flex-wrap gap-2">
+                                  {match.phoneMatchTeacher && (
+                                    <button
+                                      onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db", teacherId: match.phoneMatchTeacher!.id }); return n; })}
+                                      className={[
+                                        "rounded-lg border px-3 py-2 text-left transition-colors",
+                                        chosenTeacherId === match.phoneMatchTeacher.id
+                                          ? "border-blue-500 bg-blue-50 dark:bg-blue-950/40"
+                                          : "border-border hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20",
+                                      ].join(" ")}
+                                    >
+                                      <div className="text-[10px] text-blue-600 dark:text-blue-400 font-semibold mb-0.5">Phone match</div>
+                                      <div className="font-medium text-foreground">{match.phoneMatchTeacher.name}</div>
+                                      <div className="text-muted-foreground">{match.phoneMatchTeacher.phones[0] ?? match.row.phone}</div>
+                                      {match.phoneMatchTeacher.school && <div className="text-muted-foreground">{match.phoneMatchTeacher.school}</div>}
+                                    </button>
+                                  )}
+                                  {match.emailMatchTeacher && (
+                                    <button
+                                      onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db", teacherId: match.emailMatchTeacher!.id }); return n; })}
+                                      className={[
+                                        "rounded-lg border px-3 py-2 text-left transition-colors",
+                                        chosenTeacherId === match.emailMatchTeacher.id
+                                          ? "border-purple-500 bg-purple-50 dark:bg-purple-950/40"
+                                          : "border-border hover:border-purple-400 hover:bg-purple-50/50 dark:hover:bg-purple-950/20",
+                                      ].join(" ")}
+                                    >
+                                      <div className="text-[10px] text-purple-600 dark:text-purple-400 font-semibold mb-0.5">Email match</div>
+                                      <div className="font-medium text-foreground">{match.emailMatchTeacher.name}</div>
+                                      <div className="text-muted-foreground">{match.emailMatchTeacher.emails[0] ?? match.row.email}</div>
+                                      {match.emailMatchTeacher.school && <div className="text-muted-foreground">{match.emailMatchTeacher.school}</div>}
+                                    </button>
+                                  )}
                                 </div>
-                                <div>
-                                  <span className="text-muted-foreground">File: </span>
-                                  <span className="font-medium text-foreground">{match.row.name}</span>
-                                </div>
-                                <div>
-                                  <span className="text-muted-foreground">Send to: </span>
-                                  <span className="font-mono text-foreground">{match.row.phone || match.row.email || "—"}</span>
-                                </div>
-                                <div className="flex items-center gap-1.5 ml-auto">
-                                  <span className="text-muted-foreground">Channel:</span>
-                                  <select
-                                    value={ch}
-                                    onChange={(e) => setTeacherChannel(match.rowIndex, e.target.value as ChannelOption)}
-                                    className="rounded border border-border bg-background px-1.5 py-0.5 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                                  >
-                                    <option value="both">Both</option>
-                                    <option value="whatsapp">WhatsApp</option>
-                                    <option value="email">Email</option>
-                                  </select>
+                                {chosenTeacherId && (
+                                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1 pt-1">
+                                    <div>
+                                      <span className="text-muted-foreground">File: </span>
+                                      <span className="font-medium text-foreground">{match.row.name}</span>
+                                    </div>
+                                    <div>
+                                      <span className="text-muted-foreground">Send to: </span>
+                                      <span className="font-mono text-foreground">{match.row.phone || match.row.email || "—"}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1.5 ml-auto">
+                                      <span className="text-muted-foreground">Channel:</span>
+                                      <select
+                                        value={ch}
+                                        onChange={(e) => setTeacherChannel(match.rowIndex, e.target.value as ChannelOption)}
+                                        className="rounded border border-border bg-background px-1.5 py-0.5 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                      >
+                                        <option value="both">Both</option>
+                                        <option value="whatsapp">WhatsApp</option>
+                                        <option value="email">Email</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })()}
+
+                          {/* Compact summary — shown for Use DB (non-split) and Create New */}
+                          {((isUseDb && !match.isSplitMatch) || isCreatingNew) && (() => {
+                            const ch = getEffectiveChannel(match.rowIndex);
+                            // For Create New: phone/email will be blanked if already owned by another DB teacher
+                            const phoneIsTaken = isCreatingNew && match.matchReasons.includes("Phone match");
+                            const emailIsTaken = isCreatingNew && match.matchReasons.includes("Email match");
+                            const effectivePhone = phoneIsTaken ? "" : match.row.phone;
+                            const effectiveEmail = emailIsTaken ? "" : match.row.email;
+                            const sendTo = effectivePhone || effectiveEmail || "—";
+                            // Build ownership warning lines for Create New
+                            const takenWarnings: string[] = [];
+                            if (isCreatingNew && phoneIsTaken) {
+                              const owner = match.isSplitMatch
+                                ? match.phoneMatchTeacher?.name
+                                : match.existingTeacher.name;
+                              takenWarnings.push(`Phone ${match.row.phone} already belongs to "${owner ?? 'another teacher'}" — will be saved as empty`);
+                            }
+                            if (isCreatingNew && emailIsTaken) {
+                              const owner = match.isSplitMatch
+                                ? match.emailMatchTeacher?.name
+                                : match.existingTeacher.name;
+                              takenWarnings.push(`Email ${match.row.email} already belongs to "${owner ?? 'another teacher'}" — will be saved as empty`);
+                            }
+                            return (
+                              <div className="px-4 py-2 text-xs border-t border-border/50 space-y-1.5">
+                                {takenWarnings.length > 0 && (
+                                  <div className="rounded-md bg-destructive/10 border border-destructive/20 px-3 py-2 space-y-0.5">
+                                    {takenWarnings.map((w, i) => (
+                                      <p key={i} className="text-destructive font-medium">⚠ {w}</p>
+                                    ))}
+                                  </div>
+                                )}
+                                <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
+                                  {!isCreatingNew && (
+                                    <div>
+                                      <span className="text-muted-foreground">DB: </span>
+                                      <span className="font-medium text-foreground">{match.existingTeacher.name}</span>
+                                    </div>
+                                  )}
+                                  <div>
+                                    <span className="text-muted-foreground">File: </span>
+                                    <span className="font-medium text-foreground">{match.row.name}</span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Send to: </span>
+                                    {sendTo === "—" ? (
+                                      <span className="font-mono text-destructive font-semibold">— (no contact info, no message will be sent)</span>
+                                    ) : (
+                                      <span className="font-mono text-foreground">{sendTo}</span>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center gap-1.5 ml-auto">
+                                    <span className="text-muted-foreground">Channel:</span>
+                                    <select
+                                      value={ch}
+                                      onChange={(e) => setTeacherChannel(match.rowIndex, e.target.value as ChannelOption)}
+                                      className="rounded border border-border bg-background px-1.5 py-0.5 text-xs font-medium text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                                    >
+                                      <option value="both">Both</option>
+                                      <option value="whatsapp">WhatsApp</option>
+                                      <option value="email">Email</option>
+                                    </select>
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -1867,6 +2004,11 @@ export default function UploadPage() {
                           {/* Merge detail — only shown when Merge is selected */}
                           {isMerging && (
                             <div className="px-4 py-3 border-t border-border/50 text-xs space-y-2">
+                              {match.isSplitMatch && (
+                                <p className="text-orange-600 dark:text-orange-400 font-medium">
+                                  Split match: merging with phone-matched teacher ({match.phoneMatchTeacher?.name ?? match.existingTeacher.name})
+                                </p>
+                              )}
                               <div className="flex items-center gap-4">
                                 <span className="font-medium text-primary">Which name to keep?</span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
@@ -1912,17 +2054,27 @@ export default function UploadPage() {
                     return d === null || d === undefined;
                   }).length
                 : 0;
+              const unresolvedSplitMatches = duplicateMatches
+                ? duplicateMatches.filter((m) => {
+                    if (!m.isSplitMatch) return false;
+                    const d = mergeDecisions.get(m.rowIndex);
+                    if (!d) return true; // no action chosen at all
+                    if (d.action === "use_db" && !(d as { action: "use_db"; teacherId?: string }).teacherId) return true; // use_db but no teacher chosen
+                    return false;
+                  }).length
+                : 0;
+              const blockCount = unresolvedNameConflicts + unresolvedSplitMatches;
               return (
                 <button
                   onClick={handleCreateBatch}
-                  disabled={isUploading || isDuplicateChecking || unresolvedNameConflicts > 0}
-                  title={unresolvedNameConflicts > 0 ? `Resolve ${unresolvedNameConflicts} name conflict(s) first` : undefined}
+                  disabled={isUploading || isDuplicateChecking || blockCount > 0}
+                  title={blockCount > 0 ? `Resolve ${blockCount} conflict(s) first` : undefined}
                   className="flex items-center gap-2 rounded-lg bg-primary px-6 py-2.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-60 disabled:cursor-not-allowed"
                 >
                   {isUploading ? (
                     <><Loader2 className="h-4 w-4 animate-spin" /> Creating Batch…</>
                   ) : unresolvedNameConflicts > 0 ? (
-                    <><AlertCircle className="h-4 w-4" /> Resolve {unresolvedNameConflicts} conflict{unresolvedNameConflicts !== 1 ? "s" : ""}</>
+                    <><AlertCircle className="h-4 w-4" /> Resolve {blockCount} conflict{blockCount !== 1 ? "s" : ""}</>
                   ) : (
                     <><CheckCircle className="h-4 w-4" /> Create Batch</>
                   )}

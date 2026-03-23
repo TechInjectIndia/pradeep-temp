@@ -5,17 +5,19 @@ import { nanoid } from 'nanoid';
 
 type Teacher = typeof teachers.$inferSelect;
 
+type TeacherRef = {
+  id: string;
+  name: string;
+  phones: string[];
+  emails: string[];
+  school: string;
+  city: string;
+};
+
 export interface DuplicateMatch {
   rowIndex: number;
   row: { name: string; phone: string; email: string; school: string };
-  existingTeacher: {
-    id: string;
-    name: string;
-    phones: string[];
-    emails: string[];
-    school: string;
-    city: string;
-  };
+  existingTeacher: TeacherRef;
   confidence: number;
   matchReasons: string[];
   diff: {
@@ -25,6 +27,10 @@ export interface DuplicateMatch {
     schoolConflict: boolean;     // school differs
     noChanges: boolean;          // everything already in DB, pure duplicate
   };
+  // Set when phone and email match DIFFERENT teachers in the DB
+  isSplitMatch?: boolean;
+  phoneMatchTeacher?: TeacherRef;
+  emailMatchTeacher?: TeacherRef;
 }
 
 function normalizePhone(phone: string): string {
@@ -215,26 +221,27 @@ export class TeacherService {
       let phoneMatched = false;
       let emailMatched = false;
 
-      if (normPhone) {
-        const tid = phoneToTeacherId.get(normPhone);
-        if (tid) { teacherId = tid; phoneMatched = true; matchReasons.push('Phone match'); }
-      }
-      if (normEmail) {
-        const tid = emailToTeacherId.get(normEmail);
-        if (tid) {
-          if (!teacherId) { teacherId = tid; }
-          emailMatched = true;
-          matchReasons.push('Email match');
-        }
+      const phoneTeacherId = normPhone ? phoneToTeacherId.get(normPhone) : undefined;
+      const emailTeacherId = normEmail ? emailToTeacherId.get(normEmail) : undefined;
+
+      if (phoneTeacherId) { teacherId = phoneTeacherId; phoneMatched = true; matchReasons.push('Phone match'); }
+      if (emailTeacherId) {
+        if (!teacherId) teacherId = emailTeacherId;
+        emailMatched = true;
+        matchReasons.push('Email match');
       }
 
+      // Detect split match: phone and email match DIFFERENT teachers
+      const isSplitMatch = !!(phoneTeacherId && emailTeacherId && phoneTeacherId !== emailTeacherId);
+
       // Confidence: both=100%, phone only=95%, email only=90%
-      if (phoneMatched && emailMatched) confidence = 100;
+      // For split matches: treat as 95% (phone match is primary)
+      if (phoneMatched && emailMatched && !isSplitMatch) confidence = 100;
       else if (phoneMatched) confidence = 95;
       else if (emailMatched) confidence = 90;
 
       if (teacherId) {
-        const teacher = teacherMap.get(teacherId);
+        const teacher = teacherMap.get(teacherId)!;
         if (teacher) {
           const phonesToAdd = normPhone && !teacher.phones.includes(normPhone) ? [normPhone] : [];
           const emailsToAdd = normEmail && !teacher.emails.includes(normEmail) ? [normEmail] : [];
@@ -243,12 +250,27 @@ export class TeacherService {
             row.school.trim().toLowerCase() !== teacher.school.trim().toLowerCase();
           const noChanges = !nameConflict && !schoolConflict && phonesToAdd.length === 0 && emailsToAdd.length === 0;
 
-          matches.push({
+          const toRef = (t: Teacher): TeacherRef => ({
+            id: t.id, name: t.name, phones: t.phones, emails: t.emails,
+            school: t.school ?? '', city: t.city ?? '',
+          });
+
+          const match: DuplicateMatch = {
             rowIndex: i, row,
-            existingTeacher: { id: teacher.id, name: teacher.name, phones: teacher.phones, emails: teacher.emails, school: teacher.school ?? '', city: teacher.city ?? '' },
+            existingTeacher: toRef(teacher),
             confidence, matchReasons,
             diff: { nameConflict, phonesToAdd, emailsToAdd, schoolConflict, noChanges },
-          });
+          };
+
+          if (isSplitMatch) {
+            match.isSplitMatch = true;
+            const phoneTeacher = teacherMap.get(phoneTeacherId!);
+            const emailTeacher = teacherMap.get(emailTeacherId!);
+            if (phoneTeacher) match.phoneMatchTeacher = toRef(phoneTeacher);
+            if (emailTeacher) match.emailMatchTeacher = toRef(emailTeacher);
+          }
+
+          matches.push(match);
         }
       } else if (row.name) {
         unmatchedIdxs.push(i);
