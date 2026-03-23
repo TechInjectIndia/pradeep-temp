@@ -26,7 +26,7 @@ export default function BatchesPage() {
   const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<BatchStatus | "">("");
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: response, isLoading } = useBatches({
     status: statusFilter || undefined,
@@ -127,6 +127,8 @@ export default function BatchesPage() {
             total: totalCount,
             totalPages: Math.ceil(totalCount / pageSize),
             onPageChange: setPage,
+            onPageSizeChange: (s) => { setPageSize(s); setPage(1); },
+            pageSizeOptions: [10, 20, 50, 100],
           }}
         />
         </div>

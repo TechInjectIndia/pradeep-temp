@@ -41,6 +41,7 @@ function BookMappingsTab() {
   const [rows, setRows] = useState<BookMapping[]>([]);
   const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -63,13 +64,11 @@ function BookMappingsTab() {
   const [algoliaHits, setAlgoliaHits] = useState<AlgoliaHit[]>([]);
   const [algoliaSearching, setAlgoliaSearching] = useState(false);
 
-  const PAGE_SIZE = 50;
-
-  const load = useCallback(async (p: number, q: string) => {
+  const load = useCallback(async (p: number, q: string, ps: number) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await listBookMappings({ page: p, pageSize: PAGE_SIZE, search: q });
+      const res = await listBookMappings({ page: p, pageSize: ps, search: q });
       setRows(res.data);
       setTotal(res.total);
     } catch (e) {
@@ -80,8 +79,8 @@ function BookMappingsTab() {
   }, []);
 
   useEffect(() => {
-    load(page, search);
-  }, [load, page, search]);
+    load(page, search, pageSize);
+  }, [load, page, search, pageSize]);
 
   // Debounced Algolia search
   const handleAlgoliaSearch = useCallback(async (q: string) => {
@@ -148,7 +147,7 @@ function BookMappingsTab() {
         )
       );
       closeCreate();
-      load(page, search);
+      load(page, search, pageSize);
     } catch (e) {
       setFormError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -179,7 +178,7 @@ function BookMappingsTab() {
     try {
       await updateBookMapping(editRow.id, { ...editForm, authors: editForm.authors });
       closeEdit();
-      load(page, search);
+      load(page, search, pageSize);
     } catch (e) {
       setEditError(e instanceof Error ? e.message : "Save failed");
     } finally {
@@ -191,7 +190,7 @@ function BookMappingsTab() {
     if (!confirm(`Delete "${row.productTitle}" from code "${row.bookCode}"?`)) return;
     try {
       await deleteBookMapping(row.id);
-      load(page, search);
+      load(page, search, pageSize);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Delete failed");
     }
@@ -203,7 +202,7 @@ function BookMappingsTab() {
     return acc;
   }, {});
   const groupedCodes = Object.keys(grouped);
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   // Algolia dropdown (shared)
   const AlgoliaDropdown = ({ onSelect }: { onSelect: (hit: AlgoliaHit) => void }) => (
@@ -323,9 +322,20 @@ function BookMappingsTab() {
       </div>
 
       {/* Pagination */}
-      {totalPages > 1 && (
+      {total > 0 && (
         <div className="flex items-center justify-between text-sm text-muted-foreground">
-          <span>{total} total mappings</span>
+          <div className="flex items-center gap-3">
+            <span>{total} total mappings</span>
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+              className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              {[10, 20, 50, 100].map((s) => (
+                <option key={s} value={s}>{s} / page</option>
+              ))}
+            </select>
+          </div>
           <div className="flex items-center gap-2">
             <button onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page === 1} className="rounded-md px-3 py-1.5 border border-border hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed transition-colors">Previous</button>
             <span className="px-2">Page {page} / {totalPages}</span>
@@ -554,7 +564,7 @@ function AlgoliaProductsTab() {
   }, []);
 
   useEffect(() => {
-    load(page, search);
+    load(page, search, pageSize);
   }, [load, page, search]);
 
   const handleSyncSearch = async () => {
@@ -603,13 +613,13 @@ function AlgoliaProductsTab() {
     if (!confirm(`Remove product "${objectID}" from local cache?`)) return;
     try {
       await deleteAlgoliaProduct(objectID);
-      load(page, search);
+      load(page, search, pageSize);
     } catch (e) {
       alert(e instanceof Error ? e.message : "Delete failed");
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
   return (
     <div className="space-y-4">

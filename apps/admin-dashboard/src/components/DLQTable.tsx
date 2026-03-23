@@ -9,15 +9,17 @@ interface Props {
   entries: DLQEntry[];
   total: number;
   page: number;
+  pageSize: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onPageSizeChange: (size: number) => void;
   onRetrySelected: (ids: string[]) => void;
   onRetryAll: () => void;
   isLoading?: boolean;
 }
 
 export default function DLQTable({
-  entries, total, page, totalPages, onPageChange,
+  entries, total, page, pageSize, totalPages, onPageChange, onPageSizeChange,
   onRetrySelected, onRetryAll, isLoading,
 }: Props) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -155,7 +157,7 @@ export default function DLQTable({
         keyExtractor={(row) => row.id}
         isLoading={isLoading}
         emptyMessage="No dead letter queue entries."
-        pagination={{ page, pageSize: 20, total, totalPages, onPageChange }}
+        pagination={{ page, pageSize, total, totalPages, onPageChange, onPageSizeChange, pageSizeOptions: [10, 20, 50, 100] }}
       />
     </div>
   );

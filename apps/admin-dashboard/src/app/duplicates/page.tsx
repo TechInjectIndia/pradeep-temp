@@ -89,7 +89,7 @@ export default function DuplicatesPage() {
   const [batchFilter, setBatchFilter] = useState("");
   const [resolutionFilter, setResolutionFilter] = useState<DuplicateResolution | "">("");
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const pageSize = 10;
 
   const { data: response, isLoading } = useDuplicates({
     batchId: batchFilter || undefined,

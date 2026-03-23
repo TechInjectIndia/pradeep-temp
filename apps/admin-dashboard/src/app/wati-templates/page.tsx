@@ -629,7 +629,7 @@ export default function WatiTemplatesPage() {
   const [previewTarget, setPreviewTarget] = useState<WatiTemplate | null>(null);
   const [showSync, setShowSync] = useState(false);
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const [pageSize, setPageSize] = useState(10);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -656,10 +656,10 @@ export default function WatiTemplatesPage() {
   };
 
   const activeTemplates = templates.filter((t) => t.isActive);
-  const totalPages = Math.ceil(templates.length / PAGE_SIZE);
+  const totalPages = Math.ceil(templates.length / pageSize);
   const pagedTemplates = useMemo(
-    () => templates.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
-    [templates, page]
+    () => templates.slice((page - 1) * pageSize, page * pageSize),
+    [templates, page, pageSize]
   );
 
   return (
@@ -735,7 +735,18 @@ export default function WatiTemplatesPage() {
               onPreview={() => setPreviewTarget(tmpl)}
             />
           ))}
-          <Pagination page={page} totalPages={totalPages} total={templates.length} onPageChange={setPage} />
+          <div className="flex items-center justify-between px-1">
+            <select
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+              className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              {[10, 20, 50, 100].map((s) => (
+                <option key={s} value={s}>{s} / page</option>
+              ))}
+            </select>
+            <Pagination page={page} totalPages={totalPages} total={templates.length} onPageChange={setPage} />
+          </div>
         </div>
       )}
 

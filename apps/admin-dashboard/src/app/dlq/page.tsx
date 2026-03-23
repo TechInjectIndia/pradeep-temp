@@ -15,7 +15,7 @@ export default function DLQPage() {
   const [channelFilter, setChannelFilter] = useState<MessageChannel | "">("");
   const [retryableOnly, setRetryableOnly] = useState(false);
   const [page, setPage] = useState(1);
-  const pageSize = 20;
+  const [pageSize, setPageSize] = useState(10);
 
   const { data: response, isLoading } = useDLQ({
     batchId: batchFilter || undefined,
@@ -115,8 +115,10 @@ export default function DLQPage() {
           entries={entries}
           total={totalCount}
           page={page}
+          pageSize={pageSize}
           totalPages={Math.ceil(totalCount / pageSize)}
           onPageChange={setPage}
+          onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
           onRetrySelected={handleRetrySelected}
           onRetryAll={handleRetryAll}
         />

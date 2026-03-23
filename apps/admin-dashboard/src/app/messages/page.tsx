@@ -29,10 +29,12 @@ export default function MessagesPage() {
   const [channelFilter, setChannelFilter] = useState<"WHATSAPP" | "EMAIL" | "">("");
   const [statusFilter, setStatusFilter] = useState("");
   const [page, setPage] = useState(1);
-  const pageSize = 50;
+  const [pageSize, setPageSize] = useState(10);
+  const [batchPage, setBatchPage] = useState(1);
+  const [batchPageSize, setBatchPageSize] = useState(10);
 
   const { data, isLoading, isError, error, dataUpdatedAt } = useQuery({
-    queryKey: ["commLogs", batchFilter, channelFilter, statusFilter, page],
+    queryKey: ["commLogs", batchFilter, channelFilter, statusFilter, page, pageSize],
     queryFn: () =>
       listCommLogs({
         batchId: batchFilter || undefined,
@@ -127,7 +129,13 @@ export default function MessagesPage() {
       ) : (
         <>
           {activeTab === "batches" && (
-            <BatchProgressView batches={batchSummary} />
+            <BatchProgressView
+              batches={batchSummary}
+              page={batchPage}
+              pageSize={batchPageSize}
+              onPageChange={setBatchPage}
+              onPageSizeChange={(s) => { setBatchPageSize(s); setBatchPage(1); }}
+            />
           )}
 
           {activeTab === "logs" && (
@@ -164,7 +172,18 @@ export default function MessagesPage() {
 
               <LogsTable logs={logs} />
 
-              <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+              <div className="flex items-center justify-between">
+                <select
+                  value={pageSize}
+                  onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+                  className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  {[10, 20, 50, 100].map((s) => (
+                    <option key={s} value={s}>{s} / page</option>
+                  ))}
+                </select>
+                <Pagination page={page} totalPages={totalPages} total={total} onPageChange={setPage} />
+              </div>
             </>
           )}
         </>
@@ -175,7 +194,19 @@ export default function MessagesPage() {
 
 // ─── Batch Progress View ───────────────────────────────────────────────────────
 
-function BatchProgressView({ batches }: { batches: BatchCommSummary[] }) {
+function BatchProgressView({
+  batches,
+  page,
+  pageSize,
+  onPageChange,
+  onPageSizeChange,
+}: {
+  batches: BatchCommSummary[];
+  page: number;
+  pageSize: number;
+  onPageChange: (p: number) => void;
+  onPageSizeChange: (s: number) => void;
+}) {
   if (batches.length === 0) {
     return (
       <div className="rounded-xl border border-border bg-card p-12 text-center text-sm text-muted-foreground">
@@ -184,73 +215,76 @@ function BatchProgressView({ batches }: { batches: BatchCommSummary[] }) {
     );
   }
 
+  const totalPages = Math.ceil(batches.length / pageSize);
+  const paged = batches.slice((page - 1) * pageSize, page * pageSize);
+
   return (
-    <div className="space-y-4">
-      {batches.map((b) => {
-        const sentPct = b.total > 0 ? Math.round(((b.sent + b.delivered) / b.total) * 100) : 0;
-        const failPct = b.total > 0 ? Math.round(((b.failed + b.dlq) / b.total) * 100) : 0;
-        const queuePct = b.total > 0 ? Math.round((b.queued / b.total) * 100) : 0;
+    <div className="space-y-3">
+    <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+      <table className="min-w-full divide-y divide-border">
+        <thead className="bg-muted/50">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">Batch ID</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground">File</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase text-muted-foreground min-w-[180px]">Progress</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-muted-foreground">Total</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-yellow-700">Queued</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-green-700">Sent</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-red-600">Failed</th>
+            <th className="px-4 py-3 text-center text-xs font-semibold uppercase text-red-800">DLQ</th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-border bg-card">
+          {paged.map((b) => {
+            const sentPct = b.total > 0 ? Math.round(((b.sent + b.delivered) / b.total) * 100) : 0;
+            const failPct = b.total > 0 ? Math.round(((b.failed + b.dlq) / b.total) * 100) : 0;
+            const queuePct = b.total > 0 ? Math.round((b.queued / b.total) * 100) : 0;
 
-        return (
-          <div key={b.batchId} className="rounded-xl border border-border bg-card shadow-sm p-5 space-y-4">
-            {/* Batch header */}
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <Link
-                  href={`/batches/${b.batchId}`}
-                  className="font-mono text-sm font-semibold text-blue-600 hover:underline"
-                >
-                  {b.batchId}
-                </Link>
-                {b.fileName && b.fileName !== b.batchId && (
-                  <div className="text-xs text-muted-foreground mt-0.5">{b.fileName}</div>
-                )}
-              </div>
-              <div className="flex gap-2 text-xs font-medium shrink-0">
-                <span className="rounded-full px-2 py-0.5 bg-yellow-100 text-yellow-800">{b.queued} queued</span>
-                <span className="rounded-full px-2 py-0.5 bg-green-100 text-green-800">{b.sent + b.delivered} sent</span>
-                {(b.failed + b.dlq) > 0 && (
-                  <span className="rounded-full px-2 py-0.5 bg-red-100 text-red-800">{b.failed + b.dlq} failed</span>
-                )}
-              </div>
-            </div>
-
-            {/* Progress bar */}
-            <div>
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>{sentPct}% delivered</span>
-                <span>{b.total} total</span>
-              </div>
-              <div className="h-3 w-full rounded-full bg-muted overflow-hidden flex">
-                <div className="h-full bg-green-500 transition-all" style={{ width: `${sentPct}%` }} />
-                <div className="h-full bg-red-400 transition-all" style={{ width: `${failPct}%` }} />
-                <div className="h-full bg-yellow-300 transition-all" style={{ width: `${queuePct}%` }} />
-              </div>
-              <div className="flex gap-4 mt-1.5 text-xs text-muted-foreground">
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-green-500" />Sent</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-red-400" />Failed</span>
-                <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-yellow-300" />Queued</span>
-              </div>
-            </div>
-
-            {/* Per-channel breakdown */}
-            <div className="grid grid-cols-5 gap-2 text-center text-xs">
-              {[
-                { label: "Total",   value: b.total,              color: "text-foreground" },
-                { label: "Queued",  value: b.queued,             color: "text-yellow-600" },
-                { label: "Sent",    value: b.sent + b.delivered, color: "text-green-600" },
-                { label: "Failed",  value: b.failed,             color: "text-red-600" },
-                { label: "DLQ",     value: b.dlq,                color: "text-red-800" },
-              ].map((s) => (
-                <div key={s.label} className="rounded-lg border border-border py-2">
-                  <div className={`font-bold text-base ${s.color}`}>{s.value}</div>
-                  <div className="text-muted-foreground">{s.label}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
+            return (
+              <tr key={b.batchId} className="hover:bg-muted/40">
+                <td className="whitespace-nowrap px-4 py-3">
+                  <Link
+                    href={`/batches/${b.batchId}`}
+                    className="font-mono text-xs font-semibold text-blue-600 hover:underline"
+                  >
+                    {b.batchId}
+                  </Link>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
+                  {b.fileName && b.fileName !== b.batchId ? b.fileName : "—"}
+                </td>
+                <td className="px-4 py-3 min-w-[180px]">
+                  <div className="h-2 w-full rounded-full bg-muted overflow-hidden flex">
+                    <div className="h-full bg-green-500 transition-all" style={{ width: `${sentPct}%` }} />
+                    <div className="h-full bg-red-400 transition-all" style={{ width: `${failPct}%` }} />
+                    <div className="h-full bg-yellow-300 transition-all" style={{ width: `${queuePct}%` }} />
+                  </div>
+                  <div className="mt-1 text-[10px] text-muted-foreground">{sentPct}%</div>
+                </td>
+                <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-medium text-foreground">{b.total}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-semibold text-yellow-600">{b.queued}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-semibold text-green-600">{b.sent + b.delivered}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-semibold text-red-600">{b.failed}</td>
+                <td className="whitespace-nowrap px-4 py-3 text-center text-sm font-semibold text-red-800">{b.dlq}</td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+    {/* Pagination footer */}
+    <div className="flex items-center justify-between">
+      <select
+        value={pageSize}
+        onChange={(e) => { onPageSizeChange(Number(e.target.value)); }}
+        className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+      >
+        {[10, 20, 50, 100].map((s) => (
+          <option key={s} value={s}>{s} / page</option>
+        ))}
+      </select>
+      <Pagination page={page} totalPages={totalPages} total={batches.length} onPageChange={onPageChange} />
+    </div>
     </div>
   );
 }

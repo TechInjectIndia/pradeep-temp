@@ -216,8 +216,8 @@ export default function TeachersPage() {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [addContactTeacher, setAddContactTeacher] = useState<Teacher | null>(null);
-  const pageSize = 20;
   const queryClient = useQueryClient();
 
   // Debounce search input by 300ms
@@ -287,6 +287,8 @@ export default function TeachersPage() {
             total,
             totalPages,
             onPageChange: setPage,
+            onPageSizeChange: (s) => { setPageSize(s); setPage(1); },
+            pageSizeOptions: [10, 20, 50, 100],
           }}
         />
       )}

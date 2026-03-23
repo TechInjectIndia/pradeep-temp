@@ -25,6 +25,8 @@ interface Props<T> {
     total: number;
     totalPages: number;
     onPageChange: (page: number) => void;
+    onPageSizeChange?: (size: number) => void;
+    pageSizeOptions?: number[];
   };
   isLoading?: boolean;
   emptyMessage?: string;
@@ -155,12 +157,25 @@ export default function DataTable<T>({
       </div>
 
       {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
+      {pagination && pagination.total > 0 && (
         <div className="flex flex-col items-center gap-3 border-t border-border bg-card px-4 py-3 sm:flex-row sm:justify-between sm:px-6 transition-colors">
-          <p className="text-sm text-muted-foreground">
-            Page {pagination.page} of {pagination.totalPages}{" "}
-            <span className="text-muted-foreground/60">({pagination.total} total)</span>
-          </p>
+          <div className="flex items-center gap-3">
+            <p className="text-sm text-muted-foreground">
+              Page {pagination.page} of {pagination.totalPages}{" "}
+              <span className="text-muted-foreground/60">({pagination.total} total)</span>
+            </p>
+            {pagination.onPageSizeChange && (
+              <select
+                value={pagination.pageSize}
+                onChange={(e) => { pagination.onPageSizeChange!(Number(e.target.value)); pagination.onPageChange(1); }}
+                className="rounded-md border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              >
+                {(pagination.pageSizeOptions ?? [10, 20, 50, 100]).map((s) => (
+                  <option key={s} value={s}>{s} / page</option>
+                ))}
+              </select>
+            )}
+          </div>
           <div className="flex items-center gap-1">
             <button
               onClick={() => pagination.onPageChange(1)}
