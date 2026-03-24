@@ -11,6 +11,7 @@ type AlgoliaHit = {
   subject?: string;
   grade?: string;
   publisher?: string;
+  edition?: string;
   image?: string;
   "mainImage.url"?: string;
   [key: string]: unknown;

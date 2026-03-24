@@ -80,6 +80,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
             authors: body.authors ?? [],
             notes: body.notes?.trim() ?? null,
             coverUrl: body.coverUrl ?? null,
+            edition: body.edition?.trim() ?? null,
           })
           .returning();
 
@@ -101,6 +102,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
         authors: t.Optional(t.Array(t.Object({ id: t.String(), title: t.String() }))),
         notes: t.Optional(t.String({ maxLength: 1000 })),
         coverUrl: t.Optional(t.String()),
+        edition: t.Optional(t.String({ maxLength: 200 })),
       }),
     }
   )
@@ -127,6 +129,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
             authors: body.authors !== undefined ? body.authors : existing.authors,
             notes: body.notes !== undefined ? (body.notes?.trim() || null) : existing.notes,
             coverUrl: body.coverUrl !== undefined ? body.coverUrl : existing.coverUrl,
+            edition: body.edition !== undefined ? (body.edition?.trim() || null) : existing.edition,
             updatedAt: new Date(),
           })
           .where(eq(bookMappings.id, params.id))
@@ -151,6 +154,7 @@ export const bookMappingRoutes = new Elysia({ prefix: '/book-mappings' })
         authors: t.Optional(t.Array(t.Object({ id: t.String(), title: t.String() }))),
         notes: t.Optional(t.String({ maxLength: 1000 })),
         coverUrl: t.Optional(t.String()),
+        edition: t.Optional(t.String({ maxLength: 200 })),
       }),
     }
   )

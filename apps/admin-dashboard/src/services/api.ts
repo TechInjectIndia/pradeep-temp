@@ -512,6 +512,7 @@ export interface BookMapping {
   authors: Array<{id: string; title: string}>;
   notes: string | null;
   coverUrl: string | null;
+  edition: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -538,6 +539,7 @@ export async function createBookMapping(data: {
   authors?: Array<{id: string; title: string}>;
   notes?: string;
   coverUrl?: string | null;
+  edition?: string | null;
 }): Promise<BookMapping> {
   return request("/book-mappings", {
     method: "POST",
@@ -547,7 +549,7 @@ export async function createBookMapping(data: {
 
 export async function updateBookMapping(
   id: string,
-  data: { bookCode?: string; productId?: string; productTitle?: string; authors?: Array<{id: string; title: string}>; notes?: string; coverUrl?: string | null }
+  data: { bookCode?: string; productId?: string; productTitle?: string; authors?: Array<{id: string; title: string}>; notes?: string; coverUrl?: string | null; edition?: string | null }
 ): Promise<BookMapping> {
   return request(`/book-mappings/${id}`, {
     method: "PUT",
@@ -579,6 +581,7 @@ export interface AlgoliaHit {
   subject?: string;
   grade?: string;
   publisher?: string;
+  edition?: string;
   image?: string;
   "mainImage.url"?: string;
   authors?: Array<{ id: string; title: string }>;

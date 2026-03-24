@@ -312,6 +312,9 @@ async function main() {
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='book_mappings' AND column_name='cover_url') THEN
         ALTER TABLE book_mappings ADD COLUMN cover_url TEXT;
       END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='book_mappings' AND column_name='edition') THEN
+        ALTER TABLE book_mappings ADD COLUMN edition TEXT;
+      END IF;
     END $$;
 
     -- Indexes

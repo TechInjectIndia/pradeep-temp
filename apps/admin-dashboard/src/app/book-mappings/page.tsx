@@ -29,6 +29,7 @@ interface SelectedProduct {
   notes: string;
   authors: Array<{id: string; title: string}>;
   coverUrl?: string | null;
+  edition?: string | null;
 }
 
 interface EditFormState {
@@ -38,6 +39,7 @@ interface EditFormState {
   notes: string;
   authors: Array<{id: string; title: string}>;
   coverUrl?: string | null;
+  edition?: string | null;
 }
 
 function BookMappingsTab() {
@@ -131,7 +133,7 @@ function BookMappingsTab() {
     if (alreadyAdded) return;
     setSelectedProducts((prev) => [
       ...prev,
-      { productId: hit.objectID, productTitle: hit.title ?? hit.objectID, notes: "", authors: Array.isArray(hit.authors) ? hit.authors : [], coverUrl: (hit["mainImage.url"] as string | undefined) ?? (hit.image as string | undefined) ?? null },
+      { productId: hit.objectID, productTitle: hit.title ?? hit.objectID, notes: "", authors: Array.isArray(hit.authors) ? hit.authors : [], coverUrl: (hit["mainImage.url"] as string | undefined) ?? (hit.image as string | undefined) ?? null, edition: hit.edition ?? null },
     ]);
     setAlgoliaQuery("");
     setAlgoliaHits([]);
@@ -149,7 +151,7 @@ function BookMappingsTab() {
     try {
       await Promise.all(
         selectedProducts.map((p) =>
-          createBookMapping({ bookCode: createBookCode.trim(), productId: p.productId, productTitle: p.productTitle, authors: p.authors, notes: p.notes, coverUrl: p.coverUrl })
+          createBookMapping({ bookCode: createBookCode.trim(), productId: p.productId, productTitle: p.productTitle, authors: p.authors, notes: p.notes, coverUrl: p.coverUrl, edition: p.edition })
         )
       );
       closeCreate();
@@ -165,7 +167,7 @@ function BookMappingsTab() {
 
   const openEdit = (row: BookMapping) => {
     setEditRow(row);
-    setEditForm({ bookCode: row.bookCode, productId: row.productId, productTitle: row.productTitle, notes: row.notes ?? "", authors: row.authors ?? [], coverUrl: row.coverUrl });
+    setEditForm({ bookCode: row.bookCode, productId: row.productId, productTitle: row.productTitle, notes: row.notes ?? "", authors: row.authors ?? [], coverUrl: row.coverUrl, edition: row.edition });
     setEditError(null);
     setAlgoliaQuery("");
     setAlgoliaHits([]);
@@ -251,6 +253,7 @@ function BookMappingsTab() {
                   <div className="min-w-0 flex-1">
                     <span className="font-medium text-foreground block truncate leading-snug">{hit.title ?? hit.objectID}</span>
                     <span className="text-xs text-muted-foreground font-mono block mt-0.5">{hit.objectID}</span>
+                    {hit.edition && <span className="text-xs text-muted-foreground block">Edition: {hit.edition}</span>}
                     {hit.isbn && <span className="text-xs text-muted-foreground block">ISBN: {hit.isbn}</span>}
                   </div>
                 </button>
@@ -332,6 +335,7 @@ function BookMappingsTab() {
                           <span className="text-xs text-muted-foreground">by {row.authors.map((a) => a.title).join(", ")}</span>
                         )}
                         <span className="font-mono text-xs text-muted-foreground block">{row.productId}</span>
+                        {row.edition && <span className="text-xs text-muted-foreground block">Edition: {row.edition}</span>}
                         {row.notes && <span className="text-xs text-muted-foreground">· {row.notes}</span>}
                       </div>
                       <div className="flex items-center gap-1 shrink-0">
@@ -458,6 +462,7 @@ function BookMappingsTab() {
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{p.productTitle}</p>
                           <p className="text-xs font-mono text-muted-foreground">{p.productId}</p>
+                          {p.edition && <p className="text-xs text-muted-foreground">Edition: {p.edition}</p>}
                           <input
                             value={p.notes}
                             onChange={(e) => setSelectedProducts((prev) => prev.map((x) => x.productId === p.productId ? { ...x, notes: e.target.value } : x))}
@@ -547,7 +552,7 @@ function BookMappingsTab() {
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <AlgoliaDropdown onSelect={(hit) => { setEditForm((f) => ({ ...f, productId: hit.objectID, productTitle: hit.title ?? hit.objectID, authors: Array.isArray(hit.authors) ? hit.authors : f.authors, coverUrl: (hit["mainImage.url"] as string | undefined) ?? (hit.image as string | undefined) ?? null })); setAlgoliaQuery(""); setAlgoliaHits([]); }} />
+                  <AlgoliaDropdown onSelect={(hit) => { setEditForm((f) => ({ ...f, productId: hit.objectID, productTitle: hit.title ?? hit.objectID, authors: Array.isArray(hit.authors) ? hit.authors : f.authors, coverUrl: (hit["mainImage.url"] as string | undefined) ?? (hit.image as string | undefined) ?? null, edition: hit.edition ?? null })); setAlgoliaQuery(""); setAlgoliaHits([]); }} />
                 </div>
               </div>
               <div>
@@ -557,6 +562,10 @@ function BookMappingsTab() {
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Product Title *</label>
                 <input value={editForm.productTitle} onChange={(e) => setEditForm((f) => ({ ...f, productTitle: e.target.value }))} className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-1">Edition</label>
+                <input value={editForm.edition ?? ""} onChange={(e) => setEditForm((f) => ({ ...f, edition: e.target.value || null }))} placeholder="e.g. 2nd Edition" className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">Notes</label>
