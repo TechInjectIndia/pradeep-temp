@@ -565,6 +565,7 @@ export const bookMappings = pgTable(
     productTitle: text('product_title').notNull(),
     authors: jsonb('authors').$type<Array<{id: string; title: string}>>().default([]),
     notes: text('notes'),
+    coverUrl: text('cover_url'),
     createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   },

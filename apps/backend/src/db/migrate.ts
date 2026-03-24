@@ -307,6 +307,13 @@ async function main() {
       synced_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    -- Column additions (idempotent via DO block)
+    DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='book_mappings' AND column_name='cover_url') THEN
+        ALTER TABLE book_mappings ADD COLUMN cover_url TEXT;
+      END IF;
+    END $$;
+
     -- Indexes
     CREATE INDEX IF NOT EXISTS idx_comm_log_batch_status ON comm_log(batch_id, status);
     CREATE INDEX IF NOT EXISTS idx_orders_batch_status ON orders(batch_id, status);

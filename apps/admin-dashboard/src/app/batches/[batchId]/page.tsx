@@ -12,6 +12,7 @@ import {
 import BatchStateIndicator from "@/components/BatchStateIndicator";
 import ChannelBadge from "@/components/ChannelBadge";
 import SkeletonTable from "@/components/SkeletonTable";
+import { Portal } from "@/components/Portal";
 import { Loader2 } from "lucide-react";
 import { clsx } from "clsx";
 import type { BatchLogEntry, StatusHistoryEntry } from "@/types";
@@ -119,7 +120,8 @@ export default function BatchDetailPage() {
     <div className="space-y-4">
       {/* Cancel Dialog */}
       {showCancelDialog && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <Portal>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="w-full max-w-md rounded-2xl bg-card p-6 shadow-2xl border border-border">
             <h3 className="text-lg font-semibold text-foreground">Cancel Batch</h3>
             <p className="mt-1 text-sm text-muted-foreground">Please provide a reason.</p>
@@ -148,6 +150,7 @@ export default function BatchDetailPage() {
             </div>
           </div>
         </div>
+        </Portal>
       )}
 
       {/* Hero */}

@@ -12,6 +12,7 @@ type AlgoliaHit = {
   grade?: string;
   publisher?: string;
   image?: string;
+  "mainImage.url"?: string;
   [key: string]: unknown;
 };
 

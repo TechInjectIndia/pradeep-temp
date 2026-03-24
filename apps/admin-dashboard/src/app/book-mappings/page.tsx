@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { Search, Plus, Pencil, Trash2, RefreshCw, X, Check, BookOpen } from "lucide-react";
+import { Portal } from "@/components/Portal";
 import {
   listBookMappings,
   createBookMapping,
@@ -27,6 +28,7 @@ interface SelectedProduct {
   productTitle: string;
   notes: string;
   authors: Array<{id: string; title: string}>;
+  coverUrl?: string | null;
 }
 
 interface EditFormState {
@@ -35,6 +37,7 @@ interface EditFormState {
   productTitle: string;
   notes: string;
   authors: Array<{id: string; title: string}>;
+  coverUrl?: string | null;
 }
 
 function BookMappingsTab() {
@@ -52,6 +55,9 @@ function BookMappingsTab() {
   const [selectedProducts, setSelectedProducts] = useState<SelectedProduct[]>([]);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  // Image lightbox
+  const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
 
   // Edit modal (single product)
   const [editRow, setEditRow] = useState<BookMapping | null>(null);
@@ -99,7 +105,7 @@ function BookMappingsTab() {
 
   useEffect(() => {
     if (!algoliaQuery.trim()) { setAlgoliaHits([]); setAlgoliaSearching(false); return; }
-    const t = setTimeout(() => handleAlgoliaSearch(algoliaQuery), 350);
+    const t = setTimeout(() => handleAlgoliaSearch(algoliaQuery), 500);
     return () => clearTimeout(t);
   }, [algoliaQuery, handleAlgoliaSearch]);
 
@@ -125,7 +131,7 @@ function BookMappingsTab() {
     if (alreadyAdded) return;
     setSelectedProducts((prev) => [
       ...prev,
-      { productId: hit.objectID, productTitle: hit.title ?? hit.objectID, notes: "", authors: Array.isArray(hit.authors) ? hit.authors : [] },
+      { productId: hit.objectID, productTitle: hit.title ?? hit.objectID, notes: "", authors: Array.isArray(hit.authors) ? hit.authors : [], coverUrl: (hit["mainImage.url"] as string | undefined) ?? (hit.image as string | undefined) ?? null },
     ]);
     setAlgoliaQuery("");
     setAlgoliaHits([]);
@@ -143,7 +149,7 @@ function BookMappingsTab() {
     try {
       await Promise.all(
         selectedProducts.map((p) =>
-          createBookMapping({ bookCode: createBookCode.trim(), productId: p.productId, productTitle: p.productTitle, authors: p.authors, notes: p.notes })
+          createBookMapping({ bookCode: createBookCode.trim(), productId: p.productId, productTitle: p.productTitle, authors: p.authors, notes: p.notes, coverUrl: p.coverUrl })
         )
       );
       closeCreate();
@@ -159,7 +165,7 @@ function BookMappingsTab() {
 
   const openEdit = (row: BookMapping) => {
     setEditRow(row);
-    setEditForm({ bookCode: row.bookCode, productId: row.productId, productTitle: row.productTitle, notes: row.notes ?? "", authors: row.authors ?? [] });
+    setEditForm({ bookCode: row.bookCode, productId: row.productId, productTitle: row.productTitle, notes: row.notes ?? "", authors: row.authors ?? [], coverUrl: row.coverUrl });
     setEditError(null);
     setAlgoliaQuery("");
     setAlgoliaHits([]);
@@ -220,18 +226,36 @@ function BookMappingsTab() {
           ) : algoliaHits.length === 0 ? (
             <div className="px-3 py-4 text-center text-sm text-muted-foreground">No products found</div>
           ) : (
-            algoliaHits.map((hit) => (
-              <button
-                key={hit.objectID}
-                type="button"
-                onClick={() => onSelect(hit)}
-                className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted border-b border-border last:border-0 transition-colors"
-              >
-                <span className="font-medium text-foreground">{hit.title ?? hit.objectID}</span>
-                {hit.isbn && <span className="ml-2 text-xs text-muted-foreground">ISBN: {hit.isbn}</span>}
-                <span className="ml-2 text-xs font-mono text-muted-foreground">{hit.objectID}</span>
-              </button>
-            ))
+            algoliaHits.map((hit) => {
+              const imgUrl = (hit["mainImage.url"] as string | undefined) ?? (hit.image as string | undefined);
+              return (
+                <button
+                  key={hit.objectID}
+                  type="button"
+                  onClick={() => onSelect(hit)}
+                  className="w-full text-left px-3 py-2 text-sm hover:bg-muted border-b border-border last:border-0 transition-colors flex items-center gap-3"
+                >
+                  <div className="flex-shrink-0 w-10 h-14 rounded overflow-hidden border border-border bg-muted shadow-sm">
+                    {imgUrl ? (
+                      <img
+                        src={imgUrl}
+                        alt=""
+                        referrerPolicy="no-referrer"
+                        className="w-full h-full object-cover"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                      />
+                    ) : (
+                      <div className="w-full h-full bg-muted" />
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="font-medium text-foreground block truncate leading-snug">{hit.title ?? hit.objectID}</span>
+                    <span className="text-xs text-muted-foreground font-mono block mt-0.5">{hit.objectID}</span>
+                    {hit.isbn && <span className="text-xs text-muted-foreground block">ISBN: {hit.isbn}</span>}
+                  </div>
+                </button>
+              );
+            })
           )}
         </div>
       )}
@@ -296,6 +320,12 @@ function BookMappingsTab() {
                 <div className="space-y-1">
                   {products.map((row) => (
                     <div key={row.id} className="flex items-center gap-3 rounded-lg bg-muted/30 px-3 py-2 text-sm hover:bg-muted/50 transition-colors">
+                      <div
+                        className={`flex-shrink-0 w-9 h-12 rounded overflow-hidden border border-border bg-muted ${row.coverUrl ? "cursor-pointer hover:opacity-80 transition-opacity" : ""}`}
+                        onClick={() => row.coverUrl && setLightboxUrl(row.coverUrl)}
+                      >
+                        {row.coverUrl ? <img src={row.coverUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-muted" />}
+                      </div>
                       <div className="flex-1 min-w-0">
                         <span className="font-medium text-foreground truncate block">{row.productTitle}</span>
                         {row.authors && row.authors.length > 0 && (
@@ -344,9 +374,35 @@ function BookMappingsTab() {
         </div>
       )}
 
+      {/* ── Image Lightbox ─────────────────────────────────────────────────────── */}
+      {lightboxUrl && (
+        <Portal>
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setLightboxUrl(null)}
+        >
+          <div className="relative max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <button
+              onClick={() => setLightboxUrl(null)}
+              className="absolute -top-3 -right-3 z-10 rounded-full bg-card border border-border p-1 text-muted-foreground hover:text-foreground shadow-lg transition-colors"
+            >
+              <X className="h-4 w-4" />
+            </button>
+            <img
+              src={lightboxUrl}
+              alt="Book cover"
+              referrerPolicy="no-referrer"
+              className="w-full rounded-xl shadow-2xl object-contain max-h-[80vh]"
+            />
+          </div>
+        </div>
+        </Portal>
+      )}
+
       {/* ── Create Modal (multi-product) ──────────────────────────────────────── */}
       {showCreate && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <Portal>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-lg rounded-xl bg-card border border-border shadow-xl flex flex-col overflow-visible">
             <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
               <h2 className="text-base font-semibold text-foreground">Add Book Mapping</h2>
@@ -396,6 +452,9 @@ function BookMappingsTab() {
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {selectedProducts.map((p) => (
                       <div key={p.productId} className="flex items-start gap-2 rounded-lg border border-border bg-muted/30 px-3 py-2">
+                        <div className="flex-shrink-0 w-9 h-12 rounded overflow-hidden border border-border bg-muted mt-0.5">
+                          {p.coverUrl ? <img src={p.coverUrl} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" /> : <div className="w-full h-full bg-muted" />}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{p.productTitle}</p>
                           <p className="text-xs font-mono text-muted-foreground">{p.productId}</p>
@@ -454,11 +513,13 @@ function BookMappingsTab() {
             </div>
           </div>
         </div>
+        </Portal>
       )}
 
       {/* ── Edit Modal (single product) ───────────────────────────────────────── */}
       {editRow && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <Portal>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
           <div className="w-full max-w-lg rounded-xl bg-card border border-border shadow-xl overflow-visible">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <h2 className="text-base font-semibold text-foreground">Edit Mapping</h2>
@@ -486,7 +547,7 @@ function BookMappingsTab() {
                     className="w-full rounded-lg border border-input bg-background px-3 py-2 pr-9 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                   />
                   <Search className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-                  <AlgoliaDropdown onSelect={(hit) => { setEditForm((f) => ({ ...f, productId: hit.objectID, productTitle: hit.title ?? hit.objectID, authors: Array.isArray(hit.authors) ? hit.authors : f.authors })); setAlgoliaQuery(""); setAlgoliaHits([]); }} />
+                  <AlgoliaDropdown onSelect={(hit) => { setEditForm((f) => ({ ...f, productId: hit.objectID, productTitle: hit.title ?? hit.objectID, authors: Array.isArray(hit.authors) ? hit.authors : f.authors, coverUrl: (hit["mainImage.url"] as string | undefined) ?? (hit.image as string | undefined) ?? null })); setAlgoliaQuery(""); setAlgoliaHits([]); }} />
                 </div>
               </div>
               <div>
@@ -523,6 +584,7 @@ function BookMappingsTab() {
             </div>
           </div>
         </div>
+        </Portal>
       )}
     </div>
   );
@@ -594,7 +656,7 @@ function AlgoliaProductsTab() {
         subject: h.subject ?? null,
         grade: h.grade ?? null,
         publisher: h.publisher ?? null,
-        coverUrl: h.image ?? null,
+        coverUrl: h["mainImage.url"] ?? h.image ?? null,
       }));
       const res = await syncAlgoliaProducts(products);
       setSyncMsg(`Synced ${res.synced} product(s) successfully.`);

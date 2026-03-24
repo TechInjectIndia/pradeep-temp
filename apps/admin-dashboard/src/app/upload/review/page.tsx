@@ -12,6 +12,7 @@ import {
   type MergeGroup,
 } from "@/utils/mergeDetection";
 import { clsx } from "clsx";
+import { Portal } from "@/components/Portal";
 
 const STORAGE_KEY = "upload_review_rows";
 const STORAGE_FILE_KEY = "upload_review_filename";
@@ -781,7 +782,8 @@ export default function UploadReviewPage() {
         const mergedPhones = buildMergedPhones(match);
         const mergedEmails = buildMergedEmails(match);
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <Portal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 p-4">
             <div className="w-full max-w-lg rounded-2xl border border-border bg-card shadow-2xl">
               {/* Modal header */}
               <div className="flex items-center justify-between border-b border-border px-6 py-4">
@@ -921,6 +923,7 @@ export default function UploadReviewPage() {
               </div>
             </div>
           </div>
+          </Portal>
         );
       })()}
 

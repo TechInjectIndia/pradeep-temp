@@ -20,6 +20,7 @@ import type { UploadRow } from "@/types";
 import * as XLSX from "xlsx";
 import { useRouter } from "next/navigation";
 import { uploadSpecimen, checkDuplicatesAgainstDB, lookupBookCodes, searchAlgolia, createBookMapping, type DBDuplicateMatch, type AlgoliaHit } from "@/services/api";
+import { Portal } from "@/components/Portal";
 
 // ---------------------------------------------------------------------------
 // Template helpers
@@ -863,7 +864,8 @@ export default function UploadPage() {
         const allNames = [...new Set(allGroupRows.map((r) => r.name).filter(Boolean) as string[])];
         const multipleNames = allNames.length > 1;
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Portal>
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
             <div className="w-full max-w-lg rounded-2xl bg-card p-6 shadow-2xl border border-border space-y-5 max-h-[90vh] overflow-y-auto">
               <div>
                 <h3 className="text-base font-semibold text-foreground">Configure Merge</h3>
@@ -1023,12 +1025,14 @@ export default function UploadPage() {
               </div>
             </div>
           </div>
+          </Portal>
         );
       })()}
 
       {/* Quick-Map Modal */}
       {quickMapCode && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+        <Portal>
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm p-4">
           <div className="w-full max-w-lg rounded-2xl bg-card border border-border shadow-2xl overflow-visible">
             <div className="flex items-center justify-between border-b border-border px-5 py-4">
               <div>
@@ -1140,6 +1144,7 @@ export default function UploadPage() {
             </div>
           </div>
         </div>
+        </Portal>
       )}
 
       {/* Header + Step indicator on same row */}

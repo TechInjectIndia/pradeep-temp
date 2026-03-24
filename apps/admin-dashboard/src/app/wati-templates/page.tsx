@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import Pagination from "@/components/Pagination";
+import { Portal } from "@/components/Portal";
 import {
   Plus, Pencil, X, Check, Zap, ZapOff, Eye, RefreshCw, ChevronDown, ChevronUp, MessageSquare, Download,
 } from "lucide-react";
@@ -147,7 +148,8 @@ function FormModal({ initial, onClose, onSaved }: FormModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/50 p-4 overflow-y-auto">
+    <Portal>
+    <div className="fixed inset-0 z-[9999] flex items-start justify-center bg-black/70 p-4 overflow-y-auto">
       <div className="w-full max-w-2xl rounded-xl bg-card border border-border shadow-xl my-8">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <h2 className="text-base font-semibold text-foreground">
@@ -271,6 +273,7 @@ function FormModal({ initial, onClose, onSaved }: FormModalProps) {
         </div>
       </div>
     </div>
+    </Portal>
   );
 }
 
@@ -297,7 +300,8 @@ function PreviewModal({ tmpl, onClose }: { tmpl: WatiTemplate; onClose: () => vo
     : null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <Portal>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-lg rounded-xl bg-card border border-border shadow-xl">
         <div className="flex items-center justify-between border-b border-border px-5 py-4">
           <div>
@@ -342,6 +346,7 @@ function PreviewModal({ tmpl, onClose }: { tmpl: WatiTemplate; onClose: () => vo
         </div>
       </div>
     </div>
+    </Portal>
   );
 }
 
@@ -498,7 +503,8 @@ function SyncFromWatiModal({
   ).length;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <Portal>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 p-4">
       <div className="w-full max-w-xl rounded-xl bg-card border border-border shadow-xl flex flex-col max-h-[85vh]">
         <div className="flex items-center justify-between border-b border-border px-5 py-4 shrink-0">
           <div>
@@ -615,6 +621,7 @@ function SyncFromWatiModal({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }
 

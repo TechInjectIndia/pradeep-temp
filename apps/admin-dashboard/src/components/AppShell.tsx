@@ -40,7 +40,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Top bar with hamburger — shifts right when sidebar is open */}
       <header
         className={clsx(
-          "fixed top-0 right-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-card px-4 shadow-sm transition-all duration-200 ease-in-out",
+          "fixed top-0 right-0 z-40 flex h-14 items-center gap-3 border-b border-border bg-card px-4 shadow-sm transition-[left] duration-200 ease-in-out",
           sidebarOpen ? "left-64" : "left-0"
         )}
       >
@@ -70,7 +70,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Main content — shifts right when sidebar is open */}
       <main
         className={clsx(
-          "min-w-0 flex-1 pt-14 transition-all duration-200 ease-in-out",
+          "min-w-0 flex-1 pt-14 transition-[margin-left] duration-200 ease-in-out",
           sidebarOpen && "ml-64"
         )}
       >

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import { clsx } from "clsx";
+import { Portal } from "@/components/Portal";
 import { useQueryClient } from "@tanstack/react-query";
 import DataTable, { type Column } from "@/components/DataTable";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -140,7 +141,8 @@ function AddContactModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
+    <Portal>
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-xl border border-border bg-card shadow-xl p-6 space-y-5">
         {/* Header */}
         <div className="flex items-start justify-between">
@@ -207,6 +209,7 @@ function AddContactModal({
         </div>
       </div>
     </div>
+    </Portal>
   );
 }
 
