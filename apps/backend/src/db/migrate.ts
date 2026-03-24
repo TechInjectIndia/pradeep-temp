@@ -325,75 +325,13 @@ async function main() {
 
   console.log('Schema sync complete.');
 
-  // Remove old templates that are no longer used
+  // Remove old/deprecated templates
   const oldTemplateNames = ['spmst1', 'spmst2', 'spmst3', 'spmst6', 'spmst9', 'spmst12', 'spemst_4'];
   for (const name of oldTemplateNames) {
     await db.execute(sql`DELETE FROM wati_templates WHERE template_name = ${name}`);
   }
-  console.log('Removed old templates (spmst*/spemst_* series).');
-
-  // Seed WATI templates (sbtemp_* series) — kept for reference, inactive
-  // Positional params: {{1}}=name, {{2}}=single order link,
-  // then pairs per book: {{3}}={{4}}=title+author for book1, {{5}}{{6}} for book2, etc.
-  const sbTemplates = [1, 2, 3, 4, 6, 9, 12];
-  for (const n of sbTemplates) {
-    const bookList = Array.from({ length: n }, (_, i) => {
-      const titleParam = 3 + i * 2;
-      const authorParam = 4 + i * 2;
-      return `*${i + 1}. {{${titleParam}}}* by _{{${authorParam}}}_`;
-    }).join('\n');
-
-    const bodyPreview = `Dear *{{1}}*,
-
-We highly value your trust in *Pradeep's Books* over the years.
-
-In our endeavour to equip you with our resource material in a better and instant manner, we have now brought for you the digital versions of our following book${n > 1 ? 's' : ''} for your kind review and recommendation:
-
-${bookList}
-
-The access link for the digital copy is shared below for your convenience:
-
-{{2}}
-
-Appreciating your unwavering patronage and assuring you of our constant and consistent efforts to bring you standard academic books from time to time.
-
-*Pradeep Jain*
-*Chairman*
-Please confirm books receipt by selecting an option below.`;
-
-    const params = [
-      { paramName: '1', dataPath: 'teacher.name', fallback: 'Teacher' },
-      { paramName: '2', dataPath: 'order.link', fallback: '' },
-      ...Array.from({ length: n }, (_, i) => ([
-        { paramName: String(3 + i * 2), dataPath: `books.${i}.title`, fallback: '' },
-        { paramName: String(4 + i * 2), dataPath: `books.${i}.author`, fallback: '' },
-      ])).flat(),
-    ];
-
-    await db.execute(sql`
-      INSERT INTO wati_templates (id, template_name, display_name, body_preview, params, is_active, book_count, created_at, updated_at)
-      VALUES (
-        gen_random_uuid()::text,
-        ${`sbtemp_${n}`},
-        ${`Specimen Book (${n} book${n > 1 ? 's' : ''})`},
-        ${bodyPreview},
-        ${JSON.stringify(params)}::jsonb,
-        false,
-        ${n},
-        NOW(),
-        NOW()
-      )
-      ON CONFLICT (template_name) DO UPDATE SET
-        display_name = EXCLUDED.display_name,
-        body_preview = EXCLUDED.body_preview,
-        params = EXCLUDED.params,
-        book_count = EXCLUDED.book_count,
-        updated_at = NOW()
-    `);
-  }
-  // Ensure sbtemp_* are always inactive — sbtmp_* (approved) series replaces them
-  await db.execute(sql`UPDATE wati_templates SET is_active = false WHERE template_name LIKE 'sbtemp_%'`);
-  console.log('Seeded sbtemp_1/2/3/4/6/9/12 templates (inactive reference copies).');
+  await db.execute(sql`DELETE FROM wati_templates WHERE template_name LIKE 'sbtemp_%'`);
+  console.log('Removed old templates (spmst*/spemst_*/sbtemp_* series).');
 
   // Seed approved WATI templates (sbtmp_* series) — ACTIVE, used for live sends
   // Same body/params structure as sbtemp_* but these are the WATI-approved template names.
