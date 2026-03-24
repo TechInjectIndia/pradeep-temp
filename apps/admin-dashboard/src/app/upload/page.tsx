@@ -398,7 +398,7 @@ export default function UploadPage() {
   const [mergeDecisions, setMergeDecisions] = useState<Map<number, MergeDecision>>(new Map());
   // Unmapped book codes: codes in the file that have no entry in book_mappings
   const [unmappedBookCodes, setUnmappedBookCodes] = useState<string[] | null>(null);
-  const [mappedBookDetails, setMappedBookDetails] = useState<Array<{ bookCode: string; productTitle: string }>>([]);
+  const [mappedBookDetails, setMappedBookDetails] = useState<Array<{ bookCode: string; productTitle: string; edition?: string | null; coverUrl?: string | null }>>([]);
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -409,7 +409,7 @@ export default function UploadPage() {
   const [quickMapSearching, setQuickMapSearching] = useState(false);
   const [quickMapSaving, setQuickMapSaving] = useState(false);
   const [quickMapSelected, setQuickMapSelected] = useState<AlgoliaHit | null>(null);
-  const [quickMapProducts, setQuickMapProducts] = useState<Array<{ productId: string; productTitle: string; authors: Array<{id: string; title: string}> }>>([]);
+  const [quickMapProducts, setQuickMapProducts] = useState<Array<{ productId: string; productTitle: string; authors: Array<{id: string; title: string}>; edition?: string | null; coverUrl?: string | null }>>([]);
 
   // ---------------------------------------------------------------------------
   // File parsing
@@ -615,7 +615,7 @@ export default function UploadPage() {
       if (bookLookupResult.ok) {
         const mappedCodes = new Set(bookLookupResult.mappings.map((m) => m.bookCode));
         setUnmappedBookCodes([...allCodes].filter((c) => !mappedCodes.has(c)));
-        setMappedBookDetails(bookLookupResult.mappings.map((m) => ({ bookCode: m.bookCode, productTitle: m.productTitle })));
+        setMappedBookDetails(bookLookupResult.mappings.map((m) => ({ bookCode: m.bookCode, productTitle: m.productTitle, edition: m.edition, coverUrl: m.coverUrl })));
       }
 
       // Default: use_db for all matches
@@ -763,6 +763,8 @@ export default function UploadPage() {
         productId: hit.objectID,
         productTitle: hit.title ?? hit.objectID,
         authors: Array.isArray(hit.authors) ? hit.authors : [],
+        edition: hit.edition ?? null,
+        coverUrl: (hit["mainImage.url"] ?? hit.image ?? null) as string | null,
       },
     ]);
     setQuickMapQuery("");
@@ -784,6 +786,8 @@ export default function UploadPage() {
             productId: p.productId,
             productTitle: p.productTitle,
             authors: p.authors,
+            edition: p.edition ?? undefined,
+            coverUrl: p.coverUrl ?? undefined,
           })
         )
       );
@@ -1078,14 +1082,25 @@ export default function UploadPage() {
                             key={hit.objectID}
                             onClick={() => addQuickMapProduct(hit)}
                             disabled={alreadyAdded}
-                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted border-b border-border last:border-0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                            className="w-full text-left px-3 py-2.5 text-sm hover:bg-muted border-b border-border last:border-0 transition-colors disabled:opacity-40 disabled:cursor-not-allowed flex items-start gap-2.5"
                           >
-                            <span className="font-medium text-foreground">{hit.title ?? hit.objectID}</span>
-                            {hit.isbn && <span className="ml-2 text-xs text-muted-foreground">ISBN: {hit.isbn as string}</span>}
-                            {hit.authors && hit.authors.length > 0 && (
-                              <span className="ml-2 text-xs text-muted-foreground">by {hit.authors.map((a) => a.title).join(", ")}</span>
+                            {(hit["mainImage.url"] ?? hit.image) ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={(hit["mainImage.url"] ?? hit.image) as string} alt="" className="h-10 w-8 shrink-0 rounded object-cover border border-border" />
+                            ) : (
+                              <div className="h-10 w-8 shrink-0 rounded border border-border bg-muted flex items-center justify-center text-[10px] text-muted-foreground">IMG</div>
                             )}
-                            {alreadyAdded && <span className="ml-2 text-xs text-primary font-medium">Added</span>}
+                            <div className="flex-1 min-w-0">
+                              <span className="font-medium text-foreground">{hit.title ?? hit.objectID}</span>
+                              {alreadyAdded && <span className="ml-2 text-xs text-primary font-medium">Added</span>}
+                              <div className="flex flex-wrap gap-x-2 mt-0.5">
+                                {hit.isbn && <span className="text-xs text-muted-foreground">ISBN: {hit.isbn as string}</span>}
+                                {hit.edition && <span className="text-xs text-muted-foreground">Ed: {hit.edition}</span>}
+                                {hit.authors && hit.authors.length > 0 && (
+                                  <span className="text-xs text-muted-foreground">by {hit.authors.map((a) => a.title).join(", ")}</span>
+                                )}
+                              </div>
+                            </div>
                           </button>
                         );
                       })
@@ -1103,9 +1118,14 @@ export default function UploadPage() {
                   <div className="space-y-2 max-h-48 overflow-y-auto">
                     {quickMapProducts.map((p) => (
                       <div key={p.productId} className="flex items-center gap-2 rounded-lg border border-blue-400/40 bg-blue-500/5 px-3 py-2">
+                        {p.coverUrl ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={p.coverUrl} alt="" className="h-10 w-8 shrink-0 rounded object-cover border border-border" />
+                        ) : null}
                         <div className="flex-1 min-w-0">
                           <p className="text-sm font-medium text-foreground truncate">{p.productTitle}</p>
                           <p className="text-xs font-mono text-muted-foreground">{p.productId}</p>
+                          {p.edition && <p className="text-xs text-muted-foreground">Edition: {p.edition}</p>}
                           {p.authors.length > 0 && (
                             <p className="text-xs text-muted-foreground">by {p.authors.map((a) => a.title).join(", ")}</p>
                           )}
@@ -1664,27 +1684,55 @@ export default function UploadPage() {
               </div>
               <div className="px-5 py-4">
                 {unmappedBookCodes.length === 0 ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <div className="flex items-center gap-2 text-sm text-green-700 dark:text-green-400">
                       <CheckCircle className="h-4 w-4 shrink-0" />
                       All book codes mapped. Orders will generate correctly.
                     </div>
                     {mappedBookDetails.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-1">
-                        {(() => {
-                          const grouped = new Map<string, string[]>();
-                          mappedBookDetails.forEach((m) => {
-                            if (!grouped.has(m.bookCode)) grouped.set(m.bookCode, []);
-                            grouped.get(m.bookCode)!.push(m.productTitle);
-                          });
-                          return [...grouped.entries()].map(([code, products]) => (
-                            <span key={code} className="inline-flex items-center gap-1 rounded-md border border-border bg-muted/30 px-2 py-1 text-xs" title={products.join(", ")}>
-                              <span className="font-mono font-semibold text-foreground">{code}</span>
-                              <span className="text-muted-foreground">→</span>
-                              <span className="text-muted-foreground truncate max-w-[200px]">{products.join(", ")}</span>
-                            </span>
-                          ));
-                        })()}
+                      <div className="mt-2 rounded-lg border border-border overflow-hidden">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="bg-muted/50 border-b border-border">
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground w-24">Code</th>
+                              <th className="px-3 py-2 text-left text-xs font-semibold text-muted-foreground">Products</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {(() => {
+                              const grouped = new Map<string, typeof mappedBookDetails>();
+                              mappedBookDetails.forEach((m) => {
+                                if (!grouped.has(m.bookCode)) grouped.set(m.bookCode, []);
+                                grouped.get(m.bookCode)!.push(m);
+                              });
+                              return [...grouped.entries()].map(([code, products], rowIdx) => (
+                                <tr key={code} className={rowIdx % 2 === 0 ? "bg-card" : "bg-muted/20"}>
+                                  <td className="px-3 py-3 align-top border-r border-border">
+                                    <span className="font-mono font-bold text-foreground text-sm">{code}</span>
+                                  </td>
+                                  <td className="px-3 py-3">
+                                    <div className="flex flex-wrap gap-3">
+                                      {products.map((m, i) => (
+                                        <div key={i} className="flex items-start gap-2">
+                                          {m.coverUrl ? (
+                                            // eslint-disable-next-line @next/next/no-img-element
+                                            <img src={m.coverUrl} alt="" className="h-12 w-9 shrink-0 rounded object-cover border border-border" />
+                                          ) : (
+                                            <div className="h-12 w-9 shrink-0 rounded border border-border bg-muted flex items-center justify-center text-[9px] text-muted-foreground">IMG</div>
+                                          )}
+                                          <div className="min-w-0">
+                                            <p className="text-xs font-semibold text-foreground leading-tight">{m.productTitle}</p>
+                                            {m.edition && <p className="text-[11px] text-muted-foreground mt-0.5">Ed: {m.edition}</p>}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </td>
+                                </tr>
+                              ));
+                            })()}
+                          </tbody>
+                        </table>
                       </div>
                     )}
                   </div>
