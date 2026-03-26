@@ -541,9 +541,10 @@ export async function createBookMapping(data: {
   coverUrl?: string | null;
   edition?: string | null;
 }): Promise<BookMapping> {
+  const payload = Object.fromEntries(Object.entries(data).filter(([, v]) => v !== null && v !== undefined));
   return request("/book-mappings", {
     method: "POST",
-    body: JSON.stringify(data),
+    body: JSON.stringify(payload),
   });
 }
 
