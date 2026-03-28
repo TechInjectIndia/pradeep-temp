@@ -1,4 +1,6 @@
 "use client";
+/* eslint-disable react/no-unescaped-entities -- textbook prose; escaping would harm readability */
+/* eslint-disable @next/next/no-img-element -- chapter figures use CONTENT_IMAGES URLs */
 // ── SECTION 1: FULL COMPONENT LIBRARY (batch 1 only) ────────
 import { CONTENT_IMAGES } from "@/assets/content-images";
 import { useState, useEffect } from "react";
@@ -35,27 +37,6 @@ const Arrow = ({ type = "right" }) => {
   return <span style={{ margin: "0 6px" }}>→</span>;
 };
 
-const Eq = ({ children }) => (
-  <span style={{ fontFamily: "monospace", fontSize: "0.97em" }}>{children}</span>
-);
-
-const Times = () => <span style={{ margin: "0 2px" }}>×</span>;
-
-const ChemEq = ({ lhs, rhs, arrow = "right", topLabel, bottomLabels = [] }) => (
-  <div style={{ textAlign: "center", margin: "10px 0", fontSize: 14, lineHeight: 2 }}>
-    <span>{lhs}</span>
-    {topLabel && (
-      <span style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", margin: "0 8px", verticalAlign: "middle" }}>
-        <span style={{ fontSize: 11, color: "#555" }}>{topLabel}</span>
-        <span>⟶</span>
-        {bottomLabels.length > 0 && <span style={{ fontSize: 11, color: "#555" }}>{bottomLabels[0]}</span>}
-      </span>
-    )}
-    {!topLabel && <Arrow type={arrow} />}
-    <span>{rhs}</span>
-  </div>
-);
-
 const SecHd = ({ id, label, title }) => (
   <div id={id} style={{ marginTop: 28, marginBottom: 8 }}>
     <div style={{ borderBottom: `2px solid ${P_COLOR}`, paddingBottom: 4, marginBottom: 4 }}>
@@ -74,19 +55,7 @@ const SubHd = ({ id, label, title }) => (
   </div>
 );
 
-const SubSubHd = ({ id, label, title }) => (
-  <div id={id} style={{ marginTop: 14, marginBottom: 4 }}>
-    <span style={{ color: P_COLOR, fontFamily: "'Open Sans', sans-serif", fontWeight: 600, fontSize: 13.5 }}>
-      {label}.&nbsp;{title}
-    </span>
-  </div>
-);
-
-const P2 = ({ children }) => (
-  <p style={{ margin: "4px 0", textIndent: 0, textAlign: "justify", fontSize: 14, lineHeight: 1.75 }}>{children}</p>
-);
-
-const DefBox = ({ children, key: _k }) => (
+const DefBox = ({ children }) => (
   <div style={{ border: `1px solid #ccc`, borderLeft: `4px solid ${P_COLOR}`, background: "#fff", padding: "10px 16px", margin: "12px 0", fontStyle: "italic", fontSize: 14, lineHeight: 1.75 }}>
     {children}
   </div>
@@ -165,18 +134,6 @@ const NumericalSection = ({ topic, children }) => (
       <div style={{ padding: "12px 16px 14px 16px", fontSize: 14, lineHeight: 1.75, flex: 1 }}>{children}</div>
     </div>
   </div>
-);
-
-const th = (content) => (
-  <th style={{ background: P_COLOR, color: "#fff", padding: "6px 10px", fontFamily: "'Open Sans', sans-serif", fontWeight: 700, fontSize: 13, textAlign: "left", border: "1px solid #ddd" }}>
-    {content}
-  </th>
-);
-
-const td = (content, align = "left") => (
-  <td style={{ padding: "5px 10px", fontSize: 13.5, border: "1px solid #ddd", textAlign: align, verticalAlign: "top" }}>
-    {content}
-  </td>
 );
 
 function HamburgerBtn({ open, setOpen }) {
