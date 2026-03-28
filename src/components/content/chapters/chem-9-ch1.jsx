@@ -1,5 +1,5 @@
-
 "use client";
+import { CONTENT_IMAGES } from "@/assets/content-images";
 
 // ── SECTION 1: FULL COMPONENT LIBRARY (batch 1 only) ────────
 import { useState, useEffect } from "react";
@@ -58,7 +58,7 @@ const ChemEq = ({ lhs, rhs, arrow = "forward", topLabel, bottomLabels }) => {
 };
 
 const Page = ({ children }) => (
-  <div style={{ background: "#fff", padding: "28px 48px 36px", marginBottom: 4,
+  <div style={{ background: "#fff", padding: "28px clamp(14px, 4vw, 28px) 36px", marginBottom: 4,
     borderBottom: "1px solid #e0e0e0",
     boxShadow: "0 1px 4px rgba(0,0,0,0.06)" }}>
     {children}
@@ -216,70 +216,37 @@ const td = {
 
 function Sidebar({ open, setOpen, tocItems }) {
   return (
-    <>
+    <div style={{
+      width: open ? 220 : 36, minWidth: open ? 220 : 36,
+      position: "sticky", top: 0, height: "100vh", overflowY: "auto",
+      background: "#f5f5f5", borderRight: "1px solid #ddd",
+      transition: "width 0.2s", flexShrink: 0, zIndex: 10
+    }}>
+      <button
+        onClick={() => setOpen(o => !o)}
+        style={{ width: "100%", padding: "10px 8px", background: P_COLOR,
+          color: "#fff", border: "none", cursor: "pointer", textAlign: open ? "right" : "center",
+          fontFamily: "'Merriweather Sans',Arial,sans-serif", fontWeight: 700, fontSize: 12 }}>
+        {open ? "◀ TOC" : "▶"}
+      </button>
       {open && (
-        <div
-          onClick={() => setOpen(false)}
-          style={{
-            position: "fixed",
-            inset: 0,
-            background: "rgba(0,0,0,0.18)",
-            backdropFilter: "blur(2px)",
-            zIndex: 40,
-          }}
-        />
+        <nav style={{ padding: "8px 6px" }}>
+          {tocItems.map(item => (
+            <a key={item.id} href={`#${item.id}`}
+              style={{ display: "block", padding: "4px 8px",
+                fontSize: item.level === 1 ? 12.5 : item.level === 2 ? 12 : 11.5,
+                fontWeight: item.level === 1 ? 700 : 400,
+                color: item.level === 1 ? P_COLOR : "#333",
+                textDecoration: "none", lineHeight: 1.4,
+                paddingLeft: item.level === 1 ? 8 : item.level === 2 ? 16 : 24,
+                borderLeft: item.level === 1 ? `2px solid ${P_COLOR}` : "none",
+                marginBottom: 2 }}>
+              {item.label} {item.title}
+            </a>
+          ))}
+        </nav>
       )}
-      <div
-        style={{
-          width: 220,
-          position: "fixed",
-          left: 0,
-          top: 0,
-          height: "100vh",
-          overflowY: "auto",
-          overflowX: "hidden",
-          background: "#f5f5f5",
-          borderRight: "1px solid #ddd",
-          zIndex: 60,
-          boxSizing: "border-box",
-          transform: open ? "translateX(0)" : "translateX(-100%)",
-          transition: "transform 0.22s ease",
-          paddingTop: 54,
-        }}
-      >
-        {open && (
-          <nav style={{ padding: "8px 6px" }}>
-            {tocItems.map((item) => (
-              <a
-                key={item.id}
-                href={`#${item.id}`}
-                onClick={(e) => {
-                  e.preventDefault();
-                  document
-                    .getElementById(item.id)
-                    ?.scrollIntoView({ behavior: "smooth", block: "start" });
-                  setOpen(false);
-                }}
-                style={{
-                  display: "block",
-                  padding: "4px 8px",
-                  fontSize: item.level === 1 ? 12.5 : item.level === 2 ? 12 : 11.5,
-                  fontWeight: item.level === 1 ? 700 : 400,
-                  color: item.level === 1 ? P_COLOR : "#333",
-                  textDecoration: "none",
-                  lineHeight: 1.4,
-                  paddingLeft: item.level === 1 ? 8 : item.level === 2 ? 16 : 24,
-                  borderLeft: item.level === 1 ? `2px solid ${P_COLOR}` : "none",
-                  marginBottom: 2,
-                }}
-              >
-                {item.label} {item.title}
-              </a>
-            ))}
-          </nav>
-        )}
-      </div>
-    </>
+    </div>
   );
 }
 
@@ -718,7 +685,7 @@ const pages_b1 = [
       It is evident from the Fig. 1.1, most of the salts (<em>e.g.,</em> KNO<Sub c="3" />, NH<Sub c="4" />Br) show <em>marked increase</em> in solubility with increase in temperature. Some of them (<em>i.e.,</em> NaCl) show only a small increase in solubility with rise in temperature. However, there are only a few substances (<em>e.g.,</em> anhydrous sodium sulphate, Na<Sub c="2" />SO<Sub c="4" /> and cerium sulphate, Ce<Sub c="2" />(SO<Sub c="4" />)<Sub c="3" /> which show <strong>decrease</strong> in solubility with rise in temperature.
     </p>
     <Fig
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_2/imgs/img_in_chart_box_420_263_799_722.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A45Z%2F-1%2F%2F7bf05f7278e54ccd0a97f20091c13dd7d4f7fb1dc2478c702ae8bdcb16ed4fc3"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_0827B1785CF2284301FC}
       num="Fig. 1.1"
       caption="Solubility curves of various inorganic compounds"
     />
@@ -974,7 +941,7 @@ const pages_b2 = [
   // PAGE 10
   <Page key="p10">
     <Fig
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_4/imgs/img_in_image_box_264_198_941_413.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A47Z%2F-1%2F%2F249f83d7647241c9462af720f3f7371d059c5b2ecc054c9e5d5cd9057d823793"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_BE148CFAE49C28F5F95D}
       num="Fig. 1.2"
       caption="Particle sizes of a true solution, a colloidal solution and a suspension"
     />
@@ -1039,7 +1006,7 @@ const pages_b2 = [
         <em>Brownian movement may be defined as continuous zig-zag movement of colloidal particles in a colloidal sol.</em>
       </DefBox>
       <Fig
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_749_200_1030_407.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fd9106878ebe3084ee1c99a51195fce3953ffc1ee8eb216331037ed188becb56f"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_AB2D779877F9022B42E3}
         num="Fig. 1.3"
         caption="Brownian movement"
       />
@@ -1057,7 +1024,7 @@ const pages_b2 = [
       Thus, Tyndall effect can be used to distinguish between a true solution and a colloidal solution.
     </p>
     <Fig
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_228_877_980_1166.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2F558e0af6a0bf02366513cae364573e4a0f284e613858c1fb820c893f6da82473"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_CB5F1A63689AB385DFB9}
       num="Fig. 1.4"
       caption="(a) Solution of copper sulphate does not show Tyndall effect (b) Mixture of water and milk shows Tyndall effect"
     />
@@ -1375,43 +1342,18 @@ const allPages = [
 // ── MAIN EXPORT ──────────────────────────────────────────────
 export default function Chapter1() {
   useFonts();
-  const [tocOpen, setTocOpen] = useState(false);
+  const [tocOpen, setTocOpen] = useState(true);
   const bodyFont = {
     fontFamily: "'EB Garamond',Georgia,'Times New Roman',serif",
     fontSize: 15, lineHeight: 1.58, color: "#1a1a1a"
   };
   return (
-    <div style={{ position: "relative", background: "#e8e8e8", minHeight: "100vh", ...bodyFont }}>
-      <button
-        onClick={() => setTocOpen((o) => !o)}
-        aria-label={tocOpen ? "Close table of contents" : "Open table of contents"}
-        style={{
-          position: "fixed",
-          top: 10,
-          left: 10,
-          width: 38,
-          height: 38,
-          borderRadius: 8,
-          border: "none",
-          background: P_COLOR,
-          color: "#fff",
-          cursor: "pointer",
-          zIndex: 70,
-          boxShadow: "0 6px 18px rgba(0,0,0,0.2)",
-          display: "grid",
-          placeItems: "center",
-          fontSize: 18,
-          fontFamily: "'Merriweather Sans',Arial,sans-serif",
-          fontWeight: 900,
-        }}
-      >
-        {tocOpen ? "✕" : "☰"}
-      </button>
+    <div style={{ display: "flex", background: "#e8e8e8", minHeight: "100vh", ...bodyFont }}>
       <Sidebar open={tocOpen} setOpen={setTocOpen} tocItems={TOC} />
-      <div style={{ width: "100%", overflowY: "auto", maxHeight: "100vh" }}>
+      <div style={{ flex: 1, overflowY: "auto", maxHeight: "100vh" }}>
         <ChapterCover />
         {allPages}
-        <div style={{ padding: "18px 48px", background: "#fff", borderTop: "2px solid #e0e0e0",
+        <div style={{ padding: "18px clamp(14px, 4vw, 28px)", background: "#fff", borderTop: "2px solid #e0e0e0",
           textAlign: "center", color: "#888", fontSize: 13, fontStyle: "italic" }}>
           Pages 1–18 · Sections 1.1–1.7 · Batches 3 &amp; 4 (Separation Techniques) coming soon
         </div>

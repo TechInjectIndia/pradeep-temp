@@ -24,6 +24,16 @@
 .DS_Store
 *.pem
 
+# local scratch (may mirror ~/.oci-style keys or OCIDs)
+temp-oci
+
+# content pipeline: machine/human reports from last run (regenerate via npm run content:*)
+scripts/data/content-migration-upload.json
+scripts/data/content-migration-verify.json
+scripts/data/CONTENT_MIGRATION_REPORT.md
+# local record of legacy image URLs already uploaded (or seen in bucket); see upload script
+scripts/data/oci-uploaded-legacy-urls.json
+
 # firebase / functions
 firebase/.firebase/
 firebase/functions/lib/
@@ -38,6 +48,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
