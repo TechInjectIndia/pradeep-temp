@@ -1210,15 +1210,15 @@ const content_b3 = [
   <p key="b3-p20" style={{ textAlign: "justify", marginBottom: 6 }}>
     (<em>i</em>) Hydrogen (Z = 1) has one electron in the K-shell. This is the only shell containing the electron. Hence, K-shell is the valence shell and number of valence electrons = 1.
   </p>,
-  <p key="b3-p21" style={{ textAlign: "justify", marginBottom: 6 }}>
+  <div key="b3-p21" style={{ textAlign: "justify", marginBottom: 6 }}>
     (<em>ii</em>) Carbon (Z = 6) has the electronic configuration <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>4</td></tr></tbody></table>. Thus, L-shell is the outermost shell or the valence shell. The number of electrons present in this shell (<em>i.e.,</em> valence electrons) = 4.
-  </p>,
-  <p key="b3-p22" style={{ textAlign: "justify", marginBottom: 6 }}>
+  </div>,
+  <div key="b3-p22" style={{ textAlign: "justify", marginBottom: 6 }}>
     (<em>iii</em>) Sodium (Z = 11) has the electronic configuration <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>1</td></tr></tbody></table>. Thus, the outermost shell M is the valence shell and number of valence electrons = 1.
-  </p>,
-  <p key="b3-p23" style={{ textAlign: "justify", marginBottom: 12 }}>
+  </div>,
+  <div key="b3-p23" style={{ textAlign: "justify", marginBottom: 12 }}>
     (<em>iv</em>) Chlorine (Z = 17) has the electronic configuration <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>7</td></tr></tbody></table>. Hence, the outermost shell M is the valence shell and number of valence electrons = 7.
-  </p>,
+  </div>,
 
   <SubHd key="sub-s2112" id="s2112" label="2.11.2" title="Valency" />,
   <p key="b3-p24" style={{ textIndent: 28, textAlign: "justify", marginBottom: 8 }}>
@@ -1314,18 +1314,18 @@ const content_b3 = [
   <p key="b3-p36" style={{ textAlign: "justify", marginBottom: 8 }}>
     <strong>1. Positive ions (Cations).</strong> When an atom loses electrons, the number of electrons becomes less than the number of protons. As a result, the new species formed carries positive charge. Such positively charged species are called positive ions or cations. A few examples are given below :
   </p>,
-  <p key="b3-p37" style={{ textIndent: 28, textAlign: "justify", marginBottom: 6 }}>
+  <div key="b3-p37" style={{ textIndent: 28, textAlign: "justify", marginBottom: 6 }}>
     (<em>i</em>) Atomic number of sodium (Na) is 11. Hence, it has 11 protons and 11 electrons. The distribution of electrons is <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>1</td></tr></tbody></table>. It easily loses one electron to complete its octet. The new species formed will have 10 electrons but number of protons remains the same (<em>i.e.,</em> 11). Hence, the species formed will have one unit positive charge. It is represented by Na<Sup c="+" /> and is called sodium ion. We say that the valency of sodium is one.
-  </p>,
+  </div>,
   <p key="b3-p38" style={{ textIndent: 28, textAlign: "justify", marginBottom: 10 }}>
     (<em>ii</em>) Atomic number of magnesium (Mg) is 12. Hence, it has 12 protons and 12 electrons. The distribution of electrons is 2, 8, 2. It loses 2 electrons to complete its octet. The new species formed will have 10 electrons and 12 protons. Hence, the ion formed will have two units positive charge. We represent it as Mg<Sup c="2+" />, <em>i.e.,</em> its valency is 2.
   </p>,
   <p key="b3-p39" style={{ textAlign: "justify", marginBottom: 8 }}>
     <strong>2. Negative ions (Anions).</strong> When an atom gains electrons, the number of electrons becomes greater than the number of protons. As a result, the new species formed carries negative charge. Such negatively charged species are called negative ions or anions. A few examples are given below :
   </p>,
-  <p key="b3-p40" style={{ textIndent: 28, textAlign: "justify", marginBottom: 6 }}>
+  <div key="b3-p40" style={{ textIndent: 28, textAlign: "justify", marginBottom: 6 }}>
     (<em>i</em>) Atomic number of chlorine is 17. Hence, it has 17 protons and 17 electrons. The distribution of electrons is <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>7</td></tr></tbody></table>. It easily gains one electron to complete its octet. The new species formed will have 18 electrons but number of protons remains the same (<em>i.e.,</em> 17). Hence, the species formed will have one unit negative charge. It is represented by Cl<Sup c="–" /> and is called <strong>chloride ion.</strong> We say that the valency of chlorine is one.
-  </p>,
+  </div>,
   <p key="b3-p41" style={{ textIndent: 28, textAlign: "justify", marginBottom: 10 }}>
     (<em>ii</em>) Atomic number of oxygen is 8. Hence, it has 8 protons and 8 electrons. The distribution of electrons is 2, 6. It gains two electrons to complete its octet. The new species formed will have 10 electrons and 8 protons. Hence, the ion formed will have two units negative charge. We represent it as O<Sup c="2–" /> and call it <strong>oxide ion.</strong> Its valency is 2.
   </p>,
@@ -1345,14 +1345,14 @@ const content_b3 = [
 
   <NumericalSection key="num-valency" topic="VALENCY OF ELEMENTS AND STRUCTURE OF IONS">
     <p><strong>Example 1.</strong> Atomic number of sodium is 11 and mass number is 23. What type of ion will be formed by it and how will you represent it ? Calculate the number of electrons, protons and neutrons in the ion formed. What will be the valency of sodium ?</p>
-    <p><strong>Solution.</strong> Atomic number of Na = 11 &nbsp;&nbsp; Electronic configuration of Na atom = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>1</td></tr></tbody></table> or 2, 8, 1</p>
+    <div><strong>Solution.</strong> Atomic number of Na = 11 &nbsp;&nbsp; Electronic configuration of Na atom = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>1</td></tr></tbody></table> or 2, 8, 1</div>
     <p>It can easily lose one electron to complete its octet. Hence, it forms positive ion with the symbol Na<Sup c="+" />.</p>
     <p>Number of electrons in Na<Sup c="+" /> = 11 – 1 = <strong>10</strong> &nbsp;&nbsp;&nbsp; Number of protons = Atomic number = <strong>11</strong></p>
     <p>Number of neutrons = Mass number – Atomic number = 23 – 11 = <strong>12</strong></p>
     <p>As the element loses one electron to form Na<Sup c="+" /> ion, valency of the element = <strong>1.</strong></p>
     <br/>
     <p><strong>Example 2.</strong> Atomic number of aluminium is 13 and mass number is 27. Calculate number of electrons, protons and neutrons in the ion formed. Represent the ion. What will be its valency ?</p>
-    <p><strong>Solution.</strong> Atomic number of Al = 13 &nbsp;&nbsp; Electronic configuration of Al = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>3</td></tr></tbody></table> or 2, 8, 3</p>
+    <div><strong>Solution.</strong> Atomic number of Al = 13 &nbsp;&nbsp; Electronic configuration of Al = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>3</td></tr></tbody></table> or 2, 8, 3</div>
     <p>It loses 3 electrons to complete its octet. Hence, the ion formed will be Al<Sup c="3+" />.</p>
     <p>Number of electrons in Al<Sup c="3+" /> = 13 – 3 = <strong>10</strong> &nbsp;&nbsp;&nbsp; Number of protons = Atomic number = <strong>13</strong></p>
     <p>Number of neutrons = Mass number – Atomic number = 27 – 13 = <strong>14</strong></p>
@@ -1361,13 +1361,13 @@ const content_b3 = [
     <p><strong>Example 3.</strong> Atomic number of fluorine is 9 and mass number is 19. Calculate the number of electrons, protons and neutrons in the neutral atom and in the ion formed by it. Represent the ion and give its electronic configuration.</p>
     <p><strong>Solution.</strong> Neutral atom : Number of electrons = Number of protons = Atomic number = <strong>9</strong></p>
     <p>Number of neutrons = Mass number – Atomic number = 19 – 9 = <strong>10</strong></p>
-    <p>Atomic number of fluorine = 9, Electronic configuration of F atom = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>7</td></tr></tbody></table> or 2, 7</p>
+    <div>Atomic number of fluorine = 9, Electronic configuration of F atom = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>7</td></tr></tbody></table> or 2, 7</div>
     <p>It can easily gain one electron to complete its octet. Hence, the ion formed will be F<Sup c="–" />.</p>
-    <p>Electronic configuration of F<Sup c="–" /> ion = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td></tr></tbody></table> or 2, 8 &nbsp;&nbsp;&nbsp; Number of electrons in F<Sup c="–" /> ion = 9 + 1 = <strong>10</strong></p>
+    <div>Electronic configuration of F<Sup c="–" /> ion = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td></tr></tbody></table> or 2, 8 &nbsp;&nbsp;&nbsp; Number of electrons in F<Sup c="–" /> ion = 9 + 1 = <strong>10</strong></div>
     <p>Number of protons = Atomic number = <strong>9</strong> &nbsp;&nbsp;&nbsp; Number of neutrons = 19 – 9 = <strong>10.</strong></p>
     <br/>
     <p><strong>Example 4.</strong> An element has atomic number 15. What will be the valency/valencies shown by it ?</p>
-    <p><strong>Solution.</strong> Atomic number = 15 → 15 electrons. Electronic configuration = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>5</td></tr></tbody></table> or 2, 8, 5.</p>
+    <div><strong>Solution.</strong> Atomic number = 15 → 15 electrons. Electronic configuration = <table style={{display:"inline-table",borderCollapse:"collapse",verticalAlign:"middle",fontSize:"0.92em",margin:"0 4px"}}><thead><tr><th style={{padding:"1px 12px",fontWeight:600}}>K</th><th style={{padding:"1px 12px",fontWeight:600}}>L</th><th style={{padding:"1px 12px",fontWeight:600}}>M</th></tr></thead><tbody><tr><td style={{padding:"1px 12px",textAlign:"center"}}>2</td><td style={{padding:"1px 12px",textAlign:"center"}}>8</td><td style={{padding:"1px 12px",textAlign:"center"}}>5</td></tr></tbody></table> or 2, 8, 5.</div>
     <p>Valency = 5 and 8 – 5 = <strong>3</strong> (The element is phosphorus which forms PCl<Sub c="3" /> and PCl<Sub c="5" />).</p>
     <br/>
     <p><strong>Example 5.</strong> An ion M<Sup c="3+" /> contains 10 electrons and 14 neutrons. What are the atomic number and mass number of the element M ? Name the element.</p>
@@ -1501,7 +1501,7 @@ const content_b4 = [
       <div style={{ fontSize: 11 }}>O–18 (<sup style={{fontSize:"0.75em"}}>18</sup><sub style={{fontSize:"0.75em"}}>8</sub>O)</div>
     </div>
   </div>,
-  <p key="b4-p7" style={{ textIndent: 28, marginBottom: 8 }}>
+  <p key="b4-p7b" style={{ textIndent: 28, marginBottom: 8 }}>
     The distribution of 8 electrons is same in each case, <em>i.e.,</em> 2, 6.
   </p>,
   <p key="b4-p8" style={{ textAlign: "justify", marginBottom: 8 }}>
@@ -1596,7 +1596,7 @@ const content_b4 = [
       <div style={{ fontSize: 11 }}>Cl–37 (<sup style={{fontSize:"0.75em"}}>37</sup><sub style={{fontSize:"0.75em"}}>17</sub>Cl)</div>
     </div>
   </div>,
-  <p key="b4-p9" style={{ textIndent: 28, marginBottom: 12 }}>
+  <p key="b4-p9b" style={{ textIndent: 28, marginBottom: 12 }}>
     The distribution of 17 electrons is same in each case, <em>i.e.,</em> 2, 8, 7.
   </p>,
 

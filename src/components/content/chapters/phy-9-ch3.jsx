@@ -195,16 +195,20 @@ const td = {
 
 function HamburgerBtn({ open, setOpen }) {
   return (
-    <button onClick={() => setOpen(o => !o)}
-      aria-label={open ? "Close table of contents" : "Open table of contents"}
-      style={{
-        position: "fixed", top: 14, left: 14, zIndex: 1100,
-        background: "#fff", color: P_COLOR, border: "2px solid #2563eb",
-        borderRadius: 8, width: 40, height: 40, cursor: "pointer",
-        fontSize: 20, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center",
-        boxShadow: "0 4px 14px rgba(0,0,0,0.15)", fontFamily: "system-ui,sans-serif",
-      }}>
-      {open ? "✕" : "☰"}
+    <button onClick={() => setOpen(o => !o)} style={{
+      position: "fixed", top: 14, left: 14, zIndex: 1100,
+      background: P_COLOR, border: "none", borderRadius: 4, cursor: "pointer",
+      width: 36, height: 36, display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center", gap: 5, padding: 0
+    }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{ display: "block", width: 20, height: 2.5,
+          background: "#fff", borderRadius: 2, transition: "all 0.25s",
+          ...(open && i === 0 ? { transform: "translateY(7.5px) rotate(45deg)" } : {}),
+          ...(open && i === 1 ? { opacity: 0 } : {}),
+          ...(open && i === 2 ? { transform: "translateY(-7.5px) rotate(-45deg)" } : {})
+        }} />
+      ))}
     </button>
   );
 }
@@ -214,53 +218,50 @@ function Backdrop({ open, onClick }) {
   return (
     <div onClick={onClick} style={{
       position: "fixed", inset: 0, zIndex: 1050,
-      background: "rgba(0,0,0,0.18)", backdropFilter: "blur(2px)",
-      WebkitBackdropFilter: "blur(2px)",
+      background: "rgba(0,0,0,0.35)", cursor: "pointer"
     }} />
   );
 }
 
 function Sidebar({ open, setOpen, tocItems }) {
-  const handleClick = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
-    setOpen(false);
-  };
   return (
     <div style={{
-      position: "fixed", top: 0, left: 0, zIndex: 1060,
-      width: 260, height: "100vh",
-      background: "#fff", borderRight: "1px solid #e0e0e0",
-      boxShadow: "4px 0 24px rgba(0,0,0,0.13)",
-      transform: open ? "translateX(0)" : "translateX(-100%)",
-      transition: "transform 0.25s cubic-bezier(0.4,0,0.2,1)",
-      overflowY: "auto", overflowX: "hidden",
-      display: "flex", flexDirection: "column",
+      position: "fixed", top: 0, left: 0, zIndex: 1080,
+      width: open ? 260 : 0, height: "100vh",
+      background: "#fff", boxShadow: open ? "3px 0 16px rgba(0,0,0,0.18)" : "none",
+      overflowY: open ? "auto" : "hidden",
+      transition: "width 0.28s ease",
+      borderRight: open ? "2px solid #f0c8dc" : "none"
     }}>
-      <div style={{
-        background: P_COLOR, color: "#fff", padding: "14px 16px 12px",
-        fontFamily: "'Merriweather Sans',Arial,sans-serif",
-        fontWeight: 900, fontSize: 13, letterSpacing: 2, flexShrink: 0,
-      }}>
-        TABLE OF CONTENTS
-      </div>
-      <nav style={{ padding: "8px 0", flex: 1 }}>
-        {tocItems.map(item => (
-          <button key={item.id} onClick={() => handleClick(item.id)}
+      <div style={{ padding: "56px 0 20px" }}>
+        <div style={{ padding: "0 16px 10px", fontFamily: "'Merriweather Sans',Arial,sans-serif",
+          fontWeight: 800, fontSize: 12, color: P_COLOR, letterSpacing: 1, textTransform: "uppercase" }}>
+          Contents
+        </div>
+        {tocItems.map((item) => (
+          <div key={item.id}
+            onClick={() => {
+              const el = document.getElementById(item.id);
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+              setOpen(false);
+            }}
             style={{
-              display: "block", width: "100%", textAlign: "left",
-              background: "none", border: "none", cursor: "pointer",
-              padding: item.level === 1 ? "6px 16px" : item.level === 2 ? "4px 16px 4px 28px" : "3px 16px 3px 40px",
-              fontFamily: "'Merriweather Sans',Arial,sans-serif",
+              padding: item.level === 1 ? "6px 16px" : item.level === 2 ? "4px 24px" : "3px 32px",
+              fontSize: item.level === 1 ? 13 : item.level === 2 ? 12.5 : 12,
               fontWeight: item.level === 1 ? 700 : 400,
-              fontSize: item.level === 1 ? 12 : 11,
-              color: item.level === 1 ? P_COLOR : "#444",
-              borderLeft: item.level === 1 ? "3px solid #c0126a" : "none",
-              marginBottom: 2, lineHeight: 1.4,
-            }}>
-            {item.label} {item.title}
-          </button>
+              color: item.level === 1 ? P_COLOR : "#333",
+              cursor: "pointer", lineHeight: 1.45,
+              borderLeft: item.level === 1 ? `3px solid ${P_COLOR}` : "3px solid transparent",
+              background: "transparent",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = LIGHT_P; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          >
+            {item.label && <span style={{ marginRight: 5 }}>{item.label}.</span>}
+            {item.title}
+          </div>
         ))}
-      </nav>
+      </div>
     </div>
   );
 }

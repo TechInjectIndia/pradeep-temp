@@ -11,32 +11,33 @@ You are normalizing **Next.js chapter JSX** (`src/components/content/chapters/*.
 ### Hamburger button (`HamburgerBtn`)
 
 - **Fixed** position: `top: 14`, `left: 14`, `zIndex: 1100`.
-- **Style:** white background, chapter accent color (`P_COLOR`) for glyph, **`border: 2px solid #2563eb`**, `borderRadius: 8`, `40×40px`, strong shadow (`0 4px 14px rgba(0,0,0,0.15)`).
-- **Content:** show **☰** when closed and **✕** when open (not three white bars on solid magenta).
-- **Accessibility:** `aria-label` toggles between `"Open table of contents"` and `"Close table of contents"` based on `open`.
+- **Style:** **`background: P_COLOR`** (chapter accent), **`border: none`**, `borderRadius: 4`, **`36×36px`**, flex column centered, `gap: 5`, `padding: 0`.
+- **Content:** **three white horizontal bars** (`width: 20`, `height: 2.5`, `borderRadius: 2`) that **animate into an X** when `open`: top bar `translateY(7.5px) rotate(45deg)`, middle `opacity: 0`, bottom `translateY(-7.5px) rotate(-45deg)`; `transition: all 0.25s`.
+- **Do not** use ☰/✕ text, blue outline, or `aria-label` on the button (canonical chapters omit it).
 
 ### Backdrop (`Backdrop`)
 
 - Render **only when** `open` is true.
-- **Full viewport:** `position: fixed`, `inset: 0`, `zIndex: 1050` (below drawer, above page).
-- **Appearance:** `background: rgba(0,0,0,0.18)` plus **`backdrop-filter: blur(2px)`** (and `-webkit-backdrop-filter`).
+- **Full viewport:** `position: fixed`, `inset: 0`, `zIndex: 1050` (below sidebar, above page).
+- **Appearance:** `background: rgba(0,0,0,0.35)`, `cursor: pointer` — **no** blur / `backdrop-filter`.
 - **API:** accept `open` and **`onClick`** (parent passes `() => setTocOpen(false)`). Do **not** pass `setOpen` into the backdrop; keep separation of concerns.
 
 ### Sidebar / drawer (`Sidebar`)
 
-- **Slide from left:** `transform: translateX(-100%)` when closed, `translateX(0)` when open; transition ~`0.25s cubic-bezier(0.4,0,0.2,1)`.
-- **Width:** ~`260–280px`, full viewport height, `overflow-y: auto`, white background, subtle right border + shadow (`4px 0 24px rgba(0,0,0,0.13)`).
-- **`zIndex: 1060`** (above backdrop).
-- **Header:** full-width bar using `P_COLOR`, white text, “TABLE OF CONTENTS”.
-- **Nav items:** use **`<button type="button">`** (not bare `<div>`) for each TOC row for accessibility; `width: 100%`, left-aligned text, indent by `level` (1 vs 2 vs 3), magenta left border for top-level rows.
-- **Click:** `document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" })` then **`setOpen(false)`**.
-- **Labels:** support both `{ label, title }` (render `label + " " + title`) and **`{ label }` only** (client sometimes puts the full line in `label`).
+- **Width collapse (not slide):** outer shell `width: open ? 260 : 0`, `transition: width 0.28s ease`, `overflowY: open ? "auto" : "hidden"`, full viewport height, white background.
+- **`zIndex: 1080`** (above backdrop).
+- **Shadow / border when open:** `boxShadow: "3px 0 16px rgba(0,0,0,0.18)"`, `borderRight: "2px solid #f0c8dc"`; when closed, no shadow and no right border.
+- **Inner padding:** top area `padding: "56px 0 20px"` so content clears the fixed hamburger.
+- **Header:** small caps row — `fontFamily: "'Merriweather Sans',Arial,sans-serif"`, `fontWeight: 800`, `fontSize: 12`, `color: P_COLOR`, `letterSpacing: 1`, `textTransform: "uppercase"`, text **"Contents"** (not a full magenta bar).
+- **Nav rows:** use **`<div>`** (not `<button>`) per TOC row; `onClick` scrolls then `setOpen(false)`; indent by `level` (`6px 16px` / `4px 24px` / `3px 32px`); top-level rows get `borderLeft: 3px solid P_COLOR` and `fontWeight: 700`; use **`onMouseEnter` / `onMouseLeave`** to set `background` to `LIGHT_P` vs `transparent`.
+- **Labels:** `{item.label && <span style={{ marginRight: 5 }}>{item.label}.</span>}{item.title}` (period after label in the span).
 
 ### Page layout
 
-- **Do not** add large left padding (e.g. `68px`) to “make room” for the hamburger; the overlay drawer must **not squeeze** the main column.
-- Use horizontal padding like **`clamp(14px, 4vw, 28px)`** for the main content wrapper.
-- **State name:** prefer `tocOpen` / `setTocOpen` for clarity.
+- **Do not** add `maxWidth` + `margin: 0 auto` on the main chapter content wrapper (no `900px` cap, no `min(100%, 75rem)` center column).
+- Main content wrapper padding: **`"0 clamp(14px, 4vw, 28px) 60px clamp(14px, 4vw, 28px)"`**.
+- **Do not** add extra left padding “for” the hamburger; overlay must not squeeze the column.
+- **State name:** prefer `tocOpen` / `setTocOpen`.
 
 ### Wiring in the chapter component
 
@@ -48,13 +49,21 @@ const [tocOpen, setTocOpen] = useState(false);
 <Sidebar open={tocOpen} setOpen={setTocOpen} tocItems={TOC} />
 ```
 
+### Inline electronic-configuration tables
+
+- **Inline** `display: inline-table` configuration tables must be wrapped in **`<div>`**, not **`<p>`**. HTML forbids `<table>` inside `<p>`; React will fix the DOM and cause **hydration mismatches**. Keep the same `key` and `style` when swapping `p` → `div`.
+
+### Key uniqueness
+
+- All sibling elements in JSX **arrays** (content batches, lists) must have **unique `key` props** within that array. If the same semantic id would repeat (e.g. two paragraphs both keyed `b4-p7`), rename the duplicate with a suffix such as **`b4-p7b`**, **`b4-p9b`**, etc.
+
 ### Images
 
 - After updating figure URLs, run the repo pipeline: `npm run content:extract`, `npm run content:generate`, `npm run content:apply-imports`, then `npm run content:upload-oci` as needed (see `process-jsx-pipeline.md`).
 
 ### Reference implementation
 
-Match **`src/components/content/chapters/chem-9-ch3.jsx`** (or `phy-9-ch*.jsx`) for the exact patterns above after a merge.
+Match **`src/components/content/chapters/chem-9-ch2.jsx`** for the exact `HamburgerBtn`, `Backdrop`, `Sidebar`, and export layout.
 
 ---
 

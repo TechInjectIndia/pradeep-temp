@@ -214,38 +214,75 @@ const td = {
   border: "1px solid #888", padding: "5px 9px", verticalAlign: "top", fontSize: 13.5
 };
 
+function HamburgerBtn({ open, setOpen }) {
+  return (
+    <button onClick={() => setOpen(o => !o)} style={{
+      position: "fixed", top: 14, left: 14, zIndex: 1100,
+      background: P_COLOR, border: "none", borderRadius: 4, cursor: "pointer",
+      width: 36, height: 36, display: "flex", flexDirection: "column",
+      alignItems: "center", justifyContent: "center", gap: 5, padding: 0
+    }}>
+      {[0, 1, 2].map(i => (
+        <span key={i} style={{ display: "block", width: 20, height: 2.5,
+          background: "#fff", borderRadius: 2, transition: "all 0.25s",
+          ...(open && i === 0 ? { transform: "translateY(7.5px) rotate(45deg)" } : {}),
+          ...(open && i === 1 ? { opacity: 0 } : {}),
+          ...(open && i === 2 ? { transform: "translateY(-7.5px) rotate(-45deg)" } : {})
+        }} />
+      ))}
+    </button>
+  );
+}
+
+function Backdrop({ open, onClick }) {
+  if (!open) return null;
+  return (
+    <div onClick={onClick} style={{
+      position: "fixed", inset: 0, zIndex: 1050,
+      background: "rgba(0,0,0,0.35)", cursor: "pointer"
+    }} />
+  );
+}
+
 function Sidebar({ open, setOpen, tocItems }) {
   return (
     <div style={{
-      width: open ? 220 : 36, minWidth: open ? 220 : 36,
-      position: "sticky", top: 0, height: "100vh", overflowY: "auto",
-      background: "#f5f5f5", borderRight: "1px solid #ddd",
-      transition: "width 0.2s", flexShrink: 0, zIndex: 10
+      position: "fixed", top: 0, left: 0, zIndex: 1080,
+      width: open ? 260 : 0, height: "100vh",
+      background: "#fff", boxShadow: open ? "3px 0 16px rgba(0,0,0,0.18)" : "none",
+      overflowY: open ? "auto" : "hidden",
+      transition: "width 0.28s ease",
+      borderRight: open ? "2px solid #f0c8dc" : "none"
     }}>
-      <button
-        onClick={() => setOpen(o => !o)}
-        style={{ width: "100%", padding: "10px 8px", background: P_COLOR,
-          color: "#fff", border: "none", cursor: "pointer", textAlign: open ? "right" : "center",
-          fontFamily: "'Merriweather Sans',Arial,sans-serif", fontWeight: 700, fontSize: 12 }}>
-        {open ? "◀ TOC" : "▶"}
-      </button>
-      {open && (
-        <nav style={{ padding: "8px 6px" }}>
-          {tocItems.map(item => (
-            <a key={item.id} href={`#${item.id}`}
-              style={{ display: "block", padding: "4px 8px",
-                fontSize: item.level === 1 ? 12.5 : item.level === 2 ? 12 : 11.5,
-                fontWeight: item.level === 1 ? 700 : 400,
-                color: item.level === 1 ? P_COLOR : "#333",
-                textDecoration: "none", lineHeight: 1.4,
-                paddingLeft: item.level === 1 ? 8 : item.level === 2 ? 16 : 24,
-                borderLeft: item.level === 1 ? `2px solid ${P_COLOR}` : "none",
-                marginBottom: 2 }}>
-              {item.label} {item.title}
-            </a>
-          ))}
-        </nav>
-      )}
+      <div style={{ padding: "56px 0 20px" }}>
+        <div style={{ padding: "0 16px 10px", fontFamily: "'Merriweather Sans',Arial,sans-serif",
+          fontWeight: 800, fontSize: 12, color: P_COLOR, letterSpacing: 1, textTransform: "uppercase" }}>
+          Contents
+        </div>
+        {tocItems.map((item) => (
+          <div key={item.id}
+            onClick={() => {
+              const el = document.getElementById(item.id);
+              if (el) el.scrollIntoView({ behavior: "smooth" });
+              setOpen(false);
+            }}
+            style={{
+              padding: item.level === 1 ? "6px 16px" : item.level === 2 ? "4px 24px" : "3px 32px",
+              fontSize: item.level === 1 ? 13 : item.level === 2 ? 12.5 : 12,
+              fontWeight: item.level === 1 ? 700 : 400,
+              color: item.level === 1 ? P_COLOR : "#333",
+              cursor: "pointer", lineHeight: 1.45,
+              borderLeft: item.level === 1 ? `3px solid ${P_COLOR}` : "3px solid transparent",
+              background: "transparent",
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = LIGHT_P; }}
+            onMouseLeave={e => { e.currentTarget.style.background = "transparent"; }}
+          >
+            {item.label && <span style={{ marginRight: 5 }}>{item.label}.</span>}
+            {item.title}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1342,15 +1379,17 @@ const allPages = [
 // ── MAIN EXPORT ──────────────────────────────────────────────
 export default function Chapter1() {
   useFonts();
-  const [tocOpen, setTocOpen] = useState(true);
+  const [tocOpen, setTocOpen] = useState(false);
   const bodyFont = {
     fontFamily: "'EB Garamond',Georgia,'Times New Roman',serif",
     fontSize: 15, lineHeight: 1.58, color: "#1a1a1a"
   };
   return (
-    <div style={{ display: "flex", background: "#e8e8e8", minHeight: "100vh", ...bodyFont }}>
+    <div style={{ background: "#fff", minHeight: "100vh", ...bodyFont }}>
+      <HamburgerBtn open={tocOpen} setOpen={setTocOpen} />
+      <Backdrop open={tocOpen} onClick={() => setTocOpen(false)} />
       <Sidebar open={tocOpen} setOpen={setTocOpen} tocItems={TOC} />
-      <div style={{ flex: 1, overflowY: "auto", maxHeight: "100vh" }}>
+      <div style={{ padding: "0 clamp(14px, 4vw, 28px) 60px clamp(14px, 4vw, 28px)" }}>
         <ChapterCover />
         {allPages}
         <div style={{ padding: "18px clamp(14px, 4vw, 28px)", background: "#fff", borderTop: "2px solid #e0e0e0",
