@@ -6,7 +6,15 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "content:extract": "node scripts/extract-image-urls.mjs",
+    "content:generate": "node scripts/generate-content-images.mjs",
+    "content:apply-imports": "node scripts/apply-content-image-imports.mjs",
+    "content:upload-oci": "node scripts/upload-content-images-to-oci.mjs",
+    "content:upload-oci:one": "CONTENT_UPLOAD_LIMIT=1 node scripts/upload-content-images-to-oci.mjs",
+    "content:test-oci": "node scripts/test-oci-connection.mjs",
+    "content:verify-migration": "node scripts/verify-content-migration.mjs",
+    "content:migrate": "npm run content:extract && npm run content:upload-oci && npm run content:generate && npm run content:apply-imports && npm run content:verify-migration"
   },
   "dependencies": {
     "next": "16.1.6",
@@ -18,8 +26,11 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "dotenv": "^17.3.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "oci-common": "^2.126.3",
+    "oci-objectstorage": "^2.126.3",
     "tailwindcss": "^4",
     "typescript": "^5"
   },

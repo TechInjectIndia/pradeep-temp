@@ -1,4 +1,5 @@
 "use client";
+import { CONTENT_IMAGES } from "@/assets/content-images";
 import { useState, useEffect } from "react";
 
 // ─── Design tokens ───────────────────────────────────────────────────────────
@@ -658,7 +659,7 @@ export default function Chapter1() {
           <P2 indent>It is evident from the Fig. 1.1, most of the salts (e.g., KNO₃, NH₄Br) show marked increase in solubility with increase in temperature. Some of them (i.e., NaCl) show only a small increase in solubility with rise in temperature. However, there are only a few substances (e.g., anhydrous sodium sulphate, Na<Sub c="2" />SO<Sub c="4" /> and cerium sulphate, Ce<Sub c="2" />(SO<Sub c="4" />)<Sub c="3" /> which show decrease in solubility with rise in temperature.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_2/imgs/img_in_chart_box_420_263_799_722.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A45Z%2F-1%2F%2F7bf05f7278e54ccd0a97f20091c13dd7d4f7fb1dc2478c702ae8bdcb16ed4fc3"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_0827B1785CF2284301FC}
             alt="Solubility curves of various inorganic compounds"
             caption="Fig. 1.1. Solubility curves of various inorganic compounds"
             width="40%"
@@ -712,7 +713,7 @@ export default function Chapter1() {
           <P2 indent>Due to relatively smaller size of particles, these mixtures appear to be homogeneous but actually they are heterogeneous. Since the colloidal solutions are heterogeneous in nature, therefore, to distinguish them from true solutions, the term "sol" is used in place of solution. The particles of the colloidal sol are called colloidal particles.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_4/imgs/img_in_image_box_264_198_941_413.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A47Z%2F-1%2F%2F249f83d7647241c9462af720f3f7371d059c5b2ecc054c9e5d5cd9057d823793"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_BE148CFAE49C28F5F95D}
             alt="Particle sizes of a true solution, a colloidal solution and a suspension"
             caption="Fig. 1.2. Particle sizes of a true solution, a colloidal solution and a suspension"
             width="70%"
@@ -749,7 +750,7 @@ export default function Chapter1() {
           <DefBox>Brownian movement may be defined as continuous zig-zag movement of colloidal particles in a colloidal sol.</DefBox>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_749_200_1030_407.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fd9106878ebe3084ee1c99a51195fce3953ffc1ee8eb216331037ed188becb56f"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_AB2D779877F9022B42E3}
             alt="Brownian movement"
             caption="Fig. 1.3. Brownian movement"
             width="30%"
@@ -762,7 +763,7 @@ export default function Chapter1() {
           <P2 indent>Thus, Tyndall effect can be used to distinguish between a true solution and a colloidal solution.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_228_877_980_1166.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2F558e0af6a0bf02366513cae364573e4a0f284e613858c1fb820c893f6da82473"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_CB5F1A63689AB385DFB9}
             alt="Tyndall effect"
             caption="Fig. 1.4. (a) Solution of copper sulphate does not show Tyndall effect (b) Mixture of water and milk shows Tyndall effect"
             width="75%"
@@ -943,7 +944,7 @@ export default function Chapter1() {
           <P2 indent>Put a few drops of blue (or black) ink on a watch glass and place it on a beaker half full of water as shown in Fig. 1.5. The water in the beaker is heated and the steam thus formed will, in turn, heat up the ink. The water present in the ink will evaporate and ultimately a blue (or black) residue will be left on the watch glass.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_0/imgs/img_in_image_box_684_350_1045_802.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A30Z%2F-1%2F%2F94521113f9f78f44e94d061281032b92f0fba6770541e7d9101e5fef687855f6"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_A3A0EA2809855A6AC4BA}
             alt="Evaporation setup"
             caption="Fig. 1.5. Evaporation"
             width="35%"
@@ -965,7 +966,7 @@ export default function Chapter1() {
           <P2 indent>The separating funnel is then allowed to stand for sometime when kerosene oil and water form two separate layers. The kerosene oil being lighter than water forms the upper layer while</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_1/imgs/img_in_image_box_674_341_946_783.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A30Z%2F-1%2F%2F8ba791c79952589822ab6470436789ba62489e5f0dbb994bf1330bc3a7d4bf3e"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_D419880FDCF479FAE42A}
             alt="Separation of two immiscible liquids using separating funnel"
             caption="Fig. 1.6. Separation of two immiscible liquids"
             width="30%"
@@ -987,7 +988,7 @@ export default function Chapter1() {
           <DefBox>Sublimation involves direct conversion of a solid into the gaseous state on heating and vice-versa on cooling without passing through the intervening liquid state.</DefBox>
           <P2 indent>Sublimation can be represented as</P2>
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_2/imgs/img_in_image_box_247_234_487_294.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F59b0feced866bc1c257d4852ad58b2157ba14d2be7f963da2b90205fbcee9c4a"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_B8125D21D4C16F2ED1FA}
             alt="Sublimation equation"
             caption=""
             width="25%"
@@ -997,7 +998,7 @@ export default function Chapter1() {
           <P2 indent>Let us now demonstrate the process of sublimation by taking the example of ammonium chloride. Take some ammonium chloride. Powder it in a pestle and mortar and place it in a clean and dry china dish. Cover the china dish with a perforated filter paper. Place an inverted funnel on the filter paper as shown in Fig. 1.7. Close the stem of the funnel with a cotton plug.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_2/imgs/img_in_image_box_604_210_1040_699.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2Fe106ca9f17d68eb45bec80ffa688f43b35056bb1a3d86271a8e3ab84960d8039"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_32F852B5DDA2172F50A1}
             alt="Sublimation of ammonium chloride"
             caption="Fig. 1.7. Sublimation of ammonium chloride"
             width="45%"
@@ -1014,7 +1015,7 @@ export default function Chapter1() {
           <P2 indent>Take about 5 g of impure copper sulphate and dissolve it in minimum amount of water in a china dish. The solution is then filtered to remove insoluble and suspended impurities. Thereafter, the filtrate is evaporated in a china dish so as to get a saturated solution. The hot saturated solution thus obtained is allowed to stand undisturbed for a few hours when crystals of pure copper sulphate separate out<FootNote>Sometimes crystals do not appear even after a long time in spite of the fact that solubility of the solute decreases as the temperature is reduced. This happens when the solution becomes supersaturated. Since supersaturated solutions are unstable, crystallization can be induced either by scratching the sides of the test-tube with a glass rod or by adding a small crystal of the pure substance (seeding) to the solution.</FootNote>. These crystals are separated by filtration through an ordinary funnel as shown in Fig. 1.8 and the filtrate left after the separation of crystals is called the mother liquor.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_3/imgs/img_in_image_box_247_289_965_665.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F937377f2d43222d69bb87c408fccf5a6acefef62b163a952f03fe0f1293537f3"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_89ADD791FC329F3A6768}
             alt="Filtration setup"
             caption="Fig. 1.8. Filtration — (a)(b) folding filter paper (c) forming cone (d) filtration"
             width="70%"
@@ -1024,7 +1025,7 @@ export default function Chapter1() {
           <P2 indent>Sometimes the filtration process is very slow and takes a lot of time. In such cases, filtration is carried out under reduced pressure using a Buchner funnel and water suction pump as shown in Fig. 1.9.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_3/imgs/img_in_image_box_324_834_924_1185.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F80745a5467f6447cd6b0136a269423d17bd3873129368fe7c64c07549d6b208b"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_F5842D86436DFF0758F8}
             alt="Quick filtration using Buchner funnel"
             caption="Fig. 1.9. Quick filtration process using a Buchner funnel and a water suction pump"
             width="60%"
@@ -1055,7 +1056,7 @@ export default function Chapter1() {
           <P2 indent>Although a variety of electric centrifugation machines are available but for clarity and better understanding of the 9th grade students, a hand driven centrifugation technique is shown in Fig. 1.10.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_4/imgs/img_in_image_box_843_1083_1002_1275.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fc854201e1e7d098a62ac10bf27b557ec00ccf54294fe6c359a9168c7d860b83a"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_5836A191822623037FBA}
             alt="Hand driven centrifugation machine"
             caption="Fig. 1.10. Hand driven centrifugation machine"
             width="20%"
@@ -1116,7 +1117,7 @@ export default function Chapter1() {
           <P2><strong>Procedure.</strong> As the flask is heated, the vapours of the low boiling liquid, (i.e., acetone) start forming. As these vapours travel upwards, the temperature on the thermometer starts rising. When the vapour pressure of acetone becomes equal to that of the atmosphere, acetone starts boiling (329 K). These vapours on passing through the condenser get condensed to form liquid acetone which gets collected in the beaker. When whole of acetone has distilled, the temperature on the thermometer falls. As heating is continued further, the vapours of the high boiling component of the mixture (i.e., water), start forming. As these vapours travel upwards, the temperature again starts rising. When the vapour pressure of water becomes equal to that of the atmosphere, it starts boiling. The vapours of water move upwards, and on passing through the condenser they get condensed.</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//b20d0647-a7f3-46e2-8844-4f37e2a48511/markdown_2/imgs/img_in_image_box_219_202_1011_688.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F5982e3e7ea99d01a576270dbbe371cecba2b294000c72704a73f609e7a9cd0f7"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_738CC21228FFCD6603B4}
             alt="Distillation apparatus"
             caption="Fig. 1.11. Separation of two miscible liquids by distillation"
             width="75%"
@@ -1134,7 +1135,7 @@ export default function Chapter1() {
             <KBHd>• Traditional Method of Manufacturing Attar</KBHd>
             <P2 indent>Attars (perfumes) using Hydrodistillation (Deg and Bhapka) method has been used in Kannauj (small city in Uttar Pradesh) since ancient times is similar to modern distillation apparatus (Fig. 1.12).</P2>
             <Figure
-              src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//b20d0647-a7f3-46e2-8844-4f37e2a48511/markdown_2/imgs/img_in_image_box_230_1108_1040_1330.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2Fe22996dd901b8427a28038586b6c1aba5ca5e2f06e6417ef06e83141dda6edc3"
+              src={CONTENT_IMAGES.CONTENT_IMAGE_B018613156C3F19242B3}
               alt="Deg and Baphka method"
               caption="Fig. 1.12. Deg and Baphka method of manufacture of Attar (Perfume)"
               width="75%"
@@ -1155,7 +1156,7 @@ export default function Chapter1() {
           <P2 indent>Suppose we have a mixture of two liquids chloroform and benzene of which chloroform is more volatile (b.p. 334 K) than benzene (b.p. 353 K). When such a liquid mixture is heated, the temperature rises slowly and the mixture starts boiling. The vapours formed mainly consist of the more volatile liquid. i.e., chloroform</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//b20d0647-a7f3-46e2-8844-4f37e2a48511/markdown_3/imgs/img_in_image_box_256_839_962_1336.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fea0988df0c9bd259eccc76b2ece68a967d36db93ea5de90b328c551375d28039"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_881362FDB37AC9214AD9}
             alt="Fractional distillation apparatus"
             caption="Fig. 1.13. Fractional distillation"
             width="65%"
@@ -1181,7 +1182,7 @@ export default function Chapter1() {
           <P2><strong>Procedure.</strong> To carry out the experiment, take a thin strip of a special type of filter paper called the chromatographic filter paper. Using a pencil, draw a line across the width of the filter paper at about 3 cm from the bottom (Fig. 1.14 a). Put a small drop of ink from a sketch pen or a fountain pen at the centre of this line and let it dry. Suspend the paper in a glass jar containing water so that the spot of ink on the paper is just above the water level as shown in Fig. 1.14 (b).</P2>
 
           <Figure
-            src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//73aa8711-939c-4ac7-986c-ef71f6652fa3/markdown_0/imgs/img_in_image_box_229_201_990_459.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A30Z%2F-1%2F%2F4bae36ea02c8d7950ed26dd77f4046d791bb876e1915dee72038848ed40797df"
+            src={CONTENT_IMAGES.CONTENT_IMAGE_C9B339FC08BB14A548DE}
             alt="Separation of dyes in black ink using chromatography"
             caption="Fig. 1.14. Separation of dyes in black ink using chromatography"
             width="75%"
@@ -1251,7 +1252,7 @@ export default function Chapter1() {
             <P2><strong>Experiment 1. Procedure.</strong> (i) Invert a gas jar containing hydrogen (colourless) and other gas jar containing nitrogen dioxide (reddish brown). Separate the two jars by a lid (Fig. 1.15).</P2>
 
             <Figure
-              src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//73aa8711-939c-4ac7-986c-ef71f6652fa3/markdown_2/imgs/img_in_image_box_320_897_907_1215.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F0edcd6d44824aeda15299e39f58849762a6451c0dc8c503548fe7e35b3e627cc"
+              src={CONTENT_IMAGES.CONTENT_IMAGE_DE687984BB16AE573072}
               alt="Diffusion of gases"
               caption="Fig. 1.15. Diffusion of gases occurs against the law of gravitation"
               width="55%"
@@ -1264,7 +1265,7 @@ export default function Chapter1() {
             <P2><strong>Observations :</strong></P2>
 
             <Figure
-              src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//73aa8711-939c-4ac7-986c-ef71f6652fa3/markdown_3/imgs/img_in_image_box_326_526_892_656.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2Fa780440b91f39bbe78edcab5f8ab8720d7503d01788e7b052eb3b2748fc8dcf6"
+              src={CONTENT_IMAGES.CONTENT_IMAGE_866A8BC7CE77E1C05954}
               alt="Distance travelled by NH3 and HCl gases"
               caption="Fig. 1.16. Distance travelled by NH₃ and HCl gases"
               width="55%"
