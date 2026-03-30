@@ -1,5 +1,5 @@
 import type React from "react";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { PREVIEW_CHAPTER_CONTENT } from "../page";
 
@@ -17,7 +17,7 @@ export default async function ContentChapterPreviewPage({
   const Component =
     (PREVIEW_CHAPTER_CONTENT as Partial<Record<string, React.ComponentType>>)[chapter];
 
-  if (!Component) notFound();
+  if (!Component) redirect(`/content/${chapter}`);
   return <Component />;
 }
 

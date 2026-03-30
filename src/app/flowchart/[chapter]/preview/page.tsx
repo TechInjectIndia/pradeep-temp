@@ -1,5 +1,5 @@
 import type React from "react";
-import { notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 
 import { PREVIEW_FLOWCHARTS } from "../page";
 
@@ -17,7 +17,7 @@ export default async function FlowchartChapterPreviewPage({
   const Component =
     (PREVIEW_FLOWCHARTS as Partial<Record<string, React.ComponentType>>)[chapter];
 
-  if (!Component) notFound();
+  if (!Component) redirect(`/flowchart/${chapter}`);
   return <Component />;
 }
 
