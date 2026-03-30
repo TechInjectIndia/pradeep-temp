@@ -1,18 +1,15 @@
 import type React from "react";
 import { notFound } from "next/navigation";
 import MotionFlowchart from "@/components/flowcharts/physics-9-ch1";
-import Physics9Ch1Preview from "@/components/flowcharts/preview-flowcharts/phy-9-ch1"
 import ForcesAndLawsFlowchart from "@/components/flowcharts/phy-9-ch2";
 import WorkEnergySimpleMachinesFlowchart from "@/components/flowcharts/phy-9-ch3";
 import SoundFlowchart from "@/components/flowcharts/phy-9-ch4";
 import EarthAsASystemFlowchart from "@/components/flowcharts/phy-9-ch5";
 import CellFlowchart from "@/components/flowcharts/bio-9-ch1";
-import Bio9Ch1Preview from "@/components/flowcharts/preview-flowcharts/bio-9-ch1";
 import TissuesFlowchart from "@/components/flowcharts/bio-9-ch2";
 import ReproductionFlowchart from "@/components/flowcharts/bio-9-ch3";
 import BiodiversityClassificationFlowchart from "@/components/flowcharts/bio-9-ch4";
 import Chem9Ch1Flowchart from "@/components/flowcharts/chem-9-ch1";
-import Chem9Ch1Preview from "@/components/flowcharts/preview-flowcharts/chem-9-ch1";
 import StructureOfAtomFlowchart from "@/components/flowcharts/chem-9-ch2";
 import AtomsAndMoleculesFlowchart from "@/components/flowcharts/chem-9-ch3";
 import LightReflectionRefractionFlowchart from "@/components/flowcharts/physics-10-ch1";
@@ -59,7 +56,7 @@ const CHAPTER_NAMES = [
 
 type Chapter = (typeof CHAPTER_NAMES)[number];
 
-export const FLOWCHARTS: Record<Chapter, React.ComponentType> = {
+const FLOWCHARTS: Record<Chapter, React.ComponentType> = {
   "physics-9-ch1": MotionFlowchart,
   "phy-9-ch2": ForcesAndLawsFlowchart,
   "phy-9-ch3": WorkEnergySimpleMachinesFlowchart,
@@ -85,12 +82,6 @@ export const FLOWCHARTS: Record<Chapter, React.ComponentType> = {
   "chem-10-ch2": AcidsBasesAndSaltsFlowchart,
   "chem-10-ch3": MetalsNonMetalsFlowchart,
   "chem-10-ch4": CarbonCompoundsFlowchart,
-};
-
-export const PREVIEW_FLOWCHARTS: Partial<Record<Chapter, React.ComponentType>> = {
-  "physics-9-ch1": Physics9Ch1Preview,
-  "bio-9-ch1": Bio9Ch1Preview,
-  "chem-9-ch1": Chem9Ch1Preview,
 };
 
 export function generateStaticParams() {
