@@ -3,7 +3,9 @@ import { redirect } from "next/navigation";
 
 import { PREVIEW_CHAPTER_CONTENT } from "../page";
 
-export { generateStaticParams } from "../page";
+export function generateStaticParams() {
+  return Object.keys(PREVIEW_CHAPTER_CONTENT).map((chapter) => ({ chapter }));
+}
 
 type PreviewPageProps = {
   params: Promise<{ chapter: string }>;
