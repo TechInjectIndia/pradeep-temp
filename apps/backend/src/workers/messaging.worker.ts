@@ -91,17 +91,24 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
   const resend = new Resend(config.resend.apiKey);
 
   const loginLink = job.specimenDetails;
+  const books = job.books ?? [];
+  const bookListHtml = books.length > 0
+    ? books.map((b, i) => `<li>${i + 1}. <strong>${b.title}</strong> by ${b.author ?? 'Pradeep Publications'}</li>`).join('\n')
+    : '';
 
   const { data, error } = await resend.emails.send({
     from: `${config.resend.fromName} <${config.resend.fromEmail}>`,
     to: job.email,
-    subject: `Your Digital Content from Pradeep Publications`,
+    subject: `Digital Specimen Books from Pradeep Publications`,
     html: `
       <p>Dear ${job.name},</p>
-      <p>Your digital content is ready. Click the link below to access your books:</p>
-      <p><a href="${loginLink}" style="display:inline-block;padding:12px 24px;background:#2563eb;color:#fff;text-decoration:none;border-radius:8px;font-weight:600;">Access Digital Content</a></p>
-      <p style="color:#666;font-size:13px;">Or copy this link: <a href="${loginLink}">${loginLink}</a></p>
-      <p>Best regards,<br/>Pradeep Publications</p>
+      <p>We highly value your trust in Pradeep's Books over the years.</p>
+      <p>In our endeavour to equip you with our resource material in a better and instant manner, we have now brought for you the digital versions of our following books for your kind review and recommendation:</p>
+      ${bookListHtml ? `<ol style="padding-left:20px;">${bookListHtml}</ol>` : ''}
+      <p>The access link for the digital copies is shared below for your convenience:</p>
+      <p><a href="${loginLink}">${loginLink}</a></p>
+      <p>Appreciating your unwavering patronage and assuring you of our constant and consistent efforts to bring you standard academic books from time to time.</p>
+      <p>Pradeep Jain<br/>Chairman</p>
     `,
   });
 

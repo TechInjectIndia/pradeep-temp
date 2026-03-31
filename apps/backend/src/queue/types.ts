@@ -27,6 +27,7 @@ export interface EmailMessageJob {
   specimenDetails: string;
   commLogId: string;
   retryCount: number;
+  books?: Array<{ title: string; specimenUrl: string; productId: string; author?: string }>;
 }
 
 export interface OrderCreationJob {

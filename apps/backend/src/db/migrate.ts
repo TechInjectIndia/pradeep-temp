@@ -331,22 +331,21 @@ async function main() {
     await db.execute(sql`DELETE FROM wati_templates WHERE template_name = ${name}`);
   }
   await db.execute(sql`DELETE FROM wati_templates WHERE template_name LIKE 'sbtemp_%'`);
-  console.log('Removed old templates (spmst*/spemst_*/sbtemp_* series).');
+  await db.execute(sql`DELETE FROM wati_templates WHERE template_name LIKE 'sbtmp_%'`);
+  console.log('Removed old templates (spmst*/spemst_*/sbtemp_*/sbtmp_* series).');
 
-  // Seed approved WATI templates (sbtmp_* series) — ACTIVE, used for live sends
-  // Same body/params structure as sbtemp_* but these are the WATI-approved template names.
-  // sbtmp_1b = 1 book, sbtmp_2..12 = N books.
-  const sbtmpTemplates: Array<{ name: string; n: number }> = [
-    { name: 'sbtmp_1b', n: 1 },
-    { name: 'sbtmp_2',  n: 2 },
-    { name: 'sbtmp_3',  n: 3 },
-    { name: 'sbtmp_4',  n: 4 },
-    { name: 'sbtmp_6',  n: 6 },
-    { name: 'sbtmp_9',  n: 9 },
-    { name: 'sbtmp_12', n: 12 },
+  // Seed spmst*_digital series — same body/params structure as sbtmp_*
+  const spmstDigitalTemplates: Array<{ name: string; n: number }> = [
+    { name: 'spmst1_digital',     n: 1 },
+    { name: 'spmst2_digital_new', n: 2 },
+    { name: 'spmst3_digital',     n: 3 },
+    { name: 'spmst4_digital',     n: 4 },
+    { name: 'spmst6_digital',     n: 6 },
+    { name: 'spmst9_digital',     n: 9 },
+    { name: 'spmst12_digital',    n: 12 },
   ];
 
-  for (const { name, n } of sbtmpTemplates) {
+  for (const { name, n } of spmstDigitalTemplates) {
     const bookList = Array.from({ length: n }, (_, i) => {
       const titleParam = 3 + i * 2;
       const authorParam = 4 + i * 2;
@@ -385,7 +384,7 @@ Please confirm books receipt by selecting an option below.`;
       VALUES (
         gen_random_uuid()::text,
         ${name},
-        ${`Specimen Book — ${n} book${n > 1 ? 's' : ''} (approved)`},
+        ${`Specimen Digital — ${n} book${n > 1 ? 's' : ''}`},
         ${bodyPreview},
         ${JSON.stringify(params)}::jsonb,
         true,
@@ -402,7 +401,7 @@ Please confirm books receipt by selecting an option below.`;
         updated_at = NOW()
     `);
   }
-  console.log('Seeded sbtmp_1b/2/3/4/6/9/12 templates (active — WATI approved).');
+  console.log('Seeded spmst1_digital/spmst2_digital_new/spmst3_digital/spmst4_digital/spmst6_digital/spmst9_digital/spmst12_digital templates.');
 
   await client.end();
 }

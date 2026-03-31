@@ -112,6 +112,7 @@ export class DLQService {
           specimenDetails: loginLink,
           commLogId: msg.commLogId ?? '',
           retryCount: 0,
+          books,
         });
       }
 
