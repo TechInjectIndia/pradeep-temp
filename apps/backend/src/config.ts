@@ -57,8 +57,5 @@ export function validateConfig(): void {
   if (config.nodeEnv === 'production') {
     required('DATABASE_URL');
     required('REDIS_URL');
-    required('WATI_BASE_URL');
-    required('WATI_API_KEY');
-    required('RESEND_API_KEY');
   }
 }

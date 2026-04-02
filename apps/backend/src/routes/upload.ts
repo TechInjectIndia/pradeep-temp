@@ -1,5 +1,5 @@
 import { Elysia, t } from 'elysia';
-import { processUpload, type MergeDecisionPayload } from '@/services/UploadService';
+import { processUpload, processReviewedRows, type MergeDecisionPayload, type ReviewedRow } from '@/services/UploadService';
 
 export const uploadRoutes = new Elysia({ prefix: '/upload' })
   .post(
@@ -49,6 +49,23 @@ export const uploadRoutes = new Elysia({ prefix: '/upload' })
         teacherChannels: t.Optional(t.Union([t.String(), t.Array(t.Any())])),
         mergeDecisions: t.Optional(t.Union([t.String(), t.Array(t.Any())])),
         skippedRowIndices: t.Optional(t.Union([t.String(), t.Array(t.Any())])),
+      }),
+    }
+  )
+  .post(
+    '/reviewed',
+    async ({ body, set }) => {
+      try {
+        return await processReviewedRows(body.rows as ReviewedRow[], body.fileName);
+      } catch (e) {
+        set.status = 400;
+        return { message: e instanceof Error ? e.message : 'Upload failed' };
+      }
+    },
+    {
+      body: t.Object({
+        rows: t.Array(t.Any()),
+        fileName: t.Optional(t.String()),
       }),
     }
   );

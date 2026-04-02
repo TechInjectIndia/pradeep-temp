@@ -108,7 +108,7 @@ export class LinkService {
     }
 
     // 6. Process orders in chunks to avoid OOM and oversized API payloads at 10K scale
-    const CHUNK_SIZE = 500;
+    const CHUNK_SIZE = 200;
     const { baseUrl, apiKey } = config.lms;
     const expiresAt = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000); // 90 days
     const fullLinkMap: Record<string, Record<string, string>> = {};

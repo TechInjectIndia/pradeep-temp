@@ -300,6 +300,19 @@ export class BatchService {
 
     await addJob(QUEUES.BATCH_ADVANCE, { batchId, targetStage: next });
 
+    // Chain: when a batch completes, auto-start the next queued batch
+    if (next === 'COMPLETE') {
+      const nextBatchId = updated.nextBatchId;
+      if (nextBatchId) {
+        try {
+          await this.advance(nextBatchId, 'auto_chain');
+          console.log(`[BatchService] batch=${batchId} COMPLETE → chaining batch=${nextBatchId}`);
+        } catch (err) {
+          console.warn(`[BatchService] chain advance for ${nextBatchId} failed (may already be running):`, err);
+        }
+      }
+    }
+
     return updated;
   }
 }

@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { db } from '@/db';
-import { teachersRaw, teachers, phoneLookup, emailLookup } from '@/db/schema';
+import { teachersRaw, teachers, phoneLookup, emailLookup, batches } from '@/db/schema';
 import { BatchService } from './BatchService';
 import { nanoid } from 'nanoid';
 import { eq, inArray } from 'drizzle-orm';
@@ -332,4 +332,104 @@ export async function processUpload(
   await BatchService.advance(batch.id, 'auto_upload_complete');
 
   return { batchId: batch.id, rowCount: rows.length };
+}
+
+// ─── Reviewed rows (JSON) ──────────────────────────────────────────────────
+
+type ChannelChoice = 'both' | 'whatsapp' | 'email' | 'none';
+
+export type ReviewedRow = UploadRow & {
+  phoneSelected?: string;
+  emailSelected?: string;
+  channels: ChannelChoice;
+  existingTeacherId?: string;
+};
+
+/**
+ * Process pre-reviewed rows from the frontend (no file needed).
+ * Splits into sequential batches of BATCH_SIZE; only the first batch starts
+ * immediately — each subsequent batch auto-starts when its predecessor completes.
+ */
+export async function processReviewedRows(
+  rows: ReviewedRow[],
+  fileName?: string
+): Promise<{ batchId: string; rowCount: number; batchCount: number }> {
+  if (rows.length === 0) throw new Error('No rows to process');
+
+  const BATCH_SIZE = 200;
+  const chunks: ReviewedRow[][] = [];
+  for (let i = 0; i < rows.length; i += BATCH_SIZE) {
+    chunks.push(rows.slice(i, i + BATCH_SIZE));
+  }
+
+  // Create all batch records upfront
+  const batchIds: string[] = [];
+  for (let i = 0; i < chunks.length; i++) {
+    const batch = await BatchService.create(fileName ?? 'reviewed-upload');
+    batchIds.push(batch.id);
+  }
+
+  // Link each batch to the next via nextBatchId
+  for (let i = 0; i < batchIds.length - 1; i++) {
+    await db
+      .update(batches)
+      .set({ nextBatchId: batchIds[i + 1] })
+      .where(eq(batches.id, batchIds[i]));
+  }
+
+  // Insert teachers into each batch
+  for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {
+    const chunk = chunks[chunkIdx];
+    const batchId = batchIds[chunkIdx];
+
+    const rawRecords = chunk.map((row) => {
+      let sendWhatsApp = true;
+      let sendEmail = false;
+      if (row.channels === 'whatsapp') { sendWhatsApp = true; sendEmail = false; }
+      else if (row.channels === 'email') { sendWhatsApp = false; sendEmail = true; }
+      else if (row.channels === 'both') { sendWhatsApp = true; sendEmail = true; }
+      else if (row.channels === 'none') { sendWhatsApp = false; sendEmail = false; }
+
+      return {
+        id: `tr_${nanoid(12)}`,
+        batchId,
+        name: row.name ?? '',
+        phone: row.phoneSelected ?? row.phone,
+        email: row.emailSelected ?? row.email,
+        school: row.school || row.institutionName || '',
+        city: row.city,
+        books: row.books ?? row.booksAssigned,
+        recordId: row.recordId,
+        booksAssigned: row.booksAssigned,
+        teacherOwnerId: row.teacherOwnerId,
+        teacherOwner: row.teacherOwner,
+        firstName: row.firstName,
+        lastName: row.lastName,
+        institutionId: row.institutionId,
+        institutionName: row.institutionName,
+        salutation: row.salutation,
+        sendWhatsApp,
+        sendEmail,
+        resolutionStatus: row.existingTeacherId ? ('RESOLVED' as const) : ('PENDING' as const),
+        teacherMasterId: row.existingTeacherId,
+      };
+    });
+
+    for (let i = 0; i < rawRecords.length; i += 500) {
+      await db.insert(teachersRaw).values(rawRecords.slice(i, i + 500));
+    }
+
+    await BatchService.updateStats(batchId, { totalTeachers: chunk.length });
+    await BatchService.addLog(
+      batchId,
+      'upload',
+      `Batch ${chunkIdx + 1}/${chunks.length}: ${chunk.length} teachers loaded`,
+      chunkIdx > 0 ? `Queued — will start after batch ${chunkIdx} completes` : 'Starting now'
+    );
+  }
+
+  // Only kick off the first batch; subsequent batches start via BatchService chain
+  await BatchService.advance(batchIds[0], 'auto_upload_complete');
+
+  return { batchId: batchIds[0], rowCount: rows.length, batchCount: chunks.length };
 }

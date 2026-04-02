@@ -315,6 +315,9 @@ async function main() {
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='book_mappings' AND column_name='edition') THEN
         ALTER TABLE book_mappings ADD COLUMN edition TEXT;
       END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='batches' AND column_name='next_batch_id') THEN
+        ALTER TABLE batches ADD COLUMN next_batch_id TEXT REFERENCES batches(id);
+      END IF;
     END $$;
 
     -- Indexes
@@ -325,83 +328,56 @@ async function main() {
 
   console.log('Schema sync complete.');
 
-  // Remove old/deprecated templates
-  const oldTemplateNames = ['spmst1', 'spmst2', 'spmst3', 'spmst6', 'spmst9', 'spmst12', 'spemst_4'];
-  for (const name of oldTemplateNames) {
-    await db.execute(sql`DELETE FROM wati_templates WHERE template_name = ${name}`);
-  }
-  await db.execute(sql`DELETE FROM wati_templates WHERE template_name LIKE 'sbtemp_%'`);
-  await db.execute(sql`DELETE FROM wati_templates WHERE template_name LIKE 'sbtmp_%'`);
-  console.log('Removed old templates (spmst*/spemst_*/sbtemp_*/sbtmp_* series).');
+  // Remove ALL existing templates — clean slate
+  await db.execute(sql`DELETE FROM wati_templates`);
+  console.log('Removed all existing wati_templates.');
 
-  // Seed spmst*_digital series — same body/params structure as sbtmp_*
-  const spmstDigitalTemplates: Array<{ name: string; n: number }> = [
-    { name: 'spmst1_digital',     n: 1 },
-    { name: 'spmst2_digital_new', n: 2 },
-    { name: 'spmst3_digital',     n: 3 },
-    { name: 'spmst4_digital',     n: 4 },
-    { name: 'spmst6_digital',     n: 6 },
-    { name: 'spmst9_digital',     n: 9 },
-    { name: 'spmst12_digital',    n: 12 },
+  // Seed spmst3_digital3 — 3 books, named params
+  const bodyPreview3 = `Hello {{name}}!
+
+Your digital access for the following has been activated.
+
+*1. {{bookname1}}* by _{{attribute_1}}_
+*2. {{bookname2}}* by _{{attribute_2}}_
+*3. {{bookname3}}* by _{{attribute_3}}_
+
+Access link: {{Source}}
+
+*Pradeep Publications*`;
+
+  const params3 = [
+    { paramName: 'name',        dataPath: 'teacher.name',   fallback: 'Teacher' },
+    { paramName: 'bookname1',   dataPath: 'books.0.title',  fallback: '' },
+    { paramName: 'attribute_1', dataPath: 'books.0.author', fallback: '' },
+    { paramName: 'bookname2',   dataPath: 'books.1.title',  fallback: '' },
+    { paramName: 'attribute_2', dataPath: 'books.1.author', fallback: '' },
+    { paramName: 'bookname3',   dataPath: 'books.2.title',  fallback: '' },
+    { paramName: 'attribute_3', dataPath: 'books.2.author', fallback: '' },
+    { paramName: 'Source',      dataPath: 'order.link',     fallback: '' },
   ];
 
-  for (const { name, n } of spmstDigitalTemplates) {
-    const bookList = Array.from({ length: n }, (_, i) => {
-      const titleParam = 3 + i * 2;
-      const authorParam = 4 + i * 2;
-      return `*${i + 1}. {{${titleParam}}}* by _{{${authorParam}}}_`;
-    }).join('\n');
-
-    const bodyPreview = `Dear *{{1}}*,
-
-We highly value your trust in *Pradeep's Books* over the years.
-
-In our endeavour to equip you with our resource material in a better and instant manner, we have now brought for you the digital versions of our following book${n > 1 ? 's' : ''} for your kind review and recommendation:
-
-${bookList}
-
-The access link for the digital copy is shared below for your convenience:
-
-{{2}}
-
-Appreciating your unwavering patronage and assuring you of our constant and consistent efforts to bring you standard academic books from time to time.
-
-*Pradeep Jain*
-*Chairman*
-Please confirm books receipt by selecting an option below.`;
-
-    const params = [
-      { paramName: '1', dataPath: 'teacher.name', fallback: 'Teacher' },
-      { paramName: '2', dataPath: 'order.link', fallback: '' },
-      ...Array.from({ length: n }, (_, i) => ([
-        { paramName: String(3 + i * 2), dataPath: `books.${i}.title`, fallback: '' },
-        { paramName: String(4 + i * 2), dataPath: `books.${i}.author`, fallback: '' },
-      ])).flat(),
-    ];
-
-    await db.execute(sql`
-      INSERT INTO wati_templates (id, template_name, display_name, body_preview, params, is_active, book_count, created_at, updated_at)
-      VALUES (
-        gen_random_uuid()::text,
-        ${name},
-        ${`Specimen Digital — ${n} book${n > 1 ? 's' : ''}`},
-        ${bodyPreview},
-        ${JSON.stringify(params)}::jsonb,
-        true,
-        ${n},
-        NOW(),
-        NOW()
-      )
-      ON CONFLICT (template_name) DO UPDATE SET
-        display_name = EXCLUDED.display_name,
-        body_preview = EXCLUDED.body_preview,
-        params = EXCLUDED.params,
-        is_active = true,
-        book_count = EXCLUDED.book_count,
-        updated_at = NOW()
-    `);
-  }
-  console.log('Seeded spmst1_digital/spmst2_digital_new/spmst3_digital/spmst4_digital/spmst6_digital/spmst9_digital/spmst12_digital templates.');
+  await db.execute(sql`
+    INSERT INTO wati_templates (id, template_name, display_name, body_preview, params, is_active, book_count, created_at, updated_at)
+    VALUES (
+      gen_random_uuid()::text,
+      'spmst3_digital3',
+      'Specimen Digital — 3 books',
+      ${bodyPreview3},
+      ${JSON.stringify(params3)}::jsonb,
+      true,
+      3,
+      NOW(),
+      NOW()
+    )
+    ON CONFLICT (template_name) DO UPDATE SET
+      display_name = EXCLUDED.display_name,
+      body_preview = EXCLUDED.body_preview,
+      params       = EXCLUDED.params,
+      is_active    = true,
+      book_count   = EXCLUDED.book_count,
+      updated_at   = NOW()
+  `);
+  console.log('Seeded spmst3_digital3 template.');
 
   await client.end();
 }

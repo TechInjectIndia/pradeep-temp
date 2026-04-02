@@ -12,7 +12,8 @@ import type { BatchAdvanceJob, EmailMessageJob } from '@/queue/types';
 import type { Job } from 'bullmq';
 import { db } from '@/db';
 import { teachersRaw, orders, commLog, batches, failedMessages } from '@/db/schema';
-import { eq, inArray } from 'drizzle-orm';
+import { eq, inArray, sql } from 'drizzle-orm';
+import type { BatchStats } from '@/db/schema';
 import { nanoid } from 'nanoid';
 import { LinkService } from '@/services/LinkService';
 import { BatchService } from '@/services/BatchService';
@@ -262,12 +263,27 @@ async function handleMessaging(batchId: string) {
     );
   }
 
-  // 4. Update stats — WA all processed now; emails processed incrementally
+  // 4. Atomically set messagesQueued and INCREMENT messagesProcessed by waTotal.
+  //    Using increment (not overwrite) prevents a race where the email worker
+  //    already bumped messagesProcessed before we set messagesQueued.
   const totalQueued = waTotal + emailQueued;
-  await BatchService.updateStats(batchId, {
-    messagesQueued: totalQueued,
-    messagesProcessed: waTotal, // WA done synchronously; email worker increments as each email sends
-  });
+
+  const [statsRow] = await db
+    .update(batches)
+    .set({
+      stats: sql`jsonb_set(
+        jsonb_set(
+          COALESCE(stats, '{}'::jsonb),
+          '{messagesQueued}',
+          to_jsonb(${totalQueued}::int)
+        ),
+        '{messagesProcessed}',
+        to_jsonb(COALESCE((stats->>'messagesProcessed')::int, 0) + ${waTotal}::int)
+      )`,
+      updatedAt: new Date(),
+    })
+    .where(eq(batches.id, batchId))
+    .returning();
 
   await BatchService.addLog(
     batchId,
@@ -277,13 +293,19 @@ async function handleMessaging(batchId: string) {
 
   console.log(`[batch-advance] batch=${batchId} -> MESSAGING done: WA=${waSent}/${waTotal}, email=${emailQueued} queued`);
 
-  // 5. Auto-advance if nothing left to process (no emails, or nothing at all)
-  if (totalQueued === 0 || emailQueued === 0) {
+  // 5. Advance to COMPLETE if all messages already processed.
+  //    Covers: (a) no messages at all, (b) no emails queued, (c) email worker
+  //    raced ahead and finished before we set messagesQueued above.
+  const stats = statsRow?.stats as BatchStats | undefined;
+  const processed = stats?.messagesProcessed ?? 0;
+  const queued = stats?.messagesQueued ?? 0;
+
+  if (queued === 0 || processed >= queued) {
     try {
       await BatchService.advance(batchId, 'auto_messaging_complete');
-      console.log(`[batch-advance] batch=${batchId} all messages processed -> COMPLETE`);
+      console.log(`[batch-advance] batch=${batchId} all ${queued} messages processed -> COMPLETE`);
     } catch {
-      // Already advanced -- safe to ignore
+      // Already advanced — safe to ignore
     }
   }
 }
