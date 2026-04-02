@@ -8,6 +8,7 @@
  *   batch.id
  */
 import type { WatiTemplateParam } from '@/db/schema';
+import { formatName } from '@/utils/formatName';
 
 export type TemplateContext = {
   teacherName: string;
@@ -64,7 +65,7 @@ function resolvePath(path: string, ctx: TemplateContext): string {
       if (field === 'title') return truncate(book.title ?? '');
       if (field === 'specimenUrl') return book.specimenUrl ?? '';
       if (field === 'productId') return book.productId ?? '';
-      if (field === 'author') return truncate(book.author ?? '');
+      if (field === 'author') return truncate(formatName(book.author));
     }
     return '';
   }

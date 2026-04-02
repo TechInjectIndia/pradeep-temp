@@ -8,6 +8,7 @@
  * Retries: BullMQ handles automatic retries with exponential backoff.
  */
 import { createWorker, addJob, QUEUES } from '@/queue';
+import { formatName } from '@/utils/formatName';
 import type { WhatsAppMessageJob, EmailMessageJob } from '@/queue/types';
 import type { Job } from 'bullmq';
 import { config } from '@/config';
@@ -93,7 +94,7 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
   const loginLink = job.specimenDetails;
   const books = job.books ?? [];
   const bookListHtml = books.length > 0
-    ? books.map((b, i) => `<li>${i + 1}. <strong>${b.title}</strong> by ${b.author ?? 'Pradeep Publications'}</li>`).join('\n')
+    ? books.map((b, i) => `<li>${i + 1}. <strong>${b.title}</strong> by ${formatName(b.author) || 'Pradeep Publications'}</li>`).join('\n')
     : '';
 
   const { data, error } = await resend.emails.send({
