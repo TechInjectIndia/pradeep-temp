@@ -74,19 +74,23 @@ export const commLogRoutes = new Elysia({ prefix: '/comm-logs' })
 
       // Fetch batch filenames for display
       const batchIds = [...batchMap.keys()];
-      let batchInfoMap = new Map<string, string>();
+      let batchInfoMap = new Map<string, { fileName: string; seqId: number }>();
       if (batchIds.length > 0) {
         const batchRows = await db.query.batches.findMany({
           where: (b, { inArray }) => inArray(b.id, batchIds),
-          columns: { id: true, fileName: true, status: true, createdAt: true },
+          columns: { id: true, fileName: true, status: true, createdAt: true, seqId: true },
         });
         for (const b of batchRows) {
-          batchInfoMap.set(b.id, b.fileName ?? b.id);
+          batchInfoMap.set(b.id, { fileName: b.fileName ?? b.id, seqId: b.seqId });
         }
       }
 
       const batchSummary = [...batchMap.values()]
-        .map((s) => ({ ...s, fileName: batchInfoMap.get(s.batchId) ?? s.batchId }))
+        .map((s) => ({
+          ...s,
+          fileName: batchInfoMap.get(s.batchId)?.fileName ?? s.batchId,
+          seqId: batchInfoMap.get(s.batchId)?.seqId ?? 0,
+        }))
         .sort((a, b) => b.total - a.total);
 
       return {

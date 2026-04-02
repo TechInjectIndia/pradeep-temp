@@ -1,4 +1,4 @@
-import { eq, and, desc, count, sql } from 'drizzle-orm';
+import { eq, and, desc, count, sql, inArray } from 'drizzle-orm';
 import { db } from '@/db';
 import {
   batches,
@@ -66,11 +66,16 @@ export class BatchService {
     return db.query.batches.findFirst({ where: eq(batches.id, id) });
   }
 
+  static async getBySeqId(seqId: number) {
+    if (isNaN(seqId)) return null;
+    return db.query.batches.findFirst({ where: eq(batches.seqId, seqId) });
+  }
+
   static async create(fileName?: string) {
-    const id = `batch_${nanoid(12)}`;
+    const [{ nextId }] = await db.execute<{ nextId: string }>(sql`SELECT nextval('batches_seq_id_seq')::text AS "nextId"`);
     const rows = await db
       .insert(batches)
-      .values({ id, fileName, status: 'UPLOADED' })
+      .values({ id: nextId, seqId: parseInt(nextId, 10), fileName, status: 'UPLOADED' })
       .returning();
     const batch = rows[0];
     if (!batch) throw new Error('Failed to create batch');

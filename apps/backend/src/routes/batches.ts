@@ -34,7 +34,9 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
     }
   )
   .get('/:id', async ({ params, set }) => {
-    const batch = await BatchService.getById(params.id);
+    // Try by primary id first, then fall back to seq_id lookup
+    let batch = await BatchService.getById(params.id);
+    if (!batch) batch = await BatchService.getBySeqId(parseInt(params.id, 10));
     if (!batch) { set.status = 404; return { message: 'Batch not found' }; }
     return { ...batch, displayId: formatBatchId(batch.seqId) };
   })

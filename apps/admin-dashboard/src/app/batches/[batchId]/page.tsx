@@ -167,7 +167,7 @@ export default function BatchDetailPage() {
             {batch.displayId && (
               <span className="text-sm font-semibold text-foreground">{batch.displayId}</span>
             )}
-            <h1 className="text-lg font-bold text-foreground font-mono truncate">{batch.id}</h1>
+            <h1 className="text-lg font-bold text-foreground font-mono truncate">#{batch.seqId}</h1>
             <BatchStateIndicator status={batch.status} size="sm" />
             {batch.fileName && (
               <span className="text-xs text-muted-foreground">· {batch.fileName}</span>

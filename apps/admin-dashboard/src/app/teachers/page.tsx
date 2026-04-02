@@ -13,7 +13,7 @@ import { formatDate } from "@/utils/date";
 import { addTeacherContacts, type ContactConflict } from "@/services/api";
 
 const columns: Column<Teacher>[] = [
-  { key: "id", header: "DB ID", mobileHidden: true, render: (row) => <span className="font-mono text-xs text-muted-foreground">{row.id}</span> },
+  { key: "id", header: "ID", mobileHidden: true, render: (row) => <span className="font-mono text-xs text-muted-foreground">#{row.seqId ?? row.id}</span> },
   {
     key: "name",
     header: "Teacher Name",
@@ -89,6 +89,14 @@ const columns: Column<Teacher>[] = [
     render: (row) => formatDate(row.createdAt),
   },
   { key: "recordId", header: "Record Id", mobileHidden: true },
+  {
+    key: "firebaseId",
+    header: "Firebase UID",
+    mobileHidden: true,
+    render: (row) => row.firebaseId
+      ? <span className="font-mono text-xs text-muted-foreground">{row.firebaseId}</span>
+      : <span className="text-muted-foreground">—</span>,
+  },
 ];
 
 function hasNoContacts(row: Teacher) {

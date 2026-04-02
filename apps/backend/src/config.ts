@@ -37,6 +37,9 @@ export const config = {
     fromName: optional('RESEND_FROM_NAME', 'VSDS Team'),
   },
 
+  // Set DISABLE_MESSAGING=true to suppress all WATI/email sends (for testing)
+  disableMessaging: optional('DISABLE_MESSAGING', 'false') === 'true',
+
   cors: {
     allowedOrigins: optional('CORS_ORIGINS', 'http://localhost:3000').split(','),
   },

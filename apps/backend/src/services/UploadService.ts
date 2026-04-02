@@ -216,6 +216,7 @@ export async function processUpload(
     }
   }
 
+  // Build raw records without a batchId yet — assigned after batch splitting below
   const rawRecords = rows.map((row, idx) => {
     const effectiveChannel = activeTeacherChannels?.[idx] ?? channel;
     let sendWhatsApp: boolean;
@@ -239,7 +240,6 @@ export async function processUpload(
     const isMerge = decision?.action === 'merge';
     const isCreateNew = decision?.action === 'create_new';
 
-    // For create_new: blank phone/email if already owned by another teacher in DB
     const phone = isCreateNew
       ? (takenPhones.has(row.phone?.trim() ?? '') ? undefined : row.phone)
       : row.phone;
@@ -249,7 +249,7 @@ export async function processUpload(
 
     return {
       id: `tr_${nanoid(12)}`,
-      batchId: batch.id,
+      batchId: '',        // filled in per-chunk below
       name: row.name ?? '',
       phone,
       email,
@@ -267,71 +267,81 @@ export async function processUpload(
       salutation: row.salutation,
       sendWhatsApp,
       sendEmail,
-      // Pre-resolve approved merges so the ordering worker skips upsert
       resolutionStatus: isMerge ? ('RESOLVED' as const) : ('PENDING' as const),
       teacherMasterId: isMerge ? (decision as Extract<MergeDecisionPayload, { action: 'merge' }>).teacherId : undefined,
     };
   });
 
-  for (let i = 0; i < rawRecords.length; i += 500) {
-    await db.insert(teachersRaw).values(rawRecords.slice(i, i + 500));
+  // ── Split into chained batches of 200 ────────────────────────────────────
+  const BATCH_SIZE = 200;
+  const chunks: (typeof rawRecords)[] = [];
+  for (let i = 0; i < rawRecords.length; i += BATCH_SIZE) {
+    chunks.push(rawRecords.slice(i, i + BATCH_SIZE));
   }
 
-  // Apply teacher master updates for approved merges (phones, emails, name)
-  // noChanges rows: nothing to update — just linked above
+  // Create all batch records (first one already created above as `batch`)
+  const batchIds: string[] = [batch.id];
+  for (let i = 1; i < chunks.length; i++) {
+    const b = await BatchService.create(fileName);
+    batchIds.push(b.id);
+  }
+
+  // Link each batch to the next
+  for (let i = 0; i < batchIds.length - 1; i++) {
+    await db.update(batches).set({ nextBatchId: batchIds[i + 1] }).where(eq(batches.id, batchIds[i]));
+  }
+
+  // Tag all batches in the chain with the same triggerId (first batch's ID)
+  await db.update(batches).set({ triggerId: batchIds[0] }).where(inArray(batches.id, batchIds));
+
+  // Insert teachers into each batch
+  const resolvedCount = mergeDecisions?.filter((d) => d.action === 'merge').length ?? 0;
+  for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {
+    const chunk = chunks[chunkIdx].map((r) => ({ ...r, batchId: batchIds[chunkIdx] }));
+    for (let i = 0; i < chunk.length; i += 500) {
+      await db.insert(teachersRaw).values(chunk.slice(i, i + 500));
+    }
+    await BatchService.updateStats(batchIds[chunkIdx], { totalTeachers: chunk.length });
+    await BatchService.addLog(
+      batchIds[chunkIdx],
+      'upload',
+      `Batch ${chunkIdx + 1}/${chunks.length}: ${chunk.length} teachers from ${fileName}${resolvedCount > 0 && chunkIdx === 0 ? ` (${resolvedCount} pre-resolved merges)` : ''}`,
+      chunkIdx > 0 ? `Queued — starts after batch ${chunkIdx} completes` : 'Starting now'
+    );
+  }
+
+  // Apply teacher master updates for approved merges (not batch-specific)
   const mergeUpdates = mergeDecisions?.filter(
     (d): d is Extract<MergeDecisionPayload, { action: 'merge' }> =>
       d.action === 'merge' && !d.noChanges
   ) ?? [];
 
   if (mergeUpdates.length > 0) {
-    // Fetch all affected teachers in one query
     const teacherIds = [...new Set(mergeUpdates.map((d) => d.teacherId))];
     const existingTeachers = await db.query.teachers.findMany({
       where: inArray(teachers.id, teacherIds),
     });
     const teacherMap = new Map(existingTeachers.map((t) => [t.id, t]));
-
-    // Build all updates in parallel — each teacher has different data so can't batch into one query
     const teacherUpdatePromises: Promise<unknown>[] = [];
 
     for (const decision of mergeUpdates) {
       const existing = teacherMap.get(decision.teacherId);
       if (!existing) continue;
-
-      // Always keep existing DB phones/emails — never add new ones from file
-      const updatePayload: Partial<typeof teachers.$inferInsert> = {
-        updatedAt: new Date(),
-      };
+      const updatePayload: Partial<typeof teachers.$inferInsert> = { updatedAt: new Date() };
       if (decision.nameChoice === 'file' && decision.newName) {
         updatePayload.name = decision.newName;
       }
-
       teacherUpdatePromises.push(
         db.update(teachers).set(updatePayload).where(eq(teachers.id, decision.teacherId))
       );
-      // No phoneLookup/emailLookup inserts — existing contacts are preserved as-is
     }
-
-    // Flush all teacher updates in parallel
-    if (teacherUpdatePromises.length > 0) {
-      await Promise.all(teacherUpdatePromises);
-    }
-
+    if (teacherUpdatePromises.length > 0) await Promise.all(teacherUpdatePromises);
   }
 
-  const resolvedCount = mergeDecisions?.filter((d) => d.action === 'merge').length ?? 0;
-  await BatchService.updateStats(batch.id, { totalTeachers: rows.length });
-  await BatchService.addLog(
-    batch.id,
-    'upload',
-    `Uploaded ${rows.length} teacher records from ${fileName}${resolvedCount > 0 ? ` (${resolvedCount} pre-resolved merges)` : ''}`
-  );
+  // Only kick off the first batch — subsequent ones start via chain
+  await BatchService.advance(batchIds[0], 'auto_upload_complete');
 
-  // Auto-advance: kick off the pipeline immediately after upload
-  await BatchService.advance(batch.id, 'auto_upload_complete');
-
-  return { batchId: batch.id, rowCount: rows.length };
+  return { batchId: batchIds[0], rowCount: rows.length };
 }
 
 // ─── Reviewed rows (JSON) ──────────────────────────────────────────────────
@@ -376,6 +386,9 @@ export async function processReviewedRows(
       .set({ nextBatchId: batchIds[i + 1] })
       .where(eq(batches.id, batchIds[i]));
   }
+
+  // Tag all batches in the chain with the same triggerId (first batch's ID)
+  await db.update(batches).set({ triggerId: batchIds[0] }).where(inArray(batches.id, batchIds));
 
   // Insert teachers into each batch
   for (let chunkIdx = 0; chunkIdx < chunks.length; chunkIdx++) {

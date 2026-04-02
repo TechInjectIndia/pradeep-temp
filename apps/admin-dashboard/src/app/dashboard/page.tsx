@@ -15,7 +15,7 @@ const batchColumns: Column<Batch>[] = [
   {
     key: "id",
     header: "Batch ID",
-    render: (row) => <span className="font-mono text-sm font-medium">{row.id}</span>,
+    render: (row) => <span className="font-mono text-sm font-medium">#{row.seqId}</span>,
   },
   {
     key: "fileName",
@@ -117,7 +117,7 @@ export default function DashboardPage() {
           columns={batchColumns}
           data={recentBatches}
           keyExtractor={(row) => row.id}
-          onRowClick={(row) => router.push(`/batches/${row.id}`)}
+          onRowClick={(row) => router.push(`/batches/${row.seqId}`)}
         />
       </div>
     </div>

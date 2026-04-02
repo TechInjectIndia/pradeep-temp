@@ -14,6 +14,7 @@ import { algoliaRoutes } from '@/routes/algolia';
 import { watiTemplateRoutes } from '@/routes/watiTemplates';
 import { commLogRoutes } from '@/routes/commLogs';
 import { sseRoutes } from '@/routes/sse';
+import { triggerRoutes } from '@/routes/triggers';
 
 validateConfig();
 
@@ -56,6 +57,7 @@ const app = new Elysia()
   .use(watiTemplateRoutes)
   .use(commLogRoutes)
   .use(sseRoutes)
+  .use(triggerRoutes)
   .onError(({ code, error, set }) => {
     if (code === 'NOT_FOUND') {
       set.status = 404;

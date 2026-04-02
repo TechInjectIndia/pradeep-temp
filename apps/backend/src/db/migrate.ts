@@ -318,6 +318,12 @@ async function main() {
       IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='batches' AND column_name='next_batch_id') THEN
         ALTER TABLE batches ADD COLUMN next_batch_id TEXT REFERENCES batches(id);
       END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='batches' AND column_name='trigger_id') THEN
+        ALTER TABLE batches ADD COLUMN trigger_id TEXT;
+      END IF;
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name='teachers' AND column_name='firebase_id') THEN
+        ALTER TABLE teachers ADD COLUMN firebase_id TEXT;
+      END IF;
     END $$;
 
     -- Indexes

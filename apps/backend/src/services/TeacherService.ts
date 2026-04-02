@@ -1,7 +1,6 @@
-import { eq, desc, count, ilike, or, inArray } from 'drizzle-orm';
+import { eq, desc, count, ilike, or, inArray, sql } from 'drizzle-orm';
 import { db } from '@/db';
 import { teachers, phoneLookup, emailLookup } from '@/db/schema';
-import { nanoid } from 'nanoid';
 
 type Teacher = typeof teachers.$inferSelect;
 
@@ -146,7 +145,8 @@ export class TeacherService {
       return { teacher: updated, isNew: false };
     }
 
-    const id = `t_${nanoid(12)}`;
+    const [{ nextId }] = await db.execute<{ nextId: string }>(sql`SELECT nextval('teachers_seq_id_seq')::text AS "nextId"`);
+    const id = nextId;
     const phones = data.phone ? [normalizePhone(data.phone)] : [];
     const emails = data.email ? [normalizeEmail(data.email)] : [];
 
@@ -154,6 +154,7 @@ export class TeacherService {
       .insert(teachers)
       .values({
         id,
+        seqId: parseInt(id, 10),
         name: data.name,
         phones,
         emails,

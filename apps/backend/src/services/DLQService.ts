@@ -1,4 +1,4 @@
-import { eq, and, desc, count, inArray } from 'drizzle-orm';
+import { eq, and, desc, count, inArray, ne } from 'drizzle-orm';
 import { db } from '@/db';
 import { failedMessages, commLog, orders } from '@/db/schema';
 import { addJob, QUEUES } from '@/queue';
@@ -24,7 +24,12 @@ export class DLQService {
     const conditions = [];
     if (params.batchId) conditions.push(eq(failedMessages.batchId, params.batchId));
     if (params.channel) conditions.push(eq(failedMessages.channel, params.channel as 'WHATSAPP' | 'EMAIL'));
-    if (params.status) conditions.push(eq(failedMessages.status, params.status as 'FAILED' | 'RETRYING' | 'RESOLVED'));
+    // If a specific status is requested show it; otherwise exclude RESOLVED (they've exited the DLQ)
+    if (params.status) {
+      conditions.push(eq(failedMessages.status, params.status as 'FAILED' | 'RETRYING' | 'RESOLVED'));
+    } else {
+      conditions.push(ne(failedMessages.status, 'RESOLVED'));
+    }
 
     const where = conditions.length > 0 ? and(...conditions) : undefined;
 

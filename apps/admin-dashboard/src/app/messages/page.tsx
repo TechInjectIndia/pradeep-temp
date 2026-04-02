@@ -168,7 +168,7 @@ export default function MessagesPage() {
                 </select>
               </div>
 
-              <LogsTable logs={logs} />
+              <LogsTable logs={logs} batchSeqIdMap={Object.fromEntries(batchSummary.map((b) => [b.batchId, b.seqId]))} />
 
               <div className="flex items-center justify-between">
                 <select
@@ -243,10 +243,10 @@ function BatchProgressView({
               <tr key={b.batchId} className="hover:bg-muted/40">
                 <td className="whitespace-nowrap px-4 py-3">
                   <button
-                    onClick={() => router.push(`/batches/${b.batchId}`)}
+                    onClick={() => router.push(`/batches/${b.seqId || b.batchId}`)}
                     className="rounded-md bg-blue-50 border border-blue-200 px-2 py-1 font-mono text-xs font-semibold text-blue-700 hover:bg-blue-100 transition-colors"
                   >
-                    {b.batchId.slice(0, 16)}…
+                    {b.seqId ? `#${b.seqId}` : b.batchId.slice(0, 16) + '…'}
                   </button>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-xs text-muted-foreground">
@@ -290,7 +290,7 @@ function BatchProgressView({
 
 // ─── Logs Table ───────────────────────────────────────────────────────────────
 
-function LogsTable({ logs }: { logs: CommLogEntry[] }) {
+function LogsTable({ logs, batchSeqIdMap }: { logs: CommLogEntry[]; batchSeqIdMap: Record<string, number> }) {
   const router = useRouter();
   if (logs.length === 0) {
     return (
@@ -321,10 +321,10 @@ function LogsTable({ logs }: { logs: CommLogEntry[] }) {
               <tr key={log.id} className="hover:bg-muted/40">
                 <td className="whitespace-nowrap px-4 py-3 text-sm">
                   <button
-                    onClick={() => router.push(`/batches/${log.batchId}`)}
+                    onClick={() => router.push(`/batches/${batchSeqIdMap[log.batchId] || log.batchId}`)}
                     className="rounded-md bg-blue-50 border border-blue-200 px-2 py-1 font-mono text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors"
                   >
-                    {log.batchId.slice(0, 16)}…
+                    {batchSeqIdMap[log.batchId] ? `#${batchSeqIdMap[log.batchId]}` : log.batchId.slice(0, 16) + '…'}
                   </button>
                 </td>
                 <td className="whitespace-nowrap px-4 py-3 text-sm font-medium text-foreground">

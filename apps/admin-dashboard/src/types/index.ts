@@ -72,8 +72,29 @@ export interface Batch {
   pausedFromStage?: string;
   pausedAt?: string;
   cancelReason?: string;
+  triggerId?: string;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface TriggerBatch {
+  id: string;
+  seqId: number;
+  status: BatchStatus;
+  stats?: BatchStats;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Trigger {
+  triggerId: string;
+  fileName?: string | null;
+  createdAt: string;
+  batchCount: number;
+  totalTeachers: number;
+  totalMessages: number;
+  overallStatus: 'COMPLETE' | 'IN_PROGRESS' | 'FAILED' | 'PARTIAL_FAILURE' | 'CANCELLED';
+  batches: TriggerBatch[];
 }
 
 export interface BatchDetail extends Batch {
@@ -155,6 +176,8 @@ export interface Teacher {
   institutionId?: string;
   institutionName?: string;
   salutation?: string;
+  firebaseId?: string | null;
+  seqId: number;
 }
 
 // ---- Duplicates ----

@@ -17,6 +17,7 @@ import type {
   ReviewedRow,
   Teacher,
   TeacherListParams,
+  Trigger,
   UploadedTeacher,
 } from "@/types";
 
@@ -335,6 +336,7 @@ export interface CommLogEntry {
 
 export interface BatchCommSummary {
   batchId: string;
+  seqId: number;
   fileName: string;
   queued: number;
   sent: number;
@@ -695,4 +697,13 @@ export async function previewWatiTemplate(id: string, sampleData?: {
     method: "POST",
     body: JSON.stringify(sampleData ?? {}),
   });
+}
+
+// ---- Triggers ----
+
+export async function listTriggers(params: { page?: number; pageSize?: number } = {}) {
+  const q = new URLSearchParams();
+  if (params.page) q.set('page', String(params.page));
+  if (params.pageSize) q.set('pageSize', String(params.pageSize));
+  return request<{ data: Trigger[]; total: number; page: number; pageSize: number; totalPages: number }>(`/triggers?${q}`);
 }

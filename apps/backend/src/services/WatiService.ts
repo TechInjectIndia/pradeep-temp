@@ -77,6 +77,10 @@ const BULK_CHUNK_SIZE = 100;
 export async function sendWhatsAppBulk(
   messages: BulkWAMessage[]
 ): Promise<{ sentIds: string[]; failedIds: string[] }> {
+  if (config.disableMessaging) {
+    console.log(`[WatiService] DISABLE_MESSAGING=true — skipping ${messages.length} WhatsApp sends`);
+    return { sentIds: messages.map((m) => m.commLogId), failedIds: [] };
+  }
   if (!config.wati.baseUrl || !config.wati.apiKey) {
     throw new Error('WATI not configured');
   }

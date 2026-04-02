@@ -14,7 +14,7 @@ import type { Job } from 'bullmq';
 import { config } from '@/config';
 import { db } from '@/db';
 import { commLog, failedMessages, messageSendLog, batches, watiTemplates, type BatchStats } from '@/db/schema';
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, and, sql, inArray } from 'drizzle-orm';
 import { nanoid } from 'nanoid';
 import { resolveParams } from '@/services/TemplateEngine';
 import { BatchService } from '@/services/BatchService';
@@ -25,6 +25,10 @@ export { clearTemplateCache };
 // ─── WATI single-message send (used for DLQ retries) ─────────────────────────
 
 async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
+  if (config.disableMessaging) {
+    console.log(`[messaging] DISABLE_MESSAGING=true — skipping WhatsApp to ${job.phone}`);
+    return 'disabled';
+  }
   if (!config.wati.baseUrl || !config.wati.apiKey) {
     throw new Error('WATI not configured');
   }
@@ -86,6 +90,10 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
 // ─── Resend ───────────────────────────────────────────────────────────────────
 
 async function sendEmail(job: EmailMessageJob): Promise<string> {
+  if (config.disableMessaging) {
+    console.log(`[messaging] DISABLE_MESSAGING=true — skipping email to ${job.email}`);
+    return 'disabled';
+  }
   if (!config.resend.apiKey) throw new Error('Resend not configured');
 
   const { Resend } = await import('resend');
@@ -94,7 +102,7 @@ async function sendEmail(job: EmailMessageJob): Promise<string> {
   const loginLink = job.specimenDetails;
   const books = job.books ?? [];
   const bookListHtml = books.length > 0
-    ? books.map((b, i) => `<li>${i + 1}. <strong>${b.title}</strong> by ${formatName(b.author) || 'Pradeep Publications'}</li>`).join('\n')
+    ? books.map((b) => `<li><strong>${b.title}</strong> by ${formatName(b.author) || 'Pradeep Publications'}</li>`).join('\n')
     : '';
 
   const { data, error } = await resend.emails.send({
@@ -191,10 +199,13 @@ async function processMessage(job: Job<WhatsAppMessageJob | EmailMessageJob>) {
     externalMessageId: externalId,
   });
 
+  // Delete the DLQ entry — it's resolved and should exit the failed messages list
   await db
-    .update(failedMessages)
-    .set({ status: 'RESOLVED', updatedAt: new Date() })
-    .where(and(eq(failedMessages.commLogId, commLogId), eq(failedMessages.status, 'RETRYING')));
+    .delete(failedMessages)
+    .where(and(
+      eq(failedMessages.commLogId, commLogId),
+      inArray(failedMessages.status, ['RETRYING', 'FAILED'])
+    ));
 
   await incrementAndCheckComplete(batchId);
 }
