@@ -687,6 +687,7 @@ export default function UploadPage() {
     const BATCH_SIZE = 50;
     const PARALLEL = 3;
     const LMS_CHECK_URL = "https://vsdshelpercheckuserexists-e6zspx6m4q-el.a.run.app/v1/check-user-exists";
+    const LMS_API_KEY = process.env.NEXT_PUBLIC_LMS_API_KEY ?? "";
 
     setIsLmsChecking(true);
     setLmsCheckProgress({ done: 0, total: newRows.length });
@@ -706,21 +707,40 @@ export default function UploadPage() {
       for (let i = 0; i < chunks.length; i += PARALLEL) {
         const parallel = chunks.slice(i, i + PARALLEL);
         const batchResults = await Promise.all(
-          parallel.map(async (chunk) => {
+          parallel.map(async (chunk, idx) => {
+            const syncBatchId = `lms_check_${Date.now()}_${i + idx}`;
+            // Build users map keyed by rowIndex string
+            const users: Record<string, { phone?: string; email?: string }> = {};
+            for (const r of chunk) {
+              if (r.phone || r.email) {
+                users[String(r.rowIndex)] = {
+                  ...(r.phone ? { phone: r.phone } : {}),
+                  ...(r.email ? { email: r.email } : {}),
+                };
+              }
+            }
+            if (Object.keys(users).length === 0) return [] as LmsCheckResult[];
+
             const res = await fetch(LMS_CHECK_URL, {
               method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                users: chunk.map((r) => ({ phone: r.phone, email: r.email })),
-              }),
+              headers: {
+                "Content-Type": "application/json",
+                "x-api-key": LMS_API_KEY,
+              },
+              body: JSON.stringify({ batchId: syncBatchId, users }),
             });
-            if (!res.ok) throw new Error(`LMS check failed: ${res.status}`);
-            const json = await res.json() as { results: { exists: boolean; userId?: string; firebaseId?: string }[] };
-            return chunk.map((r, idx) => ({
+            if (!res.ok) {
+              const text = await res.text();
+              throw new Error(`LMS check failed ${res.status}: ${text}`);
+            }
+            const json = await res.json() as {
+              batchId: string;
+              users: Record<string, { firebaseUserId: string | null; status: "FOUND" | "NOT_FOUND" }>;
+            };
+            return chunk.map((r) => ({
               rowIndex: r.rowIndex,
-              exists: json.results[idx]?.exists ?? false,
-              userId: json.results[idx]?.userId,
-              firebaseId: json.results[idx]?.firebaseId,
+              exists: json.users[String(r.rowIndex)]?.status === "FOUND",
+              firebaseId: json.users[String(r.rowIndex)]?.firebaseUserId ?? undefined,
             }));
           })
         );
@@ -733,7 +753,6 @@ export default function UploadPage() {
       setLmsCheckResults(allResults);
     } catch (err) {
       console.error("LMS check error:", err);
-      // Don't block the flow — just show error state
       setLmsCheckResults([]);
       toast.error("LMS user check failed — continuing without it");
     } finally {
