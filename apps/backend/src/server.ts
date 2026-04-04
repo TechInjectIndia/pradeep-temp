@@ -45,6 +45,16 @@ const app = new Elysia()
     })
   )
   .get('/health', () => ({ status: 'ok', ts: new Date().toISOString() }))
+  .derive(({ request, set }) => {
+    if (config.apiSecret) {
+      const auth = request.headers.get('authorization') ?? '';
+      const token = auth.startsWith('Bearer ') ? auth.slice(7) : '';
+      if (token !== config.apiSecret) {
+        set.status = 401;
+        throw new Error('Unauthorized');
+      }
+    }
+  })
   .use(batchRoutes)
   .use(dlqRoutes)
   .use(duplicateRoutes)

@@ -1,7 +1,8 @@
 import { Elysia, t } from 'elysia';
 import { db } from '@/db';
-import { commLog } from '@/db/schema';
+import { commLog, batches } from '@/db/schema';
 import { eq, and, desc, count } from 'drizzle-orm';
+import { BatchService } from '@/services/BatchService';
 
 export const commLogRoutes = new Elysia({ prefix: '/comm-logs' })
   // GET /comm-logs — paginated list + per-batch summary
@@ -12,9 +13,16 @@ export const commLogRoutes = new Elysia({ prefix: '/comm-logs' })
       const pageSize = query.pageSize ?? 50;
       const offset = (page - 1) * pageSize;
 
+      // Resolve batchId: if it looks numeric, try seqId lookup first
+      let resolvedBatchId = query.batchId;
+      if (resolvedBatchId && /^\d+$/.test(resolvedBatchId)) {
+        const batch = await BatchService.getBySeqId(parseInt(resolvedBatchId, 10));
+        if (batch) resolvedBatchId = batch.id;
+      }
+
       // Build where clause
       const conditions = [];
-      if (query.batchId) conditions.push(eq(commLog.batchId, query.batchId));
+      if (resolvedBatchId) conditions.push(eq(commLog.batchId, resolvedBatchId));
       if (query.channel) conditions.push(eq(commLog.channel, query.channel as 'WHATSAPP' | 'EMAIL'));
       if (query.status) conditions.push(eq(commLog.status, query.status as 'QUEUED' | 'SENT' | 'DELIVERED' | 'FAILED' | 'DLQ' | 'CANCELLED' | 'SKIPPED'));
 
@@ -42,7 +50,7 @@ export const commLogRoutes = new Elysia({ prefix: '/comm-logs' })
           cnt: count(),
         })
         .from(commLog)
-        .where(query.batchId ? eq(commLog.batchId, query.batchId) : undefined)
+        .where(resolvedBatchId ? eq(commLog.batchId, resolvedBatchId) : undefined)
         .groupBy(commLog.batchId, commLog.status);
 
       // Aggregate per batch

@@ -11,6 +11,15 @@ const paginationQuery = t.Object({
   pageSize: t.Optional(t.Numeric({ minimum: 1, maximum: 200, default: 20 })),
 });
 
+/** Resolve seqId → real batch id. If numeric and not found by id, tries seqId lookup. */
+async function resolveId(id: string): Promise<string> {
+  if (/^\d+$/.test(id)) {
+    const batch = await BatchService.getBySeqId(parseInt(id, 10));
+    if (batch) return batch.id;
+  }
+  return id;
+}
+
 export const batchRoutes = new Elysia({ prefix: '/batches' })
   .get(
     '/',
@@ -42,7 +51,7 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
   })
   .post('/:id/advance', async ({ params, set }) => {
     try {
-      return await BatchService.advance(params.id, 'manual');
+      return await BatchService.advance(await resolveId(params.id), 'manual');
     } catch (e) {
       set.status = 400;
       return { message: e instanceof Error ? e.message : 'Cannot advance batch' };
@@ -50,7 +59,7 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
   })
   .post('/:id/pause', async ({ params, set }) => {
     try {
-      return await BatchService.pause(params.id);
+      return await BatchService.pause(await resolveId(params.id));
     } catch (e) {
       set.status = 400;
       return { message: e instanceof Error ? e.message : 'Cannot pause batch' };
@@ -58,7 +67,7 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
   })
   .post('/:id/resume', async ({ params, set }) => {
     try {
-      return await BatchService.resume(params.id);
+      return await BatchService.resume(await resolveId(params.id));
     } catch (e) {
       set.status = 400;
       return { message: e instanceof Error ? e.message : 'Cannot resume batch' };
@@ -68,7 +77,7 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
     '/:id/cancel',
     async ({ params, body, set }) => {
       try {
-        return await BatchService.cancel(params.id, body.reason);
+        return await BatchService.cancel(await resolveId(params.id), body.reason);
       } catch (e) {
         set.status = 400;
         return { message: e instanceof Error ? e.message : 'Cannot cancel batch' };
@@ -78,8 +87,8 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
   )
   .get(
     '/:id/teachers',
-    ({ params, query }) =>
-      BatchService.getTeachers(params.id, {
+    async ({ params, query }) =>
+      BatchService.getTeachers(await resolveId(params.id), {
         page: query.page ?? 1,
         pageSize: query.pageSize ?? 20,
         status: query.status,
@@ -94,8 +103,8 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
   )
   .get(
     '/:id/errors',
-    ({ params, query }) =>
-      BatchService.getErrors(params.id, {
+    async ({ params, query }) =>
+      BatchService.getErrors(await resolveId(params.id), {
         page: query.page ?? 1,
         pageSize: query.pageSize ?? 50,
         stage: query.stage,
@@ -110,13 +119,13 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
   )
   .post(
     '/:id/errors/retry',
-    ({ params, body }) => BatchService.retryErrors(params.id, body.stage),
+    async ({ params, body }) => BatchService.retryErrors(await resolveId(params.id), body.stage),
     { body: t.Object({ stage: t.Optional(t.String()) }) }
   )
   .get(
     '/:id/logs',
-    ({ params, query }) =>
-      BatchService.getLogs(params.id, {
+    async ({ params, query }) =>
+      BatchService.getLogs(await resolveId(params.id), {
         page: query.page ?? 1,
         pageSize: query.pageSize ?? 50,
       }),
@@ -129,14 +138,15 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
       const page = query.page ?? 1;
       const pageSize = query.pageSize ?? 50;
       const offset = (page - 1) * pageSize;
+      const batchId = await resolveId(params.id);
 
       const [rows, countResult] = await Promise.all([
         db.select().from(orders)
-          .where(eq(orders.batchId, params.id))
+          .where(eq(orders.batchId, batchId))
           .orderBy(desc(orders.createdAt))
           .limit(pageSize)
           .offset(offset),
-        db.select({ total: count() }).from(orders).where(eq(orders.batchId, params.id)),
+        db.select({ total: count() }).from(orders).where(eq(orders.batchId, batchId)),
       ]);
 
       // Enrich with message status per teacher
@@ -146,7 +156,7 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
           status: commLog.status,
           lastError: commLog.lastError,
         }).from(commLog).where(
-          and(eq(commLog.batchId, params.id), eq(commLog.teacherRecordId, order.teacherRecordId))
+          and(eq(commLog.batchId, batchId), eq(commLog.teacherRecordId, order.teacherRecordId))
         );
 
         return {

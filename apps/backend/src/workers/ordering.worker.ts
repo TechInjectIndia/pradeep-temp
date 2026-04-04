@@ -7,7 +7,7 @@ import { createWorker, addJob, QUEUES } from '@/queue';
 import type { OrderCreationJob } from '@/queue/types';
 import type { Job } from 'bullmq';
 import { db } from '@/db';
-import { teachersRaw, orders, batchErrors, batches, type BatchStats } from '@/db/schema';
+import { teachersRaw, teachers, orders, batchErrors, batches, type BatchStats } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
 import { TeacherService } from '@/services/TeacherService';
 import { BatchService } from '@/services/BatchService';
@@ -39,13 +39,21 @@ createWorker<OrderCreationJob>(QUEUES.ORDER_CREATION, async (job: Job<OrderCreat
     const displayName = salutation && !rawName.startsWith(salutation) ? `${salutation} ${rawName}` : rawName;
 
     if (rawTeacher.resolutionStatus === 'RESOLVED' && rawTeacher.teacherMasterId) {
-      // Pre-resolved by admin during upload (approved merge) -- skip upsert entirely
+      // Pre-resolved by admin (approved merge) -- use master teacher's name/phone/school, file's email
+      const masterTeacher = await db.query.teachers.findFirst({
+        where: eq(teachers.id, rawTeacher.teacherMasterId),
+      });
       teacherMasterId = rawTeacher.teacherMasterId;
-      teacherName = displayName;
-      teacherPhone = rawTeacher.phone ?? null;
+      // Name: from master DB teacher
+      const masterName = masterTeacher?.name ?? rawName;
+      teacherName = salutation && !masterName.startsWith(salutation) ? `${salutation} ${masterName}` : masterName;
+      // Phone: from master DB teacher (first phone), fallback to file
+      teacherPhone = (masterTeacher?.phones as string[] | undefined)?.[0] ?? rawTeacher.phone ?? null;
+      // Email: from file (new data being added)
       teacherEmail = rawTeacher.email ?? null;
-      teacherSchool = rawTeacher.school ?? rawTeacher.institutionName;
-      teacherCity = rawTeacher.city;
+      // School + city: from master DB teacher, fallback to file
+      teacherSchool = masterTeacher?.school ?? rawTeacher.school ?? rawTeacher.institutionName;
+      teacherCity = masterTeacher?.city ?? rawTeacher.city;
     } else {
       // Resolve teacher master record via upsert (find-or-create)
       const { teacher, isNew } = await TeacherService.upsert({

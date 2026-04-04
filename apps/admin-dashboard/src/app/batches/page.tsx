@@ -3,11 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useTriggers } from "@/hooks/useTriggers";
+import { useCancelBatch, useCheckAdvanceBatch, useRetryBatchErrors } from "@/hooks/useBatches";
 import BatchStateIndicator from "@/components/BatchStateIndicator";
 import SkeletonTable from "@/components/SkeletonTable";
-import { formatDate } from "@/utils/date";
+import { formatDateTime } from "@/utils/date";
+import { useQueryClient } from "@tanstack/react-query";
 import type { Trigger, TriggerBatch } from "@/types";
 import { clsx } from "clsx";
+
+const TERMINAL = new Set(["COMPLETE", "FAILED", "CANCELLED", "PARTIAL_FAILURE"]);
 
 function overallStatusColor(status: string) {
   if (status === 'COMPLETE') return 'bg-green-100 text-green-700';
@@ -24,9 +28,14 @@ function overallStatusLabel(status: string) {
 
 export default function BatchesPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [cancelling, setCancelling] = useState<Set<string>>(new Set());
+  const cancelBatch = useCancelBatch();
+  const advanceBatch = useCheckAdvanceBatch();
+  const retryErrors = useRetryBatchErrors();
 
   const { data: response, isLoading } = useTriggers({ page, pageSize });
   const triggers = response?.data ?? [];
@@ -41,6 +50,22 @@ export default function BatchesPage() {
       return next;
     });
   };
+
+  async function cancelAllBatches(trigger: Trigger) {
+    const activeBatches = trigger.batches.filter((b) => !TERMINAL.has(b.status));
+    if (activeBatches.length === 0) return;
+    setCancelling((prev) => new Set(prev).add(trigger.triggerId));
+    try {
+      await Promise.all(
+        activeBatches.map((b) =>
+          cancelBatch.mutateAsync({ batchId: b.id, reason: "Cancelled from Triggers page" })
+        )
+      );
+      queryClient.invalidateQueries({ queryKey: ["triggers"] });
+    } finally {
+      setCancelling((prev) => { const n = new Set(prev); n.delete(trigger.triggerId); return n; });
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -67,34 +92,46 @@ export default function BatchesPage() {
             return (
             <div key={trigger.triggerId} className="rounded-xl border border-border bg-card overflow-hidden">
               {/* Trigger header row */}
-              <button
-                onClick={() => toggleExpand(trigger.triggerId)}
-                className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition-colors"
-              >
-                <span className="text-muted-foreground text-sm w-4 shrink-0">
-                  {expanded.has(trigger.triggerId) ? '▾' : '▸'}
-                </span>
-                <span className="font-mono text-xs bg-muted border border-border text-muted-foreground px-2 py-0.5 rounded-md shrink-0">
-                  T-{triggerSeqId}
-                </span>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground truncate">
-                    {trigger.fileName ?? trigger.triggerId}
-                  </p>
-                  <p className="text-xs text-muted-foreground">{formatDate(trigger.createdAt)}</p>
-                </div>
-                <div className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground shrink-0">
-                  <span>{trigger.batchCount} batch{trigger.batchCount !== 1 ? 'es' : ''}</span>
-                  <span>{trigger.totalTeachers} teachers</span>
-                  <span>{trigger.totalMessages} msgs</span>
-                </div>
-                <span className={clsx(
-                  'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0',
-                  overallStatusColor(trigger.overallStatus)
-                )}>
-                  {overallStatusLabel(trigger.overallStatus)}
-                </span>
-              </button>
+              <div className="flex items-center">
+                <button
+                  onClick={() => toggleExpand(trigger.triggerId)}
+                  className="flex-1 flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/40 transition-colors min-w-0"
+                >
+                  <span className="text-muted-foreground text-sm w-4 shrink-0">
+                    {expanded.has(trigger.triggerId) ? '▾' : '▸'}
+                  </span>
+                  <span className="font-mono text-xs bg-muted border border-border text-muted-foreground px-2 py-0.5 rounded-md shrink-0">
+                    T-{triggerSeqId}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {trigger.fileName ?? trigger.triggerId}
+                    </p>
+                    <p className="text-xs text-muted-foreground">{formatDateTime(trigger.createdAt)}</p>
+                  </div>
+                  <div className="hidden sm:flex items-center gap-6 text-sm text-muted-foreground shrink-0">
+                    <span>{trigger.batchCount} batch{trigger.batchCount !== 1 ? 'es' : ''}</span>
+                    <span>{trigger.totalTeachers} teachers</span>
+                    <span>{trigger.totalMessages} msgs</span>
+                  </div>
+                  <span className={clsx(
+                    'inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium shrink-0',
+                    overallStatusColor(trigger.overallStatus)
+                  )}>
+                    {overallStatusLabel(trigger.overallStatus)}
+                  </span>
+                </button>
+                {/* Cancel all button — only shown if any batch is non-terminal */}
+                {trigger.batches.some((b) => !TERMINAL.has(b.status)) && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); cancelAllBatches(trigger); }}
+                    disabled={cancelling.has(trigger.triggerId)}
+                    className="shrink-0 mr-3 rounded-lg border border-red-300 px-3 py-1.5 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 transition-colors"
+                  >
+                    {cancelling.has(trigger.triggerId) ? "Cancelling…" : "Cancel All"}
+                  </button>
+                )}
+              </div>
 
               {/* Expanded batch list */}
               {expanded.has(trigger.triggerId) && (
@@ -102,22 +139,43 @@ export default function BatchesPage() {
                   {trigger.batches.map((batch, idx) => (
                     <div
                       key={batch.id}
-                      onClick={() => router.push(`/batches/${batch.seqId}`)}
-                      className="flex items-center gap-3 px-4 py-2.5 pl-10 hover:bg-muted/30 cursor-pointer transition-colors"
+                      className="flex items-center gap-3 px-4 py-2.5 pl-10 hover:bg-muted/30 transition-colors"
                     >
                       <span className="text-xs text-muted-foreground w-6 shrink-0">
                         {idx + 1}.
                       </span>
-                      <span className="font-mono text-xs bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded-md">
+                      <span
+                        className="font-mono text-xs bg-blue-50 border border-blue-200 text-blue-700 px-2 py-0.5 rounded-md cursor-pointer hover:bg-blue-100"
+                        onClick={() => router.push(`/batches/${batch.seqId}`)}
+                      >
                         #{batch.seqId}
                       </span>
-                      <div className="flex-1 text-xs text-muted-foreground">
+                      <div
+                        className="flex-1 text-xs text-muted-foreground cursor-pointer"
+                        onClick={() => router.push(`/batches/${batch.seqId}`)}
+                      >
                         {batch.stats?.totalTeachers ?? 0} teachers
                       </div>
                       <div className="text-xs text-muted-foreground hidden sm:block">
                         {batch.stats?.messagesQueued ?? 0} msgs
                       </div>
                       <BatchStateIndicator status={batch.status as any} />
+                      {/* Retry / Advance button for non-terminal batches */}
+                      {batch.status === 'PARTIAL_FAILURE' || batch.status === 'FAILED' ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); retryErrors.mutate({ batchId: batch.id }); }}
+                          className="shrink-0 rounded border border-orange-300 px-2 py-0.5 text-[11px] font-medium text-orange-600 hover:bg-orange-50 transition-colors"
+                        >
+                          Retry Errors
+                        </button>
+                      ) : !TERMINAL.has(batch.status) ? (
+                        <button
+                          onClick={(e) => { e.stopPropagation(); advanceBatch.mutate(batch.id); }}
+                          className="shrink-0 rounded border border-border px-2 py-0.5 text-[11px] font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        >
+                          Advance
+                        </button>
+                      ) : null}
                     </div>
                   ))}
                 </div>

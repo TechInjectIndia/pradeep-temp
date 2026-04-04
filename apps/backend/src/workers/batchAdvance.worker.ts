@@ -11,12 +11,13 @@ import { createWorker, addJob, QUEUES } from '@/queue';
 import type { BatchAdvanceJob, EmailMessageJob } from '@/queue/types';
 import type { Job } from 'bullmq';
 import { db } from '@/db';
-import { teachersRaw, orders, commLog, batches, failedMessages } from '@/db/schema';
+import { teachersRaw, orders, commLog, batches, failedMessages, batchErrors } from '@/db/schema';
 import { eq, inArray, sql } from 'drizzle-orm';
 import type { BatchStats } from '@/db/schema';
 import { nanoid } from 'nanoid';
 import { LinkService } from '@/services/LinkService';
 import { BatchService } from '@/services/BatchService';
+import { FirebaseSyncService } from '@/services/FirebaseSyncService';
 import { sendWhatsAppBulk, type BulkWAMessage } from '@/services/WatiService';
 
 // Stage ordering -- used to skip stale messages
@@ -82,6 +83,22 @@ function buildLoginLink(email: string | null, phone: string | null): string {
 }
 
 async function handleMessaging(batchId: string) {
+  // Sync Firebase UIDs for teachers in this batch before sending messages
+  try {
+    const syncResult = await FirebaseSyncService.syncForBatch(batchId);
+    if (syncResult.total > 0) {
+      await BatchService.addLog(
+        batchId,
+        'aggregation',
+        `Firebase UID sync: ${syncResult.updated} updated, ${syncResult.notFound} not found (of ${syncResult.total})`
+      );
+    }
+  } catch (err) {
+    // Non-fatal — log and continue
+    console.warn(`[batch-advance] batch=${batchId} Firebase sync failed (non-fatal):`, err);
+    await BatchService.addLog(batchId, 'aggregation', `Firebase UID sync skipped: ${err instanceof Error ? err.message : 'unknown error'}`);
+  }
+
   await BatchService.addLog(batchId, 'aggregation', 'Generating specimen links from LMS API...');
 
   // 1. Call LMS API to generate specimen links — REQUIRED before sending messages
@@ -331,22 +348,60 @@ createWorker<BatchAdvanceJob>(QUEUES.BATCH_ADVANCE, async (job: Job<BatchAdvance
     return;
   }
 
-  switch (targetStage) {
-    case 'VALIDATING':
-    case 'RESOLVING':
-      await handleValidating(batchId);
-      break;
-    case 'ORDERING':
-      await BatchService.addLog(batchId, 'ordering', 'Ordering stage started -- processing teachers');
-      break;
-    case 'MESSAGING':
-      await handleMessaging(batchId);
-      break;
-    case 'COMPLETE':
-      await BatchService.addLog(batchId, 'batch_advanced', 'Batch marked complete');
-      break;
-    default:
-      console.log(`[batch-advance] No handler for stage=${targetStage}`);
+  try {
+    switch (targetStage) {
+      case 'VALIDATING':
+      case 'RESOLVING':
+        await handleValidating(batchId);
+        break;
+      case 'ORDERING':
+        await BatchService.addLog(batchId, 'ordering', 'Ordering stage started -- processing teachers');
+        break;
+      case 'MESSAGING':
+        await handleMessaging(batchId);
+        break;
+      case 'COMPLETE':
+        await BatchService.addLog(batchId, 'batch_advanced', 'Batch marked complete');
+        break;
+      default:
+        console.log(`[batch-advance] No handler for stage=${targetStage}`);
+    }
+  } catch (err) {
+    const errorMessage = err instanceof Error ? err.message : String(err);
+    console.error(`[batch-advance] batch=${batchId} stage=${targetStage} FAILED:`, errorMessage);
+
+    // Mark batch as FAILED
+    try {
+      await db
+        .update(batches)
+        .set({ status: 'FAILED', updatedAt: new Date() })
+        .where(eq(batches.id, batchId));
+
+      await BatchService.addLog(batchId, 'error', `Stage ${targetStage} failed: ${errorMessage}`);
+
+      await db.insert(batchErrors).values({
+        id: nanoid(),
+        batchId,
+        stage: targetStage,
+        errorType: 'STAGE_FAILED',
+        errorMessage,
+        isRetryable: true,
+      }).onConflictDoNothing();
+    } catch (dbErr) {
+      console.error(`[batch-advance] Failed to record batch failure:`, dbErr);
+    }
+
+    // Always advance the chain so remaining batches in the trigger are not blocked
+    if (batch.nextBatchId) {
+      try {
+        await BatchService.advance(batch.nextBatchId, 'auto_chain_after_failure');
+        console.log(`[batch-advance] batch=${batchId} FAILED → chaining batch=${batch.nextBatchId}`);
+      } catch (chainErr) {
+        console.warn(`[batch-advance] chain advance after failure failed:`, chainErr);
+      }
+    }
+
+    // Don't rethrow — error recorded in DB, chain advanced
   }
 });
 

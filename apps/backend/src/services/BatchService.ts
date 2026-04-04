@@ -153,6 +153,17 @@ export class BatchService {
       .set({ status: 'CANCELLED', updatedAt: new Date() })
       .where(and(eq(commLog.batchId, batchId), eq(commLog.status, 'QUEUED')));
 
+    // Chain: advance the next batch so cancelling one doesn't block the whole trigger
+    const nextBatchId = updated.nextBatchId;
+    if (nextBatchId) {
+      try {
+        await this.advance(nextBatchId, 'auto_chain_after_cancel');
+        console.log(`[BatchService] batch=${batchId} CANCELLED → chaining batch=${nextBatchId}`);
+      } catch (err) {
+        console.warn(`[BatchService] chain advance after cancel for ${nextBatchId} failed:`, err);
+      }
+    }
+
     return updated;
   }
 

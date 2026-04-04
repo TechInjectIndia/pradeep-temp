@@ -37,6 +37,9 @@ export const config = {
     fromName: optional('RESEND_FROM_NAME', 'VSDS Team'),
   },
 
+  // Shared secret for admin dashboard → backend auth
+  apiSecret: optional('API_SECRET', ''),
+
   // Set DISABLE_MESSAGING=true to suppress all WATI/email sends (for testing)
   disableMessaging: optional('DISABLE_MESSAGING', 'false') === 'true',
 
@@ -54,6 +57,8 @@ export const config = {
     baseUrl: optional('LMS_BASE_URL', 'https://questionbankappv2-e6zspx6m4q-el.a.run.app'),
     apiKey: optional('LMS_API_KEY', ''),
   },
+
+  firebaseSyncUrl: optional('FIREBASE_SYNC_URL', 'https://vsdshelpercheckuserexists-e6zspx6m4q-el.a.run.app/v1/check-user-exists'),
 } as const;
 
 export function validateConfig(): void {

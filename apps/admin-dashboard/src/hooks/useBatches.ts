@@ -24,12 +24,17 @@ export function useBatches(params: BatchListParams = {}) {
   });
 }
 
+const TERMINAL_STATUSES = new Set(["COMPLETE", "FAILED", "CANCELLED", "PARTIAL_FAILURE"]);
+
 export function useBatch(batchId: string) {
   return useQuery({
     queryKey: ["batch", batchId],
     queryFn: () => getBatch(batchId),
     enabled: !!batchId,
-    refetchInterval: 5000, // poll every 5s for active batches
+    refetchInterval: (query) => {
+      const status = (query.state.data as any)?.status;
+      return TERMINAL_STATUSES.has(status) ? false : 5000;
+    },
   });
 }
 

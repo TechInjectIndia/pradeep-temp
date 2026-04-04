@@ -114,6 +114,7 @@ type Step = 1 | 2 | 3 | 4;
 
 type MergeDecision =
   | { action: "merge"; nameChoice: "file" | "db" }
+  | { action: "merge_with_email" } // use DB name/phone/school + file email → mergedUsers in LMS
   | { action: "create_new" }
   | { action: "use_db"; teacherId?: string } // teacherId required for split matches
   | null; // null = not yet decided
@@ -372,6 +373,8 @@ export default function UploadPage() {
   const router = useRouter();
 
   const [parsedRows, setParsedRows] = useState<UploadRow[]>([]);
+  const [noContactRows, setNoContactRows] = useState<UploadRow[]>([]);
+  const [showNoContact, setShowNoContact] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isParsing, setIsParsing] = useState(false);
   const [step, setStep] = useState<Step>(1);
@@ -394,6 +397,12 @@ export default function UploadPage() {
   const [pendingConfig, setPendingConfig] = useState<SheetMergeConfig | null>(null);
   const [isDuplicateChecking, setIsDuplicateChecking] = useState(false);
   const [duplicateMatches, setDuplicateMatches] = useState<DBDuplicateMatch[] | null>(null);
+  const [dbReviewFilter, setDbReviewFilter] = useState<'all' | 'potential' | 'exact' | 'changes' | 'approved'>('changes');
+
+  type LmsCheckResult = { rowIndex: number; exists: boolean; userId?: string; firebaseId?: string };
+  const [lmsCheckResults, setLmsCheckResults] = useState<LmsCheckResult[] | null>(null);
+  const [isLmsChecking, setIsLmsChecking] = useState(false);
+  const [lmsCheckProgress, setLmsCheckProgress] = useState({ done: 0, total: 0 });
   // Map<rowIndex, MergeDecision>
   const [mergeDecisions, setMergeDecisions] = useState<Map<number, MergeDecision>>(new Map());
   // Unmapped book codes: codes in the file that have no entry in book_mappings
@@ -424,6 +433,8 @@ export default function UploadPage() {
     setSelectedFile(file);
     setIsParsing(true);
     setParsedRows([]);
+    setNoContactRows([]);
+    setShowNoContact(false);
     setStep(1);
     setPerTeacherChannel(new Map());
     setDuplicateMatches(null);
@@ -435,6 +446,9 @@ export default function UploadPage() {
     setMergeDialogGroup(null);
     setPendingConfig(null);
     setUnmappedBookCodes(null);
+    setLmsCheckResults(null);
+    setIsLmsChecking(false);
+    setLmsCheckProgress({ done: 0, total: 0 });
 
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -449,8 +463,14 @@ export default function UploadPage() {
         const raw = XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet, { defval: "", raw: true });
         const json: UploadRow[] = raw.map((row) => mapRowToUploadRow(row));
         if (json.length === 0) { toast.error("No data rows found in file"); setIsParsing(false); return; }
-        setParsedRows(json);
-        toast.success(`Parsed ${json.length} rows from ${file.name}`);
+        const withContact = json.filter((r) => (r.phone ?? "").trim() || (r.email ?? "").trim());
+        const noContact = json.filter((r) => !(r.phone ?? "").trim() && !(r.email ?? "").trim());
+        setParsedRows(withContact);
+        setNoContactRows(noContact);
+        const msg = noContact.length > 0
+          ? `Parsed ${json.length} rows — ${withContact.length} with contact, ${noContact.length} skipped (no phone/email)`
+          : `Parsed ${json.length} rows from ${file.name}`;
+        toast.success(msg);
       } catch (err) {
         toast.error(err instanceof Error ? err.message : "Failed to parse file");
       } finally {
@@ -463,6 +483,8 @@ export default function UploadPage() {
 
   const handleCancel = useCallback(() => {
     setParsedRows([]);
+    setNoContactRows([]);
+    setShowNoContact(false);
     setSelectedFile(null);
     setStep(1);
     setPerTeacherChannel(new Map());
@@ -563,7 +585,11 @@ export default function UploadPage() {
     setDuplicateMatches(null);
     setMergeDecisions(new Map());
     setUnmappedBookCodes(null);
+    setLmsCheckResults(null);
+    setIsLmsChecking(false);
+    setLmsCheckProgress({ done: 0, total: 0 });
 
+    setDbReviewFilter('changes');
     setIsDuplicateChecking(true);
     try {
       // Only check surviving rows (exclude rows skipped/merged in Step 3)
@@ -630,6 +656,17 @@ export default function UploadPage() {
         }
       }
       setMergeDecisions(defaults);
+
+      // LMS check: find rows NOT matched in DB → check if they exist in external LMS
+      const matchedRowIndexes = new Set(matches.map((m) => m.rowIndex));
+      const newRows = rowsToCheck
+        .map((r) => ({ rowIndex: r._origIdx, phone: r.phone, email: r.email }))
+        .filter((r) => !matchedRowIndexes.has(r.rowIndex));
+      if (newRows.length > 0) {
+        runLmsCheck(newRows);
+      } else {
+        setLmsCheckResults([]);
+      }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Failed to check duplicates");
       setDuplicateMatches([]);
@@ -637,6 +674,70 @@ export default function UploadPage() {
       setUnmappedBookCodes(null);
     } finally {
       setIsDuplicateChecking(false);
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // LMS user-exists check (for new records not found in DB)
+  // ---------------------------------------------------------------------------
+
+  const runLmsCheck = async (
+    newRows: { rowIndex: number; phone: string; email: string }[]
+  ) => {
+    const BATCH_SIZE = 50;
+    const PARALLEL = 3;
+    const LMS_CHECK_URL = "https://vsdshelpercheckuserexists-e6zspx6m4q-el.a.run.app/v1/check-user-exists";
+
+    setIsLmsChecking(true);
+    setLmsCheckProgress({ done: 0, total: newRows.length });
+    setLmsCheckResults(null);
+
+    // Split into chunks of 50
+    const chunks: (typeof newRows)[] = [];
+    for (let i = 0; i < newRows.length; i += BATCH_SIZE) {
+      chunks.push(newRows.slice(i, i + BATCH_SIZE));
+    }
+
+    const allResults: LmsCheckResult[] = [];
+    let done = 0;
+
+    try {
+      // Process chunks PARALLEL at a time
+      for (let i = 0; i < chunks.length; i += PARALLEL) {
+        const parallel = chunks.slice(i, i + PARALLEL);
+        const batchResults = await Promise.all(
+          parallel.map(async (chunk) => {
+            const res = await fetch(LMS_CHECK_URL, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                users: chunk.map((r) => ({ phone: r.phone, email: r.email })),
+              }),
+            });
+            if (!res.ok) throw new Error(`LMS check failed: ${res.status}`);
+            const json = await res.json() as { results: { exists: boolean; userId?: string; firebaseId?: string }[] };
+            return chunk.map((r, idx) => ({
+              rowIndex: r.rowIndex,
+              exists: json.results[idx]?.exists ?? false,
+              userId: json.results[idx]?.userId,
+              firebaseId: json.results[idx]?.firebaseId,
+            }));
+          })
+        );
+        for (const results of batchResults) {
+          allResults.push(...results);
+          done += results.length;
+        }
+        setLmsCheckProgress({ done, total: newRows.length });
+      }
+      setLmsCheckResults(allResults);
+    } catch (err) {
+      console.error("LMS check error:", err);
+      // Don't block the flow — just show error state
+      setLmsCheckResults([]);
+      toast.error("LMS user check failed — continuing without it");
+    } finally {
+      setIsLmsChecking(false);
     }
   };
 
@@ -677,16 +778,28 @@ export default function UploadPage() {
               if (decision.action === "create_new") {
                 return { rowIndex: match.rowIndex, action: "create_new" as const };
               }
+              if (decision.action === "merge_with_email") {
+                // Use DB name/phone/school + file email → goes to mergedUsers in LMS
+                const fileEmail = match.row.email ?? "";
+                return {
+                  rowIndex: match.rowIndex,
+                  action: "merge" as const,
+                  teacherId: match.existingTeacher.id,
+                  nameChoice: "db" as const,
+                  noChanges: false,
+                  phonesToAdd: [] as string[],
+                  emailsToAdd: fileEmail ? [fileEmail] : [] as string[],
+                };
+              }
               if (decision.action === "use_db") {
-                // Link to DB teacher ID but don't update DB record — file's phone/email used for sending
-                // For split matches, decision.teacherId holds the user-chosen teacher
+                // Link to DB teacher ID but don't update DB record — no new data
                 const teacherId = (decision as { action: "use_db"; teacherId?: string }).teacherId ?? match.existingTeacher.id;
                 return {
                   rowIndex: match.rowIndex,
                   action: "merge" as const,
                   teacherId,
                   nameChoice: "db" as const,
-                  noChanges: true, // don't update DB record
+                  noChanges: true,
                   phonesToAdd: [] as string[],
                   emailsToAdd: [] as string[],
                 };
@@ -1245,6 +1358,49 @@ export default function UploadPage() {
                 />
               </div>
 
+              {noContactRows.length > 0 && (
+                <div className="rounded-xl border border-orange-200 bg-orange-50 p-4">
+                  <button
+                    onClick={() => setShowNoContact((v) => !v)}
+                    className="flex w-full items-center justify-between text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      <AlertCircle className="h-4 w-4 text-orange-500 shrink-0" />
+                      <span className="text-sm font-medium text-orange-700">
+                        {noContactRows.length} row{noContactRows.length !== 1 ? "s" : ""} skipped — no phone or email
+                      </span>
+                      <span className="text-xs text-orange-500">(will not be included in the batch)</span>
+                    </div>
+                    <span className="text-xs text-orange-500">{showNoContact ? "▲ Hide" : "▼ Show"}</span>
+                  </button>
+
+                  {showNoContact && (
+                    <div className="mt-3 overflow-x-auto rounded-lg border border-orange-200 bg-white">
+                      <table className="w-full text-xs">
+                        <thead>
+                          <tr className="border-b border-orange-100 bg-orange-50">
+                            <th className="px-3 py-2 text-left font-medium text-orange-700">#</th>
+                            <th className="px-3 py-2 text-left font-medium text-orange-700">Name</th>
+                            <th className="px-3 py-2 text-left font-medium text-orange-700">School</th>
+                            <th className="px-3 py-2 text-left font-medium text-orange-700">Books</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-orange-50">
+                          {noContactRows.map((row, i) => (
+                            <tr key={i} className="hover:bg-orange-50/50">
+                              <td className="px-3 py-1.5 text-muted-foreground">{i + 1}</td>
+                              <td className="px-3 py-1.5 font-medium text-foreground">{row.name || "—"}</td>
+                              <td className="px-3 py-1.5 text-muted-foreground">{row.school || "—"}</td>
+                              <td className="px-3 py-1.5 text-muted-foreground">{row.booksAssigned || "—"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center justify-end gap-3">
                 <button onClick={handleCancel} className="rounded-lg border border-border bg-card px-6 py-2.5 text-sm font-medium text-foreground hover:bg-muted/50">
                   Cancel
@@ -1792,29 +1948,61 @@ export default function UploadPage() {
 
             return (
               <>
-                {/* Summary bar */}
-                {duplicateMatches.length > 0 && (
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                    <div className="rounded-lg border border-border bg-card p-3 text-center">
-                      <p className="text-xl font-bold text-foreground">{duplicateMatches.length}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Potential matches</p>
+                {/* Summary bar — click to filter */}
+                {duplicateMatches.length > 0 && (() => {
+                  const approvedCount = [...mergeDecisions.values()].filter(d => d?.action === "merge" || d?.action === "merge_with_email" || d?.action === "use_db").length;
+                  const cards = [
+                    { key: 'all' as const,      label: 'All matches',          count: duplicateMatches.length, border: 'border-border',                                   text: 'text-foreground',                           bg: 'bg-card' },
+                    { key: 'exact' as const,     label: 'Exact duplicate',      count: noChangesCount,           border: 'border-green-200 dark:border-green-800',         text: 'text-green-700 dark:text-green-400',        bg: 'bg-green-50 dark:bg-green-950/20' },
+                    { key: 'changes' as const,   label: 'Has changes',          count: needsActionCount,         border: 'border-orange-200 dark:border-orange-800',       text: 'text-orange-700 dark:text-orange-400',      bg: 'bg-orange-50 dark:bg-orange-950/20' },
+                    { key: 'approved' as const,  label: 'Decided',              count: approvedCount,            border: 'border-blue-200 dark:border-blue-800',           text: 'text-primary',                              bg: 'bg-blue-50 dark:bg-blue-950/20' },
+                  ];
+                  return (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                        {cards.map(c => (
+                          <button
+                            key={c.key}
+                            onClick={() => setDbReviewFilter(prev => prev === c.key ? 'all' : c.key)}
+                            className={[
+                              "rounded-lg border p-3 text-center transition-all",
+                              c.border, c.bg,
+                              dbReviewFilter === c.key ? "ring-2 ring-primary ring-offset-1" : "hover:opacity-80",
+                            ].join(" ")}
+                          >
+                            <p className={["text-xl font-bold", c.text].join(" ")}>{c.count}</p>
+                            <p className="text-xs text-muted-foreground mt-0.5">{c.label}</p>
+                            {dbReviewFilter === c.key && <p className="text-[10px] text-primary mt-0.5 font-medium">Filtered</p>}
+                          </button>
+                        ))}
+                      </div>
+                      {/* Bulk action buttons — apply to ALL matches */}
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground">Bulk apply to all {duplicateMatches.length} rows:</span>
+                        <button
+                          onClick={() => {
+                            const next = new Map(mergeDecisions);
+                            for (const m of duplicateMatches) next.set(m.rowIndex, { action: "use_db" });
+                            setMergeDecisions(next);
+                          }}
+                          className="rounded-md border border-primary/40 px-3 py-1 text-xs font-medium text-primary hover:bg-primary/10 transition-colors"
+                        >
+                          Use DB (all)
+                        </button>
+                        <button
+                          onClick={() => {
+                            const next = new Map(mergeDecisions);
+                            for (const m of duplicateMatches) next.set(m.rowIndex, { action: "create_new" });
+                            setMergeDecisions(next);
+                          }}
+                          className="rounded-md border border-border px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted transition-colors"
+                        >
+                          Create New (all)
+                        </button>
+                      </div>
                     </div>
-                    <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-center dark:border-green-800 dark:bg-green-950/20">
-                      <p className="text-xl font-bold text-green-700 dark:text-green-400">{noChangesCount}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Exact duplicate (skip)</p>
-                    </div>
-                    <div className="rounded-lg border border-orange-200 bg-orange-50 p-3 text-center dark:border-orange-800 dark:bg-orange-950/20">
-                      <p className="text-xl font-bold text-orange-700 dark:text-orange-400">{needsActionCount}</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Has changes to review</p>
-                    </div>
-                    <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 text-center dark:border-blue-800 dark:bg-blue-950/20">
-                      <p className="text-xl font-bold text-primary dark:text-primary">
-                        {[...mergeDecisions.values()].filter(d => d?.action === "merge").length}
-                      </p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Approved merges</p>
-                    </div>
-                  </div>
-                )}
+                  );
+                })()}
 
                 {duplicateMatches.length === 0 ? (
                   <div className="flex items-center gap-3 rounded-xl border border-green-200 bg-green-50 p-6 dark:border-green-800 dark:bg-green-950/30">
@@ -1826,10 +2014,20 @@ export default function UploadPage() {
                   </div>
                 ) : (
                   <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
-                    {duplicateMatches.map((match) => {
+                    {duplicateMatches.filter((match) => {
+                      if (dbReviewFilter === 'all') return true;
+                      if (dbReviewFilter === 'exact') return match.diff.noChanges;
+                      if (dbReviewFilter === 'changes') return !match.diff.noChanges;
+                      if (dbReviewFilter === 'approved') {
+                        const d = mergeDecisions.get(match.rowIndex);
+                        return d?.action === "use_db" || d?.action === "merge_with_email" || d?.action === "merge";
+                      }
+                      return true;
+                    }).map((match) => {
                       const decision = mergeDecisions.get(match.rowIndex) ?? null;
                       const isUseDb = decision?.action === "use_db";
-                      const isMerging = decision?.action === "merge";
+                      const isMerging = decision?.action === "merge" || decision?.action === "merge_with_email";
+                      const isMergeWithEmail = decision?.action === "merge_with_email";
                       const isCreatingNew = decision?.action === "create_new";
 
                       return (
@@ -1878,7 +2076,6 @@ export default function UploadPage() {
                               <button
                                 onClick={() => {
                                   if (match.isSplitMatch) {
-                                    // For split matches, toggle to use_db state without a specific teacher (will show picker below)
                                     setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db", teacherId: undefined }); return n; });
                                   } else {
                                     setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "use_db" }); return n; });
@@ -1892,6 +2089,18 @@ export default function UploadPage() {
                                 ].join(" ")}
                               >
                                 {isUseDb ? "✓ Use DB" : "Use DB"}
+                              </button>
+                              <button
+                                onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "merge_with_email" }); return n; })}
+                                className={[
+                                  "rounded-md px-3 py-1 text-xs font-medium transition-colors",
+                                  isMergeWithEmail
+                                    ? "bg-blue-600 text-white"
+                                    : "text-muted-foreground hover:bg-blue-50 hover:text-blue-600",
+                                ].join(" ")}
+                                title="Use DB name/phone/school + file email — sends as mergedUser to LMS"
+                              >
+                                {isMergeWithEmail ? "✓ Merge" : "Merge"}
                               </button>
                               <button
                                 onClick={() => setMergeDecisions(prev => { const n = new Map(prev); n.set(match.rowIndex, { action: "create_new" }); return n; })}
@@ -2008,9 +2217,18 @@ export default function UploadPage() {
                                 )}
                                 <div className="flex flex-wrap items-center gap-x-5 gap-y-1">
                                   {!isCreatingNew && (
-                                    <div>
-                                      <span className="text-muted-foreground">DB: </span>
-                                      <span className="font-medium text-foreground">{match.existingTeacher.name}</span>
+                                    <div className="flex items-center gap-2">
+                                      <div>
+                                        <span className="text-muted-foreground">DB: </span>
+                                        <span className="font-medium text-foreground">{match.existingTeacher.name}</span>
+                                      </div>
+                                      {match.existingTeacher.firebaseId ? (
+                                        <span className="font-mono text-[10px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded" title="Firebase UID">
+                                          {match.existingTeacher.firebaseId}
+                                        </span>
+                                      ) : (
+                                        <span className="text-[10px] text-orange-500">No Firebase UID</span>
+                                      )}
                                     </div>
                                   )}
                                   <div>
@@ -2081,6 +2299,63 @@ export default function UploadPage() {
               </>
             );
           })()}
+
+          {/* ── Section 4: LMS User Check (new records only) ───────────── */}
+          {!isDuplicateChecking && duplicateMatches !== null && (
+            <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3.5 border-b border-border">
+                <h2 className="font-semibold text-foreground">LMS User Check</h2>
+                {isLmsChecking ? (
+                  <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs font-semibold text-blue-700 dark:bg-blue-900/40 dark:text-blue-400">
+                    Checking…
+                  </span>
+                ) : lmsCheckResults !== null ? (
+                  <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-muted-foreground">
+                    Done
+                  </span>
+                ) : null}
+              </div>
+              <div className="px-5 py-4">
+                {isLmsChecking ? (
+                  <div className="flex items-center gap-3">
+                    <Loader2 className="h-5 w-5 animate-spin text-primary/70 shrink-0" />
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Checking new records against LMS…</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{lmsCheckProgress.done} / {lmsCheckProgress.total} users checked</p>
+                    </div>
+                  </div>
+                ) : lmsCheckResults !== null ? (() => {
+                  const foundInLms = lmsCheckResults.filter((r) => r.exists);
+                  const notInLms = lmsCheckResults.filter((r) => !r.exists);
+                  return (
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="rounded-lg border border-border bg-muted/20 p-3 text-center">
+                          <p className="text-xl font-bold text-foreground">{lmsCheckResults.length}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">New to DB</p>
+                        </div>
+                        <div className="rounded-lg border border-green-200 bg-green-50/40 p-3 text-center dark:border-green-800 dark:bg-green-950/20">
+                          <p className="text-xl font-bold text-green-700 dark:text-green-400">{foundInLms.length}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Found in LMS</p>
+                        </div>
+                        <div className="rounded-lg border border-border bg-muted/10 p-3 text-center">
+                          <p className="text-xl font-bold text-foreground">{notInLms.length}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">Not in LMS</p>
+                        </div>
+                      </div>
+                      {foundInLms.length > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          {foundInLms.length} teacher{foundInLms.length !== 1 ? "s" : ""} not in our DB but already exist in LMS — they will be added to our DB and linked correctly.
+                        </p>
+                      )}
+                    </div>
+                  );
+                })() : (
+                  <p className="text-sm text-muted-foreground">No new records to check.</p>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex items-center justify-between">
             <button onClick={() => setStep(3)} disabled={isUploading}

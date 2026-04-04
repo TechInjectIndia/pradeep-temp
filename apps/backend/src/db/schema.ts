@@ -133,6 +133,7 @@ export type BookLink = {
   productId: string;
   title: string;
   author?: string;
+  coverUrl?: string;
   specimenUrl: string;
   expiresAt: string;
 };

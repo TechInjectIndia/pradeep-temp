@@ -10,3 +10,4 @@ firebase/functions/config.env
 *.log
 .firebase/
 firebase-debug.log
+.vercel

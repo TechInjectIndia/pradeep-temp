@@ -1,4 +1,4 @@
-import { eq, desc, count, ilike, or, inArray, sql } from 'drizzle-orm';
+import { eq, desc, count, ilike, or, inArray, sql, and, isNotNull } from 'drizzle-orm';
 import { db } from '@/db';
 import { teachers, phoneLookup, emailLookup } from '@/db/schema';
 
@@ -11,6 +11,7 @@ type TeacherRef = {
   emails: string[];
   school: string;
   city: string;
+  firebaseId?: string | null;
 };
 
 export interface DuplicateMatch {
@@ -41,15 +42,37 @@ function normalizeEmail(email: string): string {
 }
 
 export class TeacherService {
-  static async list(params: { page: number; pageSize: number; search?: string }) {
+  static async list(params: { page: number; pageSize: number; search?: string; noContact?: boolean; phoneOnly?: boolean; emailOnly?: boolean }) {
     const offset = (params.page - 1) * params.pageSize;
-    const where = params.search
+
+    const searchCond = params.search
       ? or(
           ilike(teachers.name, `%${params.search}%`),
           ilike(teachers.school, `%${params.search}%`),
-          ilike(teachers.city, `%${params.search}%`)
+          ilike(teachers.city, `%${params.search}%`),
+          // phones/emails are JSONB arrays — search as text
+          sql`${teachers.phones}::text ilike ${'%' + params.search + '%'}`,
+          sql`${teachers.emails}::text ilike ${'%' + params.search + '%'}`
         )
       : undefined;
+
+    // phones/emails stored as double-encoded JSONB strings: empty = NULL or '"[]"'
+    const emptyPhone = sql`(${teachers.phones} IS NULL OR ${teachers.phones}::text = '"[]"')`;
+    const hasPhone   = sql`NOT (${teachers.phones} IS NULL OR ${teachers.phones}::text = '"[]"')`;
+    const emptyEmail = sql`(${teachers.emails} IS NULL OR ${teachers.emails}::text = '"[]"')`;
+    const hasEmail   = sql`NOT (${teachers.emails} IS NULL OR ${teachers.emails}::text = '"[]"')`;
+
+    const contactCond = params.noContact
+      ? sql`${emptyPhone} AND ${emptyEmail}`
+      : params.phoneOnly
+      ? sql`${hasPhone} AND ${emptyEmail}`
+      : params.emailOnly
+      ? sql`${hasEmail} AND ${emptyPhone}`
+      : undefined;
+
+    const where = searchCond && contactCond
+      ? and(searchCond, contactCond)
+      : searchCond ?? contactCond;
 
     const [rows, countResult] = await Promise.all([
       db.query.teachers.findMany({
@@ -225,19 +248,19 @@ export class TeacherService {
       const phoneTeacherId = normPhone ? phoneToTeacherId.get(normPhone) : undefined;
       const emailTeacherId = normEmail ? emailToTeacherId.get(normEmail) : undefined;
 
-      if (phoneTeacherId) { teacherId = phoneTeacherId; phoneMatched = true; matchReasons.push('Phone match'); }
+      // Match on phone or email — no name/school requirement
+      if (phoneTeacherId) {
+        teacherId = phoneTeacherId;
+        phoneMatched = true;
+        matchReasons.push('Phone match');
+      }
       if (emailTeacherId) {
         if (!teacherId) teacherId = emailTeacherId;
         emailMatched = true;
         matchReasons.push('Email match');
       }
 
-      // Detect split match: phone and email match DIFFERENT teachers
-      const isSplitMatch = !!(phoneTeacherId && emailTeacherId && phoneTeacherId !== emailTeacherId);
-
-      // Confidence: both=100%, phone only=95%, email only=90%
-      // For split matches: treat as 95% (phone match is primary)
-      if (phoneMatched && emailMatched && !isSplitMatch) confidence = 100;
+      if (phoneMatched && emailMatched) confidence = 100;
       else if (phoneMatched) confidence = 95;
       else if (emailMatched) confidence = 90;
 
@@ -253,7 +276,7 @@ export class TeacherService {
 
           const toRef = (t: Teacher): TeacherRef => ({
             id: t.id, name: t.name, phones: t.phones, emails: t.emails,
-            school: t.school ?? '', city: t.city ?? '',
+            school: t.school ?? '', city: t.city ?? '', firebaseId: t.firebaseId ?? null,
           });
 
           const match: DuplicateMatch = {
@@ -263,72 +286,7 @@ export class TeacherService {
             diff: { nameConflict, phonesToAdd, emailsToAdd, schoolConflict, noChanges },
           };
 
-          if (isSplitMatch) {
-            match.isSplitMatch = true;
-            const phoneTeacher = teacherMap.get(phoneTeacherId!);
-            const emailTeacher = teacherMap.get(emailTeacherId!);
-            if (phoneTeacher) match.phoneMatchTeacher = toRef(phoneTeacher);
-            if (emailTeacher) match.emailMatchTeacher = toRef(emailTeacher);
-          }
-
           matches.push(match);
-        }
-      } else if (row.name) {
-        unmatchedIdxs.push(i);
-      }
-    }
-
-    // ---- 3. Fuzzy name + school for rows with no phone/email match ----
-    if (unmatchedIdxs.length > 0) {
-      const nameTokens = [...new Set(
-        unmatchedIdxs.map(i => (rows[i]?.name ?? '').trim().split(/\s+/)[0]?.toLowerCase() ?? '').filter(t => t.length > 2)
-      )];
-
-      if (nameTokens.length > 0) {
-        const candidates = await db.query.teachers.findMany({
-          where: or(...nameTokens.map(token => ilike(teachers.name, `%${token}%`))),
-          limit: 500,
-        });
-
-        for (const idx of unmatchedIdxs) {
-          const row = rows[idx]!;
-          let bestTeacher: typeof candidates[number] | undefined;
-          let bestScore = 0;
-          const bestReasons: string[] = [];
-
-          for (const candidate of candidates) {
-            let score = 0;
-            const reasons: string[] = [];
-            const uploadTokens = row.name.toLowerCase().split(/\s+/).filter(t => t.length > 1);
-            const dbTokens = candidate.name.toLowerCase().split(/\s+/).filter(t => t.length > 1);
-            const overlap = uploadTokens.filter(t => dbTokens.includes(t)).length;
-            const nameScore = overlap / Math.max(uploadTokens.length, dbTokens.length, 1);
-            if (nameScore >= 0.5) { score += Math.round(nameScore * 50); reasons.push('Name similarity'); }
-            if (row.school && candidate.school) {
-              const sA = row.school.toLowerCase().replace(/\s+/g, ' ');
-              const sB = candidate.school.toLowerCase().replace(/\s+/g, ' ');
-              if (sA === sB) { score += 30; reasons.push('School match'); }
-              else if (sA.includes(sB.substring(0, 5)) || sB.includes(sA.substring(0, 5))) { score += 15; reasons.push('School partial match'); }
-            }
-            if (score > bestScore && score >= 55) { bestScore = score; bestTeacher = candidate; bestReasons.length = 0; bestReasons.push(...reasons); }
-          }
-
-          if (bestTeacher && bestScore >= 55) {
-            const confidence = Math.min(75, 60 + Math.round((bestScore - 55) / 45 * 15));
-            const normPhone = normalizePhone(row.phone);
-            const normEmail = normalizeEmail(row.email);
-            const phonesToAdd = normPhone && !bestTeacher.phones.includes(normPhone) ? [normPhone] : [];
-            const emailsToAdd = normEmail && !bestTeacher.emails.includes(normEmail) ? [normEmail] : [];
-            const nameConflict = row.name.trim().toLowerCase() !== bestTeacher.name.trim().toLowerCase();
-            const schoolConflict = !!row.school && !!bestTeacher.school &&
-              row.school.trim().toLowerCase() !== bestTeacher.school.trim().toLowerCase();
-            matches.push({
-              rowIndex: idx, row,
-              existingTeacher: { id: bestTeacher.id, name: bestTeacher.name, phones: bestTeacher.phones, emails: bestTeacher.emails, school: bestTeacher.school ?? '', city: bestTeacher.city ?? '' },
-              confidence, matchReasons: bestReasons,
-              diff: { nameConflict, phonesToAdd, emailsToAdd, schoolConflict, noChanges: !nameConflict && !schoolConflict && phonesToAdd.length === 0 && emailsToAdd.length === 0 },
-            });
-          }
         }
       }
     }

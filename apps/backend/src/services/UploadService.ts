@@ -1,6 +1,6 @@
 import * as XLSX from 'xlsx';
 import { db } from '@/db';
-import { teachersRaw, teachers, phoneLookup, emailLookup, batches } from '@/db/schema';
+import { teachersRaw, teachers, phoneLookup, emailLookup, batches, possibleDuplicates } from '@/db/schema';
 import { BatchService } from './BatchService';
 import { nanoid } from 'nanoid';
 import { eq, inArray } from 'drizzle-orm';
@@ -216,6 +216,9 @@ export async function processUpload(
     }
   }
 
+  // Track raw record IDs for "merge with new email" — these go to mergedUsers in LMS
+  const mergeWithEmailRawIds = new Set<string>();
+
   // Build raw records without a batchId yet — assigned after batch splitting below
   const rawRecords = rows.map((row, idx) => {
     const effectiveChannel = activeTeacherChannels?.[idx] ?? channel;
@@ -247,8 +250,18 @@ export async function processUpload(
       ? (takenEmails.has(row.email?.trim() ?? '') ? undefined : row.email)
       : row.email;
 
+    const id = `tr_${nanoid(12)}`;
+
+    // Flag merges that include new email data → will create possibleDuplicates → goes to mergedUsers in LMS
+    if (isMerge) {
+      const mergeDecision = decision as Extract<MergeDecisionPayload, { action: 'merge' }>;
+      if (!mergeDecision.noChanges && mergeDecision.emailsToAdd.length > 0) {
+        mergeWithEmailRawIds.add(id);
+      }
+    }
+
     return {
-      id: `tr_${nanoid(12)}`,
+      id,
       batchId: '',        // filled in per-chunk below
       name: row.name ?? '',
       phone,
@@ -269,7 +282,13 @@ export async function processUpload(
       sendEmail,
       resolutionStatus: isMerge ? ('RESOLVED' as const) : ('PENDING' as const),
       teacherMasterId: isMerge ? (decision as Extract<MergeDecisionPayload, { action: 'merge' }>).teacherId : undefined,
+      isNewTeacher: isCreateNew ? true : undefined,
     };
+  }).filter((r) => {
+    // Drop no-contact rows — no phone AND no email means we can't message or identify them
+    const hasPhone = r.phone && r.phone.trim().length > 0;
+    const hasEmail = r.email && r.email.trim().length > 0;
+    return hasPhone || hasEmail;
   });
 
   // ── Split into chained batches of 200 ────────────────────────────────────
@@ -301,6 +320,24 @@ export async function processUpload(
     for (let i = 0; i < chunk.length; i += 500) {
       await db.insert(teachersRaw).values(chunk.slice(i, i + 500));
     }
+
+    // Insert possibleDuplicates rows for "Merge" records (with new email) so LinkService sends them as mergedUsers
+    const mergedInChunk = chunk.filter((r) => r.resolutionStatus === 'RESOLVED' && r.teacherMasterId && mergeWithEmailRawIds.has(r.id));
+    if (mergedInChunk.length > 0) {
+      await db.insert(possibleDuplicates).values(
+        mergedInChunk.map((r) => ({
+          id: nanoid(),
+          batchId: batchIds[chunkIdx],
+          rawTeacherId: r.id,
+          candidateTeacherId: r.teacherMasterId!,
+          confidenceScore: 0.95,
+          matchReasons: ['Phone match'],
+          resolution: 'MERGED' as const,
+          resolvedAt: new Date(),
+        }))
+      ).onConflictDoNothing();
+    }
+
     await BatchService.updateStats(batchIds[chunkIdx], { totalTeachers: chunk.length });
     await BatchService.addLog(
       batchIds[chunkIdx],
@@ -428,11 +465,18 @@ export async function processReviewedRows(
       };
     });
 
-    for (let i = 0; i < rawRecords.length; i += 500) {
-      await db.insert(teachersRaw).values(rawRecords.slice(i, i + 500));
+    // Drop no-contact rows before saving
+    const contactableRecords = rawRecords.filter((r) => {
+      const hasPhone = r.phone && r.phone.trim().length > 0;
+      const hasEmail = r.email && r.email.trim().length > 0;
+      return hasPhone || hasEmail;
+    });
+
+    for (let i = 0; i < contactableRecords.length; i += 500) {
+      await db.insert(teachersRaw).values(contactableRecords.slice(i, i + 500));
     }
 
-    await BatchService.updateStats(batchId, { totalTeachers: chunk.length });
+    await BatchService.updateStats(batchId, { totalTeachers: contactableRecords.length });
     await BatchService.addLog(
       batchId,
       'upload',

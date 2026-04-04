@@ -10,7 +10,7 @@ import LoadingSpinner from "@/components/LoadingSpinner";
 import type { Teacher } from "@/types";
 import { useTeachers } from "@/hooks/useTeachers";
 import { formatDate } from "@/utils/date";
-import { addTeacherContacts, type ContactConflict } from "@/services/api";
+import { addTeacherContacts, syncFirebaseUids, type ContactConflict } from "@/services/api";
 
 const columns: Column<Teacher>[] = [
   { key: "id", header: "ID", mobileHidden: true, render: (row) => <span className="font-mono text-xs text-muted-foreground">#{row.seqId ?? row.id}</span> },
@@ -228,8 +228,26 @@ export default function TeachersPage() {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [contactFilter, setContactFilter] = useState<'noContact' | 'phoneOnly' | 'emailOnly' | null>(null);
   const [addContactTeacher, setAddContactTeacher] = useState<Teacher | null>(null);
+  const [syncing, setSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ updated: number; notFound: number; total: number } | null>(null);
   const queryClient = useQueryClient();
+
+  async function handleSyncFirebase() {
+    setSyncing(true);
+    setSyncResult(null);
+    try {
+      const result = await syncFirebaseUids();
+      setSyncResult(result);
+      queryClient.invalidateQueries({ queryKey: ["teachers"] });
+    } catch (e) {
+      setSyncResult(null);
+      alert(e instanceof Error ? e.message : "Sync failed");
+    } finally {
+      setSyncing(false);
+    }
+  }
 
   // Debounce search input by 300ms
   useEffect(() => {
@@ -244,6 +262,9 @@ export default function TeachersPage() {
     page,
     pageSize,
     search: debouncedSearch || undefined,
+    noContact: contactFilter === 'noContact' || undefined,
+    phoneOnly: contactFilter === 'phoneOnly' || undefined,
+    emailOnly: contactFilter === 'emailOnly' || undefined,
   });
 
   const teachers = response?.data || [];
@@ -271,9 +292,39 @@ export default function TeachersPage() {
             className="w-full rounded-lg border border-border bg-card py-2 pl-10 pr-4 text-sm placeholder:text-muted-foreground/70 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         </div>
+        {(["noContact", "phoneOnly", "emailOnly"] as const).map((f) => {
+          const labels = { noContact: "No Contact", phoneOnly: "Phone Only", emailOnly: "Email Only" };
+          const active = contactFilter === f;
+          return (
+            <button
+              key={f}
+              onClick={() => { setContactFilter(active ? null : f); setPage(1); }}
+              className={clsx(
+                "rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                active
+                  ? "border-red-400 bg-red-50 text-red-700 hover:bg-red-100"
+                  : "border-border bg-card text-foreground hover:bg-muted"
+              )}
+            >
+              {labels[f]}{active ? " ✕" : ""}
+            </button>
+          );
+        })}
         <span className="text-sm text-muted-foreground">
           {total.toLocaleString()} teacher{total !== 1 ? "s" : ""}
         </span>
+        <button
+          onClick={handleSyncFirebase}
+          disabled={syncing}
+          className="ml-auto rounded-lg border border-border bg-card px-3 py-2 text-sm font-medium text-foreground hover:bg-muted disabled:opacity-50 transition-colors"
+        >
+          {syncing ? "Syncing Firebase UIDs…" : "Sync Firebase UIDs"}
+        </button>
+        {syncResult && (
+          <span className="text-xs text-muted-foreground">
+            {syncResult.updated} updated, {syncResult.notFound} not found (of {syncResult.total})
+          </span>
+        )}
       </div>
 
       {/* Table */}

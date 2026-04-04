@@ -30,6 +30,7 @@ export default function BatchDetailPage() {
 
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+  const [imageModal, setImageModal] = useState<{ src: string; title: string } | null>(null);
   const [activeTab, setActiveTab] = useState<"orders" | "messages" | "logs" | "teachers">("orders");
   const [teachersPage, setTeachersPage] = useState(1);
   const [messagesPage, setMessagesPage] = useState(1);
@@ -41,11 +42,13 @@ export default function BatchDetailPage() {
 
   const { data: batch, isLoading, error } = useBatch(batchId);
 
+  const isTerminal = ["COMPLETE", "FAILED", "CANCELLED", "PARTIAL_FAILURE"].includes(batch?.status ?? "");
+
   const { data: logsData } = useQuery({
     queryKey: ["batchLogs", batchId],
     queryFn: () => getBatchLogs(batchId, { pageSize: 200 }),
     enabled: !!batchId,
-    refetchInterval: 5000,
+    refetchInterval: isTerminal ? false : 5000,
   });
 
   const { data: teachersData } = useQuery({
@@ -58,7 +61,7 @@ export default function BatchDetailPage() {
     queryKey: ["batchOrders", batchId, ordersPage],
     queryFn: () => getBatchOrders(batchId, { page: ordersPage, pageSize: ORDERS_PAGE_SIZE }),
     enabled: !!batchId,
-    refetchInterval: 5000,
+    refetchInterval: isTerminal ? false : 5000,
   });
 
   const { data: messagesData } = useQuery({
@@ -70,7 +73,7 @@ export default function BatchDetailPage() {
       ...(messagesChannel ? { channel: messagesChannel } : {}),
     }),
     enabled: !!batchId,
-    refetchInterval: 5000,
+    refetchInterval: isTerminal ? false : 5000,
   });
 
   const batchLogs = logsData?.data ?? [];
@@ -308,11 +311,19 @@ export default function BatchDetailPage() {
                           {order.teacherEmail && <span>{order.teacherEmail}</span>}
                         </div>
                         {/* Books */}
-                        <div className="flex flex-wrap gap-1 mt-1.5">
+                        <div className="flex flex-wrap gap-2 mt-1.5">
                           {books.map((b, i) => (
-                            <span key={i} className="rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">
-                              {b.title}
-                            </span>
+                            <div key={i} className="flex items-center gap-1.5 rounded bg-primary/10 px-1.5 py-0.5">
+                              {(b as any).coverUrl && (
+                                <img
+                                  src={(b as any).coverUrl}
+                                  alt={b.title}
+                                  className="h-6 w-4 object-cover rounded-sm shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                                  onClick={() => setImageModal({ src: (b as any).coverUrl, title: b.title })}
+                                />
+                              )}
+                              <span className="text-[10px] font-medium text-primary">{b.title}</span>
+                            </div>
                           ))}
                           {books.length === 0 && <span className="text-[10px] text-muted-foreground">No books assigned</span>}
                         </div>
@@ -497,7 +508,20 @@ export default function BatchDetailPage() {
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0 flex-1">
                       <p className="font-medium text-foreground">{log.message}</p>
-                      {log.detail && <p className="mt-0.5 text-xs text-muted-foreground">{log.detail}</p>}
+                      {log.detail && (
+                        log.detail.trim().startsWith('{') || log.detail.trim().startsWith('[') ? (
+                          <details className="mt-1">
+                            <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground select-none">
+                              Show payload
+                            </summary>
+                            <pre className="mt-1 max-h-48 overflow-auto rounded bg-muted p-2 text-[11px] text-muted-foreground whitespace-pre-wrap break-all">
+                              {log.detail}
+                            </pre>
+                          </details>
+                        ) : (
+                          <p className="mt-0.5 text-xs text-muted-foreground">{log.detail}</p>
+                        )
+                      )}
                       {log.teacherName && (
                         <p className="mt-0.5 text-xs text-muted-foreground">
                           {log.teacherName}{log.teacherPhone && ` · ${log.teacherPhone}`}
@@ -583,6 +607,34 @@ export default function BatchDetailPage() {
             </div>
           )}
         </div>
+      )}
+
+      {/* Book cover image modal */}
+      {imageModal && (
+        <Portal>
+          <div
+            className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm"
+            onClick={() => setImageModal(null)}
+          >
+            <div
+              className="relative max-w-sm w-full mx-4"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setImageModal(null)}
+                className="absolute -top-3 -right-3 z-10 rounded-full bg-card border border-border p-1 text-muted-foreground hover:bg-muted"
+              >
+                <X className="h-4 w-4" />
+              </button>
+              <img
+                src={imageModal.src}
+                alt={imageModal.title}
+                className="w-full rounded-xl shadow-2xl object-contain max-h-[80vh]"
+              />
+              <p className="mt-3 text-center text-sm font-medium text-white">{imageModal.title}</p>
+            </div>
+          </div>
+        </Portal>
       )}
     </div>
   );

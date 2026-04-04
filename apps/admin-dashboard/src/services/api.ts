@@ -23,6 +23,7 @@ import type {
 
 const API_BASE_URL =
   process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3001";
+const API_SECRET = (process.env.NEXT_PUBLIC_API_SECRET || "").trim();
 const REQUEST_TIMEOUT_MS = 30_000;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
@@ -34,6 +35,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
+        ...(API_SECRET ? { Authorization: `Bearer ${API_SECRET}` } : {}),
         ...options?.headers,
       },
       ...options,
@@ -110,6 +112,9 @@ export async function uploadSpecimen(
   try {
     const res = await fetch(`${API_BASE_URL}/upload`, {
       method: "POST",
+      headers: {
+        ...(API_SECRET ? { Authorization: `Bearer ${API_SECRET}` } : {}),
+      },
       body: formData,
       signal: controller.signal,
     });
@@ -435,6 +440,10 @@ export async function addTeacherContacts(
   }
 }
 
+export async function syncFirebaseUids(): Promise<{ updated: number; notFound: number; total: number }> {
+  return request<{ updated: number; notFound: number; total: number }>('/teachers/sync-firebase', { method: 'POST' });
+}
+
 export interface TeacherRef {
   id: string;
   name: string;
@@ -442,6 +451,7 @@ export interface TeacherRef {
   emails: string[];
   school: string;
   city: string;
+  firebaseId?: string | null;
 }
 
 export interface DBDuplicateMatch {
@@ -472,7 +482,10 @@ export async function checkDuplicatesAgainstDB(
   try {
     const res = await fetch(`${API_BASE_URL}/teachers/check-duplicates`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(API_SECRET ? { Authorization: `Bearer ${API_SECRET}` } : {}),
+      },
       body: JSON.stringify({ rows }),
       signal: controller.signal,
     });

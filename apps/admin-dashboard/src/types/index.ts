@@ -287,6 +287,9 @@ export interface BatchErrorParams extends PaginationParams {
 
 export interface TeacherListParams extends PaginationParams {
   search?: string;
+  noContact?: boolean;
+  phoneOnly?: boolean;
+  emailOnly?: boolean;
 }
 
 export interface DuplicateListParams extends PaginationParams {
