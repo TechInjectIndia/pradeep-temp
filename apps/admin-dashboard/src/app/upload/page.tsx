@@ -2287,7 +2287,7 @@ export default function UploadPage() {
                                   Split match: merging with phone-matched teacher ({match.phoneMatchTeacher?.name ?? match.existingTeacher.name})
                                 </p>
                               )}
-                              <div className="flex items-center gap-4">
+                              {match.diff.nameConflict && <div className="flex items-center gap-4">
                                 <span className="font-medium text-primary">Which name to keep?</span>
                                 <label className="flex items-center gap-1.5 cursor-pointer">
                                   <input type="radio" name={`name-${match.rowIndex}`} checked={decision?.action === "merge" && decision.nameChoice === "db"}
@@ -2301,7 +2301,7 @@ export default function UploadPage() {
                                     className="accent-primary" />
                                   <span className="text-foreground">File: <strong>{match.row.name}</strong></span>
                                 </label>
-                              </div>
+                              </div>}
                               {match.diff.phonesToAdd.length > 0 && (
                                 <p className="text-muted-foreground">+{match.diff.phonesToAdd.join(", ")} phone(s) will be added to DB</p>
                               )}
