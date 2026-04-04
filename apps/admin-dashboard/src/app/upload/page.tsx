@@ -2282,6 +2282,15 @@ export default function UploadPage() {
                           {/* Merge detail — only shown when Merge is selected */}
                           {isMerging && (
                             <div className="px-4 py-3 border-t border-border/50 text-xs space-y-2">
+                              {/* Firebase UID status */}
+                              <div className="flex items-center gap-2">
+                                <span className="text-muted-foreground">Firebase UID:</span>
+                                {match.existingTeacher.firebaseId ? (
+                                  <span className="font-mono text-[10px] bg-muted px-1.5 py-0.5 rounded text-foreground">{match.existingTeacher.firebaseId}</span>
+                                ) : (
+                                  <span className="text-orange-500 font-medium">Not synced — will be resolved before LMS call</span>
+                                )}
+                              </div>
                               {match.isSplitMatch && (
                                 <p className="text-orange-600 dark:text-orange-400 font-medium">
                                   Split match: merging with phone-matched teacher ({match.phoneMatchTeacher?.name ?? match.existingTeacher.name})
