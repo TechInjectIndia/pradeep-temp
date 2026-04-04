@@ -720,3 +720,21 @@ export async function listTriggers(params: { page?: number; pageSize?: number } 
   if (params.pageSize) q.set('pageSize', String(params.pageSize));
   return request<{ data: Trigger[]; total: number; page: number; pageSize: number; totalPages: number }>(`/triggers?${q}`);
 }
+
+// ---- Queue Stats ----
+
+export type QueueStats = {
+  name: string;
+  counts: {
+    wait: number;
+    active: number;
+    completed: number;
+    failed: number;
+    delayed: number;
+  } | null;
+  error: string | null;
+};
+
+export async function getQueueStats(): Promise<QueueStats[]> {
+  return request<QueueStats[]>('/queues/stats');
+}
