@@ -8,7 +8,7 @@
  */
 import { createHash } from 'crypto';
 import { createWorker, addJob, QUEUES } from '@/queue';
-import type { BatchAdvanceJob, EmailMessageJob } from '@/queue/types';
+import type { BatchAdvanceJob } from '@/queue/types';
 import type { Job } from 'bullmq';
 import { db } from '@/db';
 import { teachersRaw, orders, commLog, batches, failedMessages, batchErrors } from '@/db/schema';
@@ -19,6 +19,7 @@ import { LinkService } from '@/services/LinkService';
 import { BatchService } from '@/services/BatchService';
 import { FirebaseSyncService } from '@/services/FirebaseSyncService';
 import { sendWhatsAppBulk, type BulkWAMessage } from '@/services/WatiService';
+import { sendEmailBulk, type BulkEmailMessage } from '@/services/ResendService';
 
 // Stage ordering -- used to skip stale messages
 const STAGE_ORDER: Record<string, number> = {
@@ -123,7 +124,7 @@ async function handleMessaging(batchId: string) {
   await BatchService.addLog(batchId, 'aggregation_complete', `${batchOrders.length} teachers ready for messaging`);
 
   const waBulkMessages: BulkWAMessage[] = [];
-  let emailQueued = 0;
+  const emailBulkMessages: BulkEmailMessage[] = [];
 
   for (const order of batchOrders) {
     const loginLink = buildLoginLink(order.teacherEmail, order.teacherPhone);
@@ -171,7 +172,7 @@ async function handleMessaging(batchId: string) {
       }
     }
 
-    // --- Email: individual BullMQ jobs (Resend has no bulk API) ---
+    // --- Email: collect for bulk send ---
     if (order.sendEmail && order.teacherEmail) {
       const hash = createHash('sha256')
         .update(`${order.teacherEmail}:${batchId}:EMAIL`)
@@ -195,33 +196,19 @@ async function handleMessaging(batchId: string) {
         .returning({ id: commLog.id });
 
       if (emailInserted) {
-        const emailJob: EmailMessageJob = {
-          type: 'EMAIL',
-          batchId,
-          teacherRecordId: order.teacherRecordId,
-          teacherMasterId: order.teacherMasterId ?? '',
+        emailBulkMessages.push({
+          commLogId: hash,
           email: order.teacherEmail,
           name: order.teacherName,
           specimenDetails: loginLink,
-          commLogId: hash,
-          retryCount: 0,
+          batchId,
           books: (order.books ?? []).map((b) => ({
             title: b.title,
             specimenUrl: loginLink,
             productId: b.productId,
             author: b.author ?? undefined,
           })),
-        };
-
-        await addJob(QUEUES.EMAIL_MESSAGES, emailJob);
-        emailQueued++;
-
-        await BatchService.addLog(
-          batchId,
-          'outbox_queued',
-          `Email queued for ${order.teacherName} · ${loginLink}`,
-          order.teacherEmail
-        );
+        });
       }
     }
   }
@@ -280,10 +267,61 @@ async function handleMessaging(batchId: string) {
     );
   }
 
-  // 4. Atomically set messagesQueued and INCREMENT messagesProcessed by waTotal.
-  //    Using increment (not overwrite) prevents a race where the email worker
-  //    already bumped messagesProcessed before we set messagesQueued.
-  const totalQueued = waTotal + emailQueued;
+  // 3b. Send all emails in bulk
+  const emailTotal = emailBulkMessages.length;
+  let emailSent = 0;
+  let emailFailed = 0;
+
+  if (emailTotal > 0) {
+    await BatchService.addLog(batchId, 'outbox_queued', `Sending ${emailTotal} emails in bulk...`);
+    const { sentIds: emailSentIds, failedIds: emailFailedIds } = await sendEmailBulk(emailBulkMessages);
+    emailSent = emailSentIds.length;
+    emailFailed = emailFailedIds.length;
+
+    const now = new Date();
+
+    if (emailSentIds.length > 0) {
+      await db
+        .update(commLog)
+        .set({ status: 'SENT', attemptCount: 1, lastAttemptAt: now, updatedAt: now })
+        .where(inArray(commLog.id, emailSentIds));
+    }
+
+    if (emailFailedIds.length > 0) {
+      await db
+        .update(commLog)
+        .set({ status: 'DLQ', lastError: 'Bulk email send failed', updatedAt: now })
+        .where(inArray(commLog.id, emailFailedIds));
+
+      const emailMap = new Map(emailBulkMessages.map((m) => [m.commLogId, m]));
+      for (const commLogId of emailFailedIds) {
+        const msg = emailMap.get(commLogId);
+        if (!msg) continue;
+        await db.insert(failedMessages).values({
+          id: nanoid(),
+          commLogId,
+          batchId,
+          channel: 'EMAIL',
+          teacherEmail: msg.email,
+          errorType: 'UNKNOWN',
+          errorMessage: 'Bulk email send failed — retryable individually',
+          attemptCount: 1,
+          isRetryable: true,
+          status: 'FAILED',
+        }).onConflictDoNothing();
+      }
+    }
+
+    console.log(`[batch-advance] batch=${batchId} bulk email: ${emailSent} sent, ${emailFailed} failed`);
+    await BatchService.addLog(
+      batchId,
+      'batch_advanced',
+      `Email bulk send complete: ${emailSent} sent, ${emailFailed} failed`
+    );
+  }
+
+  // 4. Atomically set messagesQueued and INCREMENT messagesProcessed by (waTotal + emailTotal).
+  const totalQueued = waTotal + emailTotal;
 
   const [statsRow] = await db
     .update(batches)
@@ -295,7 +333,7 @@ async function handleMessaging(batchId: string) {
           to_jsonb(${totalQueued}::int)
         ),
         '{messagesProcessed}',
-        to_jsonb(COALESCE((stats->>'messagesProcessed')::int, 0) + ${waTotal}::int)
+        to_jsonb(COALESCE((stats->>'messagesProcessed')::int, 0) + ${waTotal + emailTotal}::int)
       )`,
       updatedAt: new Date(),
     })
@@ -305,10 +343,10 @@ async function handleMessaging(batchId: string) {
   await BatchService.addLog(
     batchId,
     'batch_advanced',
-    `Messaging: ${waSent} WA sent, ${waFailed} WA failed, ${emailQueued} emails queued`
+    `Messaging: ${waSent} WA sent, ${waFailed} WA failed, ${emailSent} email sent, ${emailFailed} email failed`
   );
 
-  console.log(`[batch-advance] batch=${batchId} -> MESSAGING done: WA=${waSent}/${waTotal}, email=${emailQueued} queued`);
+  console.log(`[batch-advance] batch=${batchId} -> MESSAGING done: WA=${waSent}/${waTotal}, email=${emailSent}/${emailTotal}`);
 
   // 5. Advance to COMPLETE if all messages already processed.
   //    Covers: (a) no messages at all, (b) no emails queued, (c) email worker
