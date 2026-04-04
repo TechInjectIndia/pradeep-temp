@@ -99,7 +99,7 @@ export const commLogRoutes = new Elysia({ prefix: '/comm-logs' })
           fileName: batchInfoMap.get(s.batchId)?.fileName ?? s.batchId,
           seqId: batchInfoMap.get(s.batchId)?.seqId ?? 0,
         }))
-        .sort((a, b) => b.total - a.total);
+        .sort((a, b) => b.seqId - a.seqId);
 
       return {
         data: rows.map((r) => ({
