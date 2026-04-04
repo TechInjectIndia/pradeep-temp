@@ -361,6 +361,9 @@ export async function processUpload(
     const teacherMap = new Map(existingTeachers.map((t) => [t.id, t]));
     const teacherUpdatePromises: Promise<unknown>[] = [];
 
+    const newLookupPhones: { phone: string; teacherId: string }[] = [];
+    const newLookupEmails: { email: string; teacherId: string }[] = [];
+
     for (const decision of mergeUpdates) {
       const existing = teacherMap.get(decision.teacherId);
       if (!existing) continue;
@@ -368,11 +371,28 @@ export async function processUpload(
       if (decision.nameChoice === 'file' && decision.newName) {
         updatePayload.name = decision.newName;
       }
+      if (decision.phonesToAdd.length > 0) {
+        const merged = [...new Set([...existing.phones, ...decision.phonesToAdd])];
+        updatePayload.phones = merged;
+        for (const p of decision.phonesToAdd) newLookupPhones.push({ phone: p, teacherId: decision.teacherId });
+      }
+      if (decision.emailsToAdd.length > 0) {
+        const merged = [...new Set([...existing.emails, ...decision.emailsToAdd])];
+        updatePayload.emails = merged;
+        for (const e of decision.emailsToAdd) newLookupEmails.push({ email: e, teacherId: decision.teacherId });
+      }
       teacherUpdatePromises.push(
         db.update(teachers).set(updatePayload).where(eq(teachers.id, decision.teacherId))
       );
     }
     if (teacherUpdatePromises.length > 0) await Promise.all(teacherUpdatePromises);
+
+    if (newLookupPhones.length > 0) {
+      await db.insert(phoneLookup).values(newLookupPhones).onConflictDoNothing();
+    }
+    if (newLookupEmails.length > 0) {
+      await db.insert(emailLookup).values(newLookupEmails).onConflictDoNothing();
+    }
   }
 
   // Only kick off the first batch — subsequent ones start via chain
