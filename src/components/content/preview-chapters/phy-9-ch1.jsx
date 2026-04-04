@@ -1,4 +1,5 @@
 "use client";
+import { CONTENT_IMAGES } from "@/assets/content-images";
 import { useState, useEffect } from "react";
 
 // ── DESIGN TOKENS ─────────────────────────────────────────────
@@ -315,7 +316,7 @@ const content_b1 = [
     The distance travelled by an object is the length of the actual path traversed by the object during motion.
   </DefBox>,
   <Fig key="fig-1-1"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5f5ee1ab-f218-42ca-b7dc-a998f80ea03c/markdown_1/imgs/img_in_image_box_434_422_788_466.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A07Z%2F-1%2F%2F955d60a421ddfadb044b677e7c5f6c9d6309b8b9e255ef5cf1a80f73f4e24ee5"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_9C66C74E085E8D596A8A}
     num="Fig. 1.1" caption="Object journey from O along straight line OX" />,
   <p key="b1-p-s12-3" style={{ textIndent:28, textAlign:"justify" }}>
     For example, suppose an object starts its journey from O, along a straight line OX. A, B, C are the positions of
@@ -348,7 +349,7 @@ const content_b1 = [
     The displacement of the object in going from O to C = <em>OC</em>⃗ where OC = |<em>OC</em>⃗| = √(5² + 5²) = 5√2 km.
   </p>,
   <Fig key="fig-1-2"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5f5ee1ab-f218-42ca-b7dc-a998f80ea03c/markdown_1/imgs/img_in_image_box_780_970_1047_1232.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A07Z%2F-1%2F%2F0557008d48c1fd64cf05c41ec295ca50fc2e2311cb10fa5d758e39e1598a9e3a"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_F9B452D7FF63458CB78E}
     num="Fig. 1.2" caption="Object travelling east, north and west" />,
 
   // Distinction between distance and displacement
@@ -406,7 +407,7 @@ const content_b1 = [
     <MathBlock key="b1-np1-m3">Distance = circumference of circle = <strong>2π<em>r</em></strong></MathBlock>
     <MathBlock key="b1-np1-m4">Displacement = <strong>zero</strong>, as final position coincides with the initial position.</MathBlock>
     <Fig key="fig-1-3"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5f5ee1ab-f218-42ca-b7dc-a998f80ea03c/markdown_2/imgs/img_in_image_box_795_968_1047_1194.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A08Z%2F-1%2F%2F9c0028cc24542ee796290dfd287cace458de75f55acb8171882a89e473ce813c"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_90E574033C8E06D514C1}
       num="Fig. 1.3" caption="Object moving in a circle of radius r" />
     <p key="b1-np2-q" style={{ textAlign:"justify", marginTop:12 }}>
       <strong>Problem 2.</strong> A particle moves 3 m due north, then 4 m due east and finally 6 m due south. Calculate the distance travelled and the displacement.
@@ -417,7 +418,7 @@ const content_b1 = [
     <MathBlock key="b1-np2-m1">Distance travelled = OA + AB + BC = 3 m + 4 m + 6 m = <strong>13 m</strong></MathBlock>
     <MathBlock key="b1-np2-m2">Displacement = <em>OC</em>⃗, where OC = √(AB² + (BC – BD)²) = √(4² + (6 – 3)²) = √(16 + 9) = <strong>5 m</strong></MathBlock>
     <Fig key="fig-1-4"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5f5ee1ab-f218-42ca-b7dc-a998f80ea03c/markdown_3/imgs/img_in_image_box_780_198_1046_461.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A09Z%2F-1%2F%2F0acac9ccb3f867525da97674a0c019c550d42f15650f37eff5098c6dead3a44e"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_D1A35E4F7930F5963DD0}
       num="Fig. 1.4" caption="Particle moving north, east and south" />
   </NumericalSection>,
 
@@ -442,7 +443,7 @@ const content_b1 = [
         Displacement = |AC⃗| = √(15² + 20²) = √625 = <strong>25 m</strong>.
       </p>
       <Fig key="fig-1-5"
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5f5ee1ab-f218-42ca-b7dc-a998f80ea03c/markdown_3/imgs/img_in_image_box_828_1033_1047_1290.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A09Z%2F-1%2F%2F5ac64f31a77f1d057d7c6e30f1e4352823726e6854181a672cf43294499275f3"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_5F7AC8CFCDBD3FC74DCB}
         num="Fig. 1.5" caption="Right-angle path: A to B to C" />
       <p style={{ fontSize:14, textAlign:"justify", margin:"0 0 6px" }}>
         <strong>2.</strong> Here, diameter <em>d</em> = 5 m.&nbsp;
@@ -875,7 +876,7 @@ const locked_b2 = [
     line parallel to X-axis (time axis) as shown in Fig. 1.6.
   </p>,
   <Fig key="fig-1-6"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5cc2ca61-f2f5-4bee-beb9-0dea0a8d6c92/markdown_1/imgs/img_in_chart_box_614_1023_1046_1309.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A11Z%2F-1%2F%2Fa53510eed284aec0f6e3db9fa97c148ff736e5fde6ea56835f73e5bd7c56e1f1"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_55BE4E8D42864667BBBB}
     num="Fig. 1.6" caption="Distance-time graph for body at rest" />,
   <p key="b2-p-s19-c2" style={{ margin:"10px 0 5px" }}>
     <strong style={{ color:P_COLOR }}>Case 2. When the body is in uniform motion.</strong>
@@ -903,7 +904,7 @@ const locked_b2 = [
     where θ is angle, which the distance-time graph makes with the X-axis. <strong><em>tan θ is called the slope of the distance-time graph.</em></strong> Slope represents gradient of distance-time graph. Hence, we conclude that <strong>slope of distance-time graph represents speed of the body.</strong>
   </p>,
   <Fig key="fig-1-7"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5cc2ca61-f2f5-4bee-beb9-0dea0a8d6c92/markdown_2/imgs/img_in_chart_box_608_517_1046_824.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A12Z%2F-1%2F%2F9ebde20fe88b662c2b01644b1ae196a594de8612a7be6685b2e2eb8f9e5b7851"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_4958ECC727712F51109D}
     num="Fig. 1.7" caption="Distance-time graph for uniform motion (Table 1.1)" />,
   <div key="b2-note-s19" style={{ border:"2px solid #444", padding:"10px 14px", margin:"14px 0", background:"#f9f9f9", fontSize:14 }}>
     <strong>NOTE</strong>&nbsp; When a body is moving along a straight line, we can take the magnitude of displacement equal to the distance travelled by the body. We can then use the term <em>uniform velocity</em> in place of uniform speed.
@@ -913,7 +914,7 @@ const locked_b2 = [
       <li>In Fig. 1.8, we have shown distance-time graphs of two bodies A and B. As θ<sub style={{fontSize:"0.72em"}}>2</sub> {'>'} θ<sub style={{fontSize:"0.72em"}}>1</sub>, slope of body B is greater than that of body A. Hence, velocity of B is greater than velocity of A, <em>i.e.,</em> B moves faster than A.</li>
     </ol>
     <Fig key="fig-1-8"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5cc2ca61-f2f5-4bee-beb9-0dea0a8d6c92/markdown_2/imgs/img_in_image_box_754_961_1024_1185.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A12Z%2F-1%2F%2F9a95ef518814f7207f92630d81c52f4535888f3b722b39a7d7601f243f796754"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_76C172268EED24633CCF}
       num="Fig. 1.8" caption="Distance-time graphs of two bodies A and B" />
   </div>,
   <p key="b2-p-s19-c3" style={{ margin:"10px 0 5px" }}>
@@ -927,13 +928,13 @@ const locked_b2 = [
     When we actually plot these points taking time along X-axis and distance along Y-axis, and join these points, we obtain a curve as shown in Fig. 1.9. Note that distance-time graph in this case is a <em>curved line</em>, indicating that the motion is non-uniform or it is an accelerated motion. From Fig. 1.9, we observe that slope of distance-time graph at any point P on the curve is more than the slope of distance-time graph at any earlier point Q on the curve. It means velocity of the body at P is more than the velocity of the body at Q, <em>i.e.,</em> velocity of the body goes on increasing as the time elapses, <em>i.e.,</em> the motion of the body is accelerated motion.
   </p>,
   <Fig key="fig-1-9"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5cc2ca61-f2f5-4bee-beb9-0dea0a8d6c92/markdown_3/imgs/img_in_chart_box_391_456_834_841.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A14Z%2F-1%2F%2F03daebfd2f63a739e5a132afad5779261887a9fab9882e1b2c14748f4f1f507c"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_55F2656B4AA8EE9FECD5}
     num="Fig. 1.9" caption="Distance-time graph for uniformly accelerated motion (Table 1.2)" />,
   <p key="b2-p-s19-c3c" style={{ textIndent:28, textAlign:"justify" }}>
     When the motion of the body is retarded, <em>i.e.,</em> the body has negative acceleration, the slope of distance-time graph is reversed as shown in Fig. 1.10. For the sake of comparison; we have redrawn distance time graph for positive acceleration. The distance time graph is a straight line when acceleration is zero. This is also shown in Fig. 1.10.
   </p>,
   <Fig key="fig-1-10"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5cc2ca61-f2f5-4bee-beb9-0dea0a8d6c92/markdown_3/imgs/img_in_chart_box_747_897_1046_1136.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A14Z%2F-1%2F%2F06197ebc75075e5e61b722dc1f389c4120304cdc0805150ed3faa2aea086651b"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_CCD0FCCA135E8141FF82}
     num="Fig. 1.10" caption="Distance-time graphs for positive, zero and negative acceleration" />,
 
   // ── 1.10 VELOCITY-TIME GRAPHS ─────────────────────────────
@@ -952,7 +953,7 @@ const locked_b2 = [
     parallel to X-axis (time axis) as shown in Fig. 1.11 for <em>v</em> = 10 m/s.
   </p>,
   <Fig key="fig-1-11"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5cc2ca61-f2f5-4bee-beb9-0dea0a8d6c92/markdown_4/imgs/img_in_chart_box_395_203_826_487.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A15Z%2F-1%2F%2Fdf59e42c073c1df808abdf3d918b106dabebfedd1a8c194019ddd8d2172b9f3b"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_B0D95219808DFE0670F3}
     num="Fig. 1.11" caption="Velocity-time graph for uniform velocity" />,
   <p key="b2-p-s110-c1b" style={{ textIndent:28, textAlign:"justify" }}>
     From the velocity-time graph, we can calculate the displacement (or distance covered) by the body moving with
@@ -992,7 +993,7 @@ const locked_b2 = [
     <strong>Hence, acceleration of the body is given by slope of velocity-time graph.</strong>
   </p>,
   <Fig key="fig-1-12"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5cc2ca61-f2f5-4bee-beb9-0dea0a8d6c92/markdown_4/imgs/img_in_chart_box_646_1017_1047_1354.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A16Z%2F-1%2F%2F24a2f61188fdead9d868f707cd6e6207ec040e3b8d2148fa8887d0b480b0581e"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_D660E25F76A2493C2075}
     num="Fig. 1.12" caption="Velocity-time graph for uniform acceleration (Table 1.3)" />,
   <p key="b2-p-s110-c2g" style={{ margin:"8px 0 5px" }}>
     <strong style={{ color:P_COLOR }}>(<em>b</em>) Distance travelled by the body</strong>
@@ -1013,10 +1014,10 @@ const locked_b2 = [
     </ol>
     <div style={{ display:"flex", gap:24, justifyContent:"center", flexWrap:"wrap", margin:"12px 0" }}>
       <Fig key="fig-1-13"
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_0/imgs/img_in_chart_box_536_687_782_919.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A21Z%2F-1%2F%2Fd262b3097417b7798cdd3b32aebdd5863f71b15380364711d6b3f3d8e3e36fa5"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_D827A094CCBB43D5F250}
         num="Fig. 1.13" caption="Uniform retardation" />
       <Fig key="fig-1-14"
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_0/imgs/img_in_chart_box_791_690_1034_926.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A21Z%2F-1%2F%2F9652406afb49a2710b4dbe00bbc22211424377e9e2a717f6205967a2fc9902f7"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_3D6B6A95483171CFBDB9}
         num="Fig. 1.14" caption="Uniform acceleration, u ≠ 0" />
     </div>
   </div>,
@@ -1028,7 +1029,7 @@ const locked_b2 = [
     P (= tan θ<sub style={{fontSize:"0.72em"}}>1</sub>) is less than the slope of curve at Q (= tan θ<sub style={{fontSize:"0.72em"}}>2</sub>). Therefore, acceleration of body at P is less than the acceleration of the body at Q.
   </p>,
   <Fig key="fig-1-15"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_0/imgs/img_in_chart_box_508_1134_751_1360.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A21Z%2F-1%2F%2F23808163bd9348331edef997390d2bb3cded77c749819c8e418c88b005743724"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_CEF5C367C5C9A97F3F8B}
     num="Fig. 1.15" caption="Velocity-time graph for variable acceleration" />,
 
   // Solved Problems — Graphs
@@ -1054,7 +1055,7 @@ const locked_b2 = [
       The point R corresponds to (10 h, 0 km). The straight line QR represents decrease in both the time and the distance. This situation is <strong>not real. Neither time nor distance can have a backward journey.</strong>
     </p>
     <Fig key="fig-1-16"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_1/imgs/img_in_chart_box_638_581_1038_933.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A23Z%2F-1%2F%2Ff682cda389bf39ed39a3841ff77a05c3987656f60e4866a4686c4f642d6e02e9"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_9D3E9C500A69421792EB}
       num="Fig. 1.16" caption="Distance-time graph of an object" />
 
     <p key="b2-gp2-q" style={{ marginTop:12 }}><strong>Problem 2.</strong> The graph in Fig. 1.17 shows the positions of a body at different times. Calculate the speed of the body as it moves from (<em>i</em>) A to B (<em>ii</em>) B to C and (<em>iii</em>) C to D.</p>
@@ -1069,7 +1070,7 @@ const locked_b2 = [
       (<em>iii</em>) In moving from C to D: distance = (7 – 3) = 4 cm; time = (9 – 7) = 2 s; speed <em>v</em><sub style={{fontSize:"0.72em"}}>3</sub> = <Frac n="4" d="2" /> = <strong>2 cm/s</strong>.
     </p>
     <Fig key="fig-1-17"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_1/imgs/img_in_chart_box_628_985_1049_1354.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A23Z%2F-1%2F%2F939c9930d70d6aa0a2c81b53daee0f7ce7413014ca5a4aa08fdabd5824c0a452"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_6DF54A93971FB627A638}
       num="Fig. 1.17" caption="Distance-time graph showing positions at different times" />
 
     <p key="b2-gp3-q" style={{ marginTop:12 }}><strong>Problem 3.</strong> The velocity-time graph of an ascending passenger lift is given in Fig. 1.18. What is the acceleration of the lift: (<em>i</em>) during the first two seconds, (<em>ii</em>) between 2nd and 10th second, (<em>iii</em>) during the last two seconds?</p>
@@ -1084,7 +1085,7 @@ const locked_b2 = [
       (<em>iii</em>) Change of velocity = 0 – 4·6 = –4·6 m/s; time = 2 s; acceleration = <Frac n="–4·6" d="2" /> = <strong>–2·3 m/s²</strong> (retardation).
     </p>
     <Fig key="fig-1-18"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_2/imgs/img_in_chart_box_651_292_1049_583.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A24Z%2F-1%2F%2F3eadd26f2678192582f001eb5c492c86f2d768cf28f2f42fdc1628ace43ab26a"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_AD6ED40631E90AFEA5FC}
       num="Fig. 1.18" caption="Velocity-time graph of an ascending passenger lift" />
   </NumericalSection>,
 
@@ -1138,7 +1139,7 @@ const locked_b2 = [
       <div style={{ textAlign:"center", margin:"4px 20px", fontStyle:"italic", fontSize:"14.5px" }}>Speed = <Frac n="4 km" d="0·25 h" /> = <strong>16 km/h</strong></div>
       <p style={{ fontSize:14, margin:"2px 0 4px", textIndent:14 }}>(<em>e</em>) Slowing down to minimum speed (12 km/h) is represented by line EF. Distance = 28 – 26 = 2 km; time = 10 min = <Frac n="1" d="6" /> h; speed = <Frac n="2" d="1/6" /> = <strong>12 km/h</strong>. So car slowed down at distance ranging from <strong>26 km to 28 km</strong>.</p>
       <Fig key="fig-1-20"
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_3/imgs/img_in_chart_box_519_856_1047_1265.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A25Z%2F-1%2F%2Fcdc2aa80a80dbea08544360b302f28eea5a9f28f3b97ad242a89b53d6c6ab730"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_BF304FE924EC63F40F24}
         num="Fig. 1.20" caption="Distance-time graph of the moving car" />
       <p style={{ fontSize:14, margin:"4px 0 4px" }}><strong>2.</strong> (<em>a</em>) Speed-time graph OA is a straight line with positive slope → <strong>uniformly accelerated motion</strong>.</p>
       <p style={{ fontSize:14, margin:"2px 0 4px", textIndent:14 }}>(<em>b</em>) AB is parallel to time axis → slope zero → <strong>uniform velocity</strong>.</p>
@@ -1149,7 +1150,7 @@ const locked_b2 = [
       <div style={{ textAlign:"center", margin:"4px 20px", fontStyle:"italic", fontSize:"14.5px" }}>acceleration = <Frac n="–6 m/s" d="6 s" /> = <strong>–1 m/s²</strong> (retardation)</div>
       <p style={{ fontSize:14, margin:"2px 0 4px", textIndent:14 }}>(<em>f</em>) From A to B, velocity is uniform: distance = 6 × (10 – 4) = <strong>36 m</strong></p>
       <Fig key="fig-1-19"
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//c28f9f41-0037-47ea-9f6d-b8d3937bc287/markdown_3/imgs/img_in_chart_box_616_231_1046_531.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A25Z%2F-1%2F%2Febcea19d0f0c6ef91db117b9d0f48ea95c680488fcfaba16a34918065d6225c5"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_0EA62008D62A576FFB1F}
         num="Fig. 1.19" caption="Speed-time graph showing OA (uniform acceleration), AB (uniform velocity), BC (uniform retardation)" />
       <p style={{ fontSize:14, margin:"4px 0 4px" }}><strong>3.</strong> In Fig. 1.19, (<em>i</em>) Distance from O to A = area of △OAE = ½ × 4 × 6 = <strong>12 m</strong>.</p>
       <p style={{ fontSize:14, margin:"2px 0 4px", textIndent:14 }}>(<em>ii</em>) Distance from B to C = area of △BCD = ½ × (16 – 10) × 6 = <strong>18 m</strong>.</p>
@@ -1158,7 +1159,7 @@ const locked_b2 = [
       <div style={{ textAlign:"center", margin:"4px 20px", fontStyle:"italic", fontSize:"14.5px" }}><em>a</em> = <Frac n="10 – 5" d="10 – 0" /> = <Frac n="5" d="10" /> = <strong>0·5 m/s²</strong></div>
       <p style={{ fontSize:14, margin:"2px 0 4px", textIndent:14 }}>Distance = area under speed-time graph = OH × OA + ½(AG × GF) = 50 × 5 + ½ × 50 × (30 – 5) = 250 + 625 = <strong>875 m</strong></p>
       <Fig key="fig-1-21"
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//338d57a7-3dd5-44ef-94e7-76f4c1f6d339/markdown_0/imgs/img_in_chart_box_657_244_1045_556.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A04Z%2F-1%2F%2F384e41d13f3f414402eee70dc8611314e860f0d6d3b225585101bc4565f5cf8a"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_839AD632D5763CD704D7}
         num="Fig. 1.21" caption="Speed-time graph for uniformly accelerating car" />
     </div>
   </ProblemsBox>,
@@ -1199,7 +1200,7 @@ const content_b3 = [
     <em>t</em> = OC, velocity of body = CB = <em>v</em>.
   </p>,
   <Fig key="fig-1-22"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//338d57a7-3dd5-44ef-94e7-76f4c1f6d339/markdown_0/imgs/img_in_chart_box_746_1003_1046_1265.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A04Z%2F-1%2F%2F2f078e36e5214aae14aa227ede9ce4448993bd9d40866e39cac2b09164df8d1a"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_CF67BC0BDF72AD0F8AC3}
     num="Fig. 1.22" caption="Velocity-time graph for uniformly accelerated body" />,
   <p key="b3-p-s112-2" style={{ textIndent:28, textAlign:"justify" }}>
     Draw AD ⊥ BC and BE ⊥ OY. Let ∠BAD = θ.
@@ -1355,16 +1356,16 @@ const content_b3 = [
   </p>,
   <div key="b3-fig-123-row" style={{ display:"flex", gap:16, justifyContent:"center", flexWrap:"wrap", margin:"16px 0" }}>
     <Fig key="fig-1-23a"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//338d57a7-3dd5-44ef-94e7-76f4c1f6d339/markdown_4/imgs/img_in_image_box_193_1122_403_1271.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A09Z%2F-1%2F%2Fb4d70d362b9f0abdd20e939256ba5cd62f9906913ff7c4bb395860d12c7c69f8"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_29EA20D4897BBDAB51AE}
       num="Fig. 1.23(a)" caption="Rectangular track" />
     <Fig key="fig-1-23b"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//338d57a7-3dd5-44ef-94e7-76f4c1f6d339/markdown_4/imgs/img_in_image_box_451_1098_574_1283.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A09Z%2F-1%2F%2Fc78e2b3df77ee800a8d8b30ace3aa74e2570b334c0ccb7efbd00d9b67dc6cf48"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_E06E3B11BF2FD264305F}
       num="Fig. 1.23(b)" caption="Hexagonal path" />
     <Fig key="fig-1-23c"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//338d57a7-3dd5-44ef-94e7-76f4c1f6d339/markdown_4/imgs/img_in_image_box_618_1111_779_1277.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A09Z%2F-1%2F%2Fdd4f2265b0d29723c960dafa13383d4e8bbbf1dc291464e7a2f586d7b5474e78"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_F35E58E95A39058479A5}
       num="Fig. 1.23(c)" caption="Octagonal track" />
     <Fig key="fig-1-23d"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//338d57a7-3dd5-44ef-94e7-76f4c1f6d339/markdown_4/imgs/img_in_image_box_819_1098_1028_1303.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A09Z%2F-1%2F%2Fad529873eb885d720d06a5ea029609ad598b6a97750a1d16ba5c50069fd82c46"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_13B81F37357968A7D6AF}
       num="Fig. 1.23(d)" caption="Circular path — tangential velocity" />
   </div>,
   <p key="b3-p-s115-3" style={{ textIndent:28, textAlign:"justify" }}>
@@ -1396,7 +1397,7 @@ const content_b3 = [
     This is shown in Fig. 1.24. The necessary force F is provided by pull of the hand. When the stone is at A, its speed is along the tangent AX to the circle at A. It is towards east. Similarly, when the stone is at B, its speed is along the tangent BY to the circle at B. It is towards south as shown in Fig. 1.24. If the thread were to break at A, the stone would fly along AX. Similarly, if the thread were to break at B, the stone would fly along BY. It means the stone continues to move along the direction it has been moving at that instant when external force ceases to act on it.
   </p>,
   <Fig key="fig-1-24"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//d36b072d-aba4-4ca7-ade5-09c1e35351a2/markdown_0/imgs/img_in_image_box_396_730_827_989.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A45%3A01Z%2F-1%2F%2F7a2f6ed14f0ae7667f8418f9aaad9f731d42bc0048c7f730308ee9b62043a20d"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_EB714DA9736443F8ED9A}
     num="Fig. 1.24" caption="Stone on a string revolving in a circle" />,
   <p key="b3-p-s116-2" style={{ margin:"0 0 5px 14px", textAlign:"justify" }}>
     <strong>2.</strong> In a sports meet, when an athlete is to throw a hammer/discuss, he holds it in hand and gives it a circular motion by rotating his body. The moment he releases the hammer/discuss, it moves in the direction in which it was moving at the time of release.

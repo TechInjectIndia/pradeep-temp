@@ -4,13 +4,14 @@
  *
  * What it does:
  * 1) Lists files under src/components/*
- * 2) Asks which files to process
+ * 2) Asks which files to process (or pass --all / -a, or CONTENT_PROCESS_ALL=1, to use every file)
  * 3) Extracts remote image URLs from selected files
  * 4) Uploads missing images to OCI in parallel batches (default concurrency: 20)
  * 5) Rewrites selected files to CONTENT_IMAGES.<KEY>
  * 6) Updates scripts/data/image-manifest.json + regenerates src/assets/content-images.ts
  * 7) Validates selected files contain no remaining processable legacy image URLs
-+ * Cache:
+ *
+ * Cache:
  * - Uses scripts/data/oci-uploaded-legacy-urls.json
  * - Skips URLs already cached in future runs
  */
@@ -166,7 +167,11 @@ async function uploadEntries(entries) {
   if (entries.length === 0) return { uploaded: 0, skippedCache: 0, skippedHead: 0, failed: 0 };
 
   const bucketName = getOciBucketName();
-  if (!bucketName) throw new Error("Missing OCI_BUCKET (or ORACLE_BUCKET_NAME).");
+  if (!bucketName) {
+    throw new Error(
+      "Missing OCI_BUCKET (or ORACLE_BUCKET_NAME). Set it in .env / .env.local so uploads can run."
+    );
+  }
 
   const client = new os.ObjectStorageClient({
     authenticationDetailsProvider: createOciAuthenticationProvider(ROOT),
@@ -180,6 +185,9 @@ async function uploadEntries(entries) {
 
   const cache = loadCacheSet();
   const concurrency = parseConcurrency();
+  console.log(
+    `\nOCI upload phase: ${entries.length} URL(s), concurrency=${concurrency}, cache has ${cache.size} legacy URL(s).`
+  );
   let uploaded = 0;
   let skippedCache = 0;
   let skippedHead = 0;
@@ -224,6 +232,11 @@ async function uploadEntries(entries) {
   }
 
   client.close();
+  if (uploaded === 0 && failed === 0) {
+    console.log(
+      "Note: uploaded=0 means every URL was already in local cache or already present in the bucket (HEAD OK) — no new PUT was required."
+    );
+  }
   return { uploaded, skippedCache, skippedHead, failed };
 }
 
@@ -275,6 +288,16 @@ function createPrompt() {
   };
 }
 
+function wantsProcessAllArgv() {
+  const argv = process.argv.slice(2);
+  return argv.includes("--all") || argv.includes("-a");
+}
+
+function wantsProcessAllEnv() {
+  const v = process.env.CONTENT_PROCESS_ALL?.trim();
+  return v === "1" || /^true$/i.test(v || "");
+}
+
 function parseSelection(input, max) {
   const raw = input.trim().toLowerCase();
   if (raw === "all" || raw === "*") return [...Array(max)].map((_, i) => i);
@@ -304,15 +327,24 @@ async function main() {
     return;
   }
 
-  console.log("\nSelect files to process from src/components/*:\n");
+  const processAll = wantsProcessAllArgv() || wantsProcessAllEnv();
+
+  console.log("\nFiles under src/components/*:\n");
   files.forEach((fp, i) => console.log(`${String(i + 1).padStart(3, " ")}. ${rel(fp)}`));
-  console.log('\nEnter indices (e.g. "1,3,8-12") or "all".');
 
-  const prompt = createPrompt();
-  const answer = await prompt.ask("> ");
-  prompt.close();
-
-  const selectedIndexes = parseSelection(answer, files.length);
+  let selectedIndexes;
+  if (processAll) {
+    selectedIndexes = [...Array(files.length)].map((_, i) => i);
+    console.log(
+      `\n--all / CONTENT_PROCESS_ALL: processing all ${files.length} file(s) (no prompt).`
+    );
+  } else {
+    console.log('\nEnter indices (e.g. "1,3,8-12") or "all". Or re-run with: npm run content:process-selected -- --all');
+    const prompt = createPrompt();
+    const answer = await prompt.ask("> ");
+    prompt.close();
+    selectedIndexes = parseSelection(answer, files.length);
+  }
   if (selectedIndexes.length === 0) {
     console.error("No valid selection. Aborting.");
     process.exit(1);
@@ -344,6 +376,7 @@ async function main() {
   regenerateContentImagesTs(mergedEntries);
   console.log(`Updated manifest (${mergedEntries.length}) and regenerated ${path.relative(ROOT, CONTENT_IMAGES_TS)}.`);
 
+  console.log("\nRunning OCI uploads (or skip if cached / object exists)…");
   const uploadRes = await uploadEntries(selectedEntries);
   console.log(
     `Upload summary: uploaded=${uploadRes.uploaded}, skipped(cache)=${uploadRes.skippedCache}, skipped(existing)=${uploadRes.skippedHead}, failed=${uploadRes.failed}`

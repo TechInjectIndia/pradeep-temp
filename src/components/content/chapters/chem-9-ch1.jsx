@@ -1,4 +1,5 @@
 "use client";
+import { CONTENT_IMAGES } from "@/assets/content-images";
 import { useState, useEffect } from "react";
 
 // ── DESIGN TOKENS ─────────────────────────────────────────────
@@ -860,7 +861,7 @@ const content_b1 = [
     which show <strong>decrease</strong> in solubility with rise in temperature.
   </p>,
   <Fig key="fig-1-1"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_2/imgs/img_in_chart_box_420_263_799_722.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A45Z%2F-1%2F%2F7bf05f7278e54ccd0a97f20091c13dd7d4f7fb1dc2478c702ae8bdcb16ed4fc3"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_0827B1785CF2284301FC}
     num="Fig. 1.1"
     caption="Solubility curves of various inorganic compounds"
   />,
@@ -1132,7 +1133,7 @@ const content_b2 = [
     are called colloidal particles.
   </p>,
   <Fig key="fig-1-2"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_4/imgs/img_in_image_box_264_198_941_413.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A47Z%2F-1%2F%2F249f83d7647241c9462af720f3f7371d059c5b2ecc054c9e5d5cd9057d823793"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_BE148CFAE49C28F5F95D}
     num="Fig. 1.2"
     caption="Particle sizes of a true solution, a colloidal solution and a suspension"
   />,
@@ -1242,7 +1243,7 @@ const content_b2 = [
     a colloidal sol.</em>
   </DefBox>,
   <Fig key="fig-1-3"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_749_200_1030_407.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fd9106878ebe3084ee1c99a51195fce3953ffc1ee8eb216331037ed188becb56f"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_AB2D779877F9022B42E3}
     num="Fig. 1.3"
     caption="Brownian movement"
   />,
@@ -1273,7 +1274,7 @@ const content_b2 = [
     Thus, Tyndall effect can be used to distinguish between a true solution and a colloidal solution.
   </p>,
   <Fig key="fig-1-4"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_228_877_980_1166.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2F558e0af6a0bf02366513cae364573e4a0f284e613858c1fb820c893f6da82473"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_CB5F1A63689AB385DFB9}
     num="Fig. 1.4"
     caption="(a) Solution of copper sulphate does not show Tyndall effect (b) Mixture of water and milk shows Tyndall effect"
   />,
@@ -1743,7 +1744,7 @@ const content_b3 = [
     the watch glass.
   </p>,
   <Fig key="fig-1-5"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_0/imgs/img_in_image_box_684_350_1045_802.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A30Z%2F-1%2F%2F94521113f9f78f44e94d061281032b92f0fba6770541e7d9101e5fef687855f6"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_A3A0EA2809855A6AC4BA}
     num="Fig. 1.5"
     caption="Evaporation"
   />,
@@ -1809,7 +1810,7 @@ const content_b3 = [
     water in a separating funnel (Fig. 1.6).
   </p>,
   <Fig key="fig-1-6"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_1/imgs/img_in_image_box_674_341_946_783.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A30Z%2F-1%2F%2F8ba791c79952589822ab6470436789ba62489e5f0dbb994bf1330bc3a7d4bf3e"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_D419880FDCF479FAE42A}
     num="Fig. 1.6"
     caption="Separation of two immiscible liquids"
   />,
@@ -1856,7 +1857,7 @@ const content_b3 = [
     Sublimation can be represented as
   </p>,
   <Fig key="fig-sub-eq"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_2/imgs/img_in_image_box_247_234_487_294.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F59b0feced866bc1c257d4852ad58b2157ba14d2be7f963da2b90205fbcee9c4a"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_B8125D21D4C16F2ED1FA}
     caption="Solid ⇌ Vapours (Heating/Cooling)"
   />,
   <p key="b3-p-s182-3" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -1875,7 +1876,7 @@ const content_b3 = [
     in Fig. 1.7. Close the stem of the funnel with a cotton plug.
   </p>,
   <Fig key="fig-1-7"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_2/imgs/img_in_image_box_604_210_1040_699.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2Fe106ca9f17d68eb45bec80ffa688f43b35056bb1a3d86271a8e3ab84960d8039"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_32F852B5DDA2172F50A1}
     num="Fig. 1.7"
     caption="Sublimation of ammonium chloride"
   />,
@@ -1919,7 +1920,7 @@ const content_b3 = [
     <em>filtrate left after the separation of crystals is called the </em><strong>mother liquor.</strong>
   </p>,
   <Fig key="fig-1-8"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_3/imgs/img_in_image_box_247_289_965_665.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F937377f2d43222d69bb87c408fccf5a6acefef62b163a952f03fe0f1293537f3"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_89ADD791FC329F3A6768}
     num="Fig. 1.8"
     caption="Filtration"
   />,
@@ -1933,7 +1934,7 @@ const content_b3 = [
     out under reduced pressure using a Buchner funnel and water suction pump as shown in Fig. 1.9.
   </p>,
   <Fig key="fig-1-9"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_3/imgs/img_in_image_box_324_834_924_1185.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F80745a5467f6447cd6b0136a269423d17bd3873129368fe7c64c07549d6b208b"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_F5842D86436DFF0758F8}
     num="Fig. 1.9"
     caption="Quick filtration process using a Buchner funnel and a water suction pump"
   />,
@@ -2010,7 +2011,7 @@ const content_b3 = [
     understanding of the 9th grade students, a hand driven centrifugation technique is shown in Fig. 1.10.
   </p>,
   <Fig key="fig-1-10"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//57c79c8e-7fbd-45c6-b9e3-b8ccdb0d07da/markdown_4/imgs/img_in_image_box_843_1083_1002_1275.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fc854201e1e7d098a62ac10bf27b557ec00ccf54294fe6c359a9168c7d860b83a"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_5836A191822623037FBA}
     num="Fig. 1.10"
     caption="Hand driven centrifugation machine"
   />,
@@ -2130,7 +2131,7 @@ const content_b4 = [
     those of the two liquids separated above are, however, left in the distillation flask.
   </p>,
   <Fig key="fig-1-11"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//b20d0647-a7f3-46e2-8844-4f37e2a48511/markdown_2/imgs/img_in_image_box_219_202_1011_688.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F5982e3e7ea99d01a576270dbbe371cecba2b294000c72704a73f609e7a9cd0f7"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_738CC21228FFCD6603B4}
     num="Fig. 1.11"
     caption="Separation of two miscible liquids by distillation"
   />,
@@ -2149,7 +2150,7 @@ const content_b4 = [
       city in Uttar Pradesh) since ancient times is similar to modern distillation apparatus (Fig. 1.12).
     </p>
     <Fig key="fig-1-12"
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//b20d0647-a7f3-46e2-8844-4f37e2a48511/markdown_2/imgs/img_in_image_box_230_1108_1040_1330.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2Fe22996dd901b8427a28038586b6c1aba5ca5e2f06e6417ef06e83141dda6edc3"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_B018613156C3F19242B3}
       num="Fig. 1.12"
       caption="Deg and Baphka method of manufacture of Attar (Perfume)"
     />
@@ -2199,7 +2200,7 @@ const content_b4 = [
     25 K can be achieved.
   </p>,
   <Fig key="fig-1-13"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//b20d0647-a7f3-46e2-8844-4f37e2a48511/markdown_3/imgs/img_in_image_box_256_839_962_1336.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fea0988df0c9bd259eccc76b2ece68a967d36db93ea5de90b328c551375d28039"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_881362FDB37AC9214AD9}
     num="Fig. 1.13"
     caption="Fractional distillation"
   />,
@@ -2258,7 +2259,7 @@ const content_b4 = [
     on the paper is just above the water level as shown in Fig. 1.14 (<em>b</em>).
   </p>,
   <Fig key="fig-1-14"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//73aa8711-939c-4ac7-986c-ef71f6652fa3/markdown_0/imgs/img_in_image_box_229_201_990_459.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A30Z%2F-1%2F%2F4bae36ea02c8d7950ed26dd77f4046d791bb876e1915dee72038848ed40797df"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_C9B339FC08BB14A548DE}
     num="Fig. 1.14"
     caption="Separation of dyes in black ink using chromatography"
   />,
@@ -2428,7 +2429,7 @@ const content_b4 = [
     dioxide (reddish brown). Separate the two jars by a lid (Fig. 1.15).
   </p>,
   <Fig key="fig-1-15"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//73aa8711-939c-4ac7-986c-ef71f6652fa3/markdown_2/imgs/img_in_image_box_320_897_907_1215.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2F0edcd6d44824aeda15299e39f58849762a6451c0dc8c503548fe7e35b3e627cc"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_DE687984BB16AE573072}
     num="Fig. 1.15"
     caption="Diffusion of gases occurs against the law of gravitation"
   />,
@@ -2457,7 +2458,7 @@ const content_b4 = [
   <p key="b4-p-sc-15" style={{ margin: "3px 0 8px 20px" }}>(<em>iv</em>) Measure the distance of this point from either end and record your observations. (Fig. 1.16).</p>,
   <p key="b4-p-sc-16" style={{ margin: "4px 0 4px" }}><strong>Observations:</strong></p>,
   <Fig key="fig-1-16"
-    src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//73aa8711-939c-4ac7-986c-ef71f6652fa3/markdown_3/imgs/img_in_image_box_326_526_892_656.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A31Z%2F-1%2F%2Fa780440b91f39bbe78edcab5f8ab8720d7503d01788e7b052eb3b2748fc8dcf6"
+    src={CONTENT_IMAGES.CONTENT_IMAGE_866A8BC7CE77E1C05954}
     num="Fig. 1.16"
     caption="Distance travelled by NH₃ and HCl gases"
   />,

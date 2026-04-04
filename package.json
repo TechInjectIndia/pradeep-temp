@@ -15,7 +15,8 @@
     "content:test-oci": "node scripts/test-oci-connection.mjs",
     "content:verify-migration": "node scripts/verify-content-migration.mjs",
     "content:migrate": "npm run content:extract && npm run content:upload-oci && npm run content:generate && npm run content:apply-imports && npm run content:verify-migration",
-    "content:process-selected": "node scripts/process-selected-content-links.mjs"
+    "content:process-selected": "node scripts/process-selected-content-links.mjs",
+    "content:process-selected:all": "node scripts/process-selected-content-links.mjs --all"
   },
   "dependencies": {
     "next": "16.1.6",

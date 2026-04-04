@@ -1,4 +1,5 @@
 "use client";
+import { CONTENT_IMAGES } from "@/assets/content-images";
 import { useState, useEffect } from "react";
 
 // ── COMPONENT LIBRARY ────────────────────────────────────────
@@ -213,17 +214,17 @@ const ChapterCover = () => (
 );
 
 // ── IMAGE URLs ────────────────────────────────────────────────
-const IMG11 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//53bb4326-ed68-47db-88c1-5c2dd7d40aab/markdown_1/imgs/img_in_image_box_178_933_632_1298.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A15Z%2F-1%2F%2Fb279d8af5b726c8f36e52cf0de4009d0ecfe5c0373b9bdc651e7343f707cf48b";
-const IMG12 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//53bb4326-ed68-47db-88c1-5c2dd7d40aab/markdown_1/imgs/img_in_image_box_682_930_1017_1256.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A15Z%2F-1%2F%2F62d51d41da58b3384bc2f8977ca3395e5e5fce973bdf2f392035db2b1c353fcc";
-const IMG13 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//53bb4326-ed68-47db-88c1-5c2dd7d40aab/markdown_3/imgs/img_in_image_box_179_476_629_996.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A17Z%2F-1%2F%2Fb447ec8c16149464d44af1f4e84644719ee85bfec075b2ab47ed50bf2a1830c9";
-const IMG14 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//53bb4326-ed68-47db-88c1-5c2dd7d40aab/markdown_3/imgs/img_in_image_box_701_501_978_950.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A17Z%2F-1%2F%2F0283a13290a6335c1975c0baaddcd216dde8d7c485dccd96f2ef22e3b96ea11c";
-const IMG15 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6f00a3f8-50b2-4b5d-91ec-eedc813e185f/markdown_0/imgs/img_in_image_box_481_242_1041_785.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A46%3A57Z%2F-1%2F%2F12ade8801a9af0b5938a2d50bc7662597efdca32b928b309a242643a38620fcf";
-const IMG16 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6f00a3f8-50b2-4b5d-91ec-eedc813e185f/markdown_1/imgs/img_in_image_box_385_596_881_862.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A46%3A58Z%2F-1%2F%2F2f2db5f8b1c04d1dda638b737eb8e6a59ad4e6e461d1945e50f38db2e2ce18c8";
-const IMG17 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6f00a3f8-50b2-4b5d-91ec-eedc813e185f/markdown_2/imgs/img_in_image_box_213_700_993_1282.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A46%3A59Z%2F-1%2F%2F75a2f7833eb27baf2c3f3044dfecc335687bf884faedecde6eaf7706fa151945";
-const IMG18 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6f00a3f8-50b2-4b5d-91ec-eedc813e185f/markdown_3/imgs/img_in_image_box_520_197_1033_577.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A00Z%2F-1%2F%2F4d55c45deab6d410c99028f2e54b868c12f154e26c162632b7312b663795e23c";
-const IMG19 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6f00a3f8-50b2-4b5d-91ec-eedc813e185f/markdown_4/imgs/img_in_image_box_286_616_940_985.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A02Z%2F-1%2F%2F3600970a09d894669b8194d4f59afb0f284007a9832936975baeccc74e39d55d";
-const IMG110A = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//562d0cda-7578-4dcc-829f-3067bded34db/markdown_0/imgs/img_in_image_box_234_201_618_463.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A00Z%2F-1%2F%2Fe7c7a7760226f2bcfe9aec3dc3375e3fb2bd09c0a16791411af95304b64e7e42";
-const IMG110B = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//562d0cda-7578-4dcc-829f-3067bded34db/markdown_0/imgs/img_in_image_box_644_208_988_466.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A01Z%2F-1%2F%2F75cacfe2563bbf277bb3802947ce5f31e338244c86a4482139f36f4e5ee4a4fc";
+const IMG11 = CONTENT_IMAGES.CONTENT_IMAGE_92F5D7AFF79875E47FA9;
+const IMG12 = CONTENT_IMAGES.CONTENT_IMAGE_511B1BB848450F8CB671;
+const IMG13 = CONTENT_IMAGES.CONTENT_IMAGE_044E688697528F7A42A1;
+const IMG14 = CONTENT_IMAGES.CONTENT_IMAGE_FCE79EB4E68BC76AE6CC;
+const IMG15 = CONTENT_IMAGES.CONTENT_IMAGE_C5B41135B1D1B1F49A4C;
+const IMG16 = CONTENT_IMAGES.CONTENT_IMAGE_CB817BCCC4375DB2B44B;
+const IMG17 = CONTENT_IMAGES.CONTENT_IMAGE_B3533F02AF0A81E6EA54;
+const IMG18 = CONTENT_IMAGES.CONTENT_IMAGE_AA239ECFB99F0D37FE44;
+const IMG19 = CONTENT_IMAGES.CONTENT_IMAGE_21FFFB9B5C1907527DAB;
+const IMG110A = CONTENT_IMAGES.CONTENT_IMAGE_95517EB887971A02E593;
+const IMG110B = CONTENT_IMAGES.CONTENT_IMAGE_7DE1D666E54B0513B122;
 
 // ── TABLE COMPONENTS ─────────────────────────────────────────
 const Table11 = () => (
@@ -438,12 +439,12 @@ const content_b1 = [
 
 // ── BATCH 2: §1.7 Plasma Membrane + Transport ────────────────
 
-const IMG111 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//562d0cda-7578-4dcc-829f-3067bded34db/markdown_1/imgs/img_in_image_box_505_684_1025_956.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A01Z%2F-1%2F%2F92f1937c9b4c927f07bc202feb03f12e46ab83eee0760e3e6a7176bb4c490402";
-const IMG112 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//562d0cda-7578-4dcc-829f-3067bded34db/markdown_3/imgs/img_in_image_box_244_213_879_499.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A03Z%2F-1%2F%2F1266ffd2bc5f120896ab29bee6dce8b5de268c4a893d599284135997c28f5690";
-const IMG113 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//562d0cda-7578-4dcc-829f-3067bded34db/markdown_4/imgs/img_in_image_box_654_224_1043_729.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A05Z%2F-1%2F%2F1c946141892f56e165e7918909aabcbc27102ed88ff54b52edb6f391f3e2ae94";
-const IMG114 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5ebbcedc-08da-42cf-b89e-0e0e66175cf5/markdown_0/imgs/img_in_image_box_252_955_946_1319.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A00Z%2F-1%2F%2F1497b935b963d22edb8d53a910116b085f6fecbf79a9f8f4a1daa5c3a56e24d7";
-const IMG115 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5ebbcedc-08da-42cf-b89e-0e0e66175cf5/markdown_3/imgs/img_in_image_box_395_774_864_1116.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A02Z%2F-1%2F%2F5c136bf35b3c0597eb306fb105b10865aa1dca02d0b82f6114ba5eeb0467cb5c";
-const IMG116 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//5ebbcedc-08da-42cf-b89e-0e0e66175cf5/markdown_4/imgs/img_in_image_box_344_534_876_753.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A03Z%2F-1%2F%2F41dd0cd117d1cf42c5ac812fe0611a2b754664685bed1a543b08e5e9336339fd";
+const IMG111 = CONTENT_IMAGES.CONTENT_IMAGE_416D05D92539F1CE0425;
+const IMG112 = CONTENT_IMAGES.CONTENT_IMAGE_854C60806F4626A16A48;
+const IMG113 = CONTENT_IMAGES.CONTENT_IMAGE_A9C88BD3D422346945A0;
+const IMG114 = CONTENT_IMAGES.CONTENT_IMAGE_4D9F70468D99CAF63E56;
+const IMG115 = CONTENT_IMAGES.CONTENT_IMAGE_A7D9E60428911B828CB4;
+const IMG116 = CONTENT_IMAGES.CONTENT_IMAGE_987DE3DCE4CE73AB1E03;
 
 const Table15 = () => (
   <div style={{ overflowX:"auto", margin:"16px 0" }}>
@@ -682,14 +683,14 @@ const content_b2 = [
 
 // ── BATCH 3: §1.8 Cell Wall through §1.11.4 Lysosomes ────────
 
-const IMG117 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//59d1ef07-4452-4b87-9722-82cf1a27770e/markdown_1/imgs/img_in_image_box_181_204_1041_618.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A01Z%2F-1%2F%2F362fdf56b9ecb6a9cde0caa1e4cab73cfaa1f67a2a86ea954087186d24c9fef5";
-const IMG118 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//59d1ef07-4452-4b87-9722-82cf1a27770e/markdown_2/imgs/img_in_image_box_271_868_960_1337.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A02Z%2F-1%2F%2F0ace4a1d8862b7192194c63740c3017b4f8c4f34cad92cc36197e5bd3e897f76";
-const IMG119 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//59d1ef07-4452-4b87-9722-82cf1a27770e/markdown_3/imgs/img_in_image_box_653_945_1007_1292.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A03Z%2F-1%2F%2F8978c88f024951f4a93730c762f80860a50f65396c5b346df851281b25fbd8bc";
-const IMG120 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//59d1ef07-4452-4b87-9722-82cf1a27770e/markdown_4/imgs/img_in_image_box_790_314_1046_595.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A05Z%2F-1%2F%2F9fef60bbd9e98fcd4c31d814493ba74a0ae6d157669ca02c3633ea0669868ab8";
-const IMG121 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6dda9b80-1193-415f-819a-bdfdc28fafaf/markdown_2/imgs/img_in_image_box_632_248_1044_499.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A02Z%2F-1%2F%2Fb67765e7ce0f1ec3648556220f686b656ccad133ed7e343a3dcabe452c2c0e3b";
-const IMG122 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6dda9b80-1193-415f-819a-bdfdc28fafaf/markdown_2/imgs/img_in_image_box_624_849_1043_1151.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A03Z%2F-1%2F%2Fb0db491b87efa361fca1eff7cb2e705c5a56409304ec45b244cb17fffb39349b";
-const IMG_GOLGI_PHOTO = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6dda9b80-1193-415f-819a-bdfdc28fafaf/markdown_3/imgs/img_in_image_box_233_237_354_406.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A04Z%2F-1%2F%2Fad71f5cc7e906f42a539ec92b9c53440eb52755e9bd468d85ef8842158070e8e";
-const IMG123 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//6dda9b80-1193-415f-819a-bdfdc28fafaf/markdown_3/imgs/img_in_image_box_333_1015_892_1339.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A04Z%2F-1%2F%2F7b56d24ddb7e1766158df78c4b38aa76c1591b88ae87e2fded7863be6c441d15";
+const IMG117 = CONTENT_IMAGES.CONTENT_IMAGE_F85B2266A36B3AA474BD;
+const IMG118 = CONTENT_IMAGES.CONTENT_IMAGE_987245A038A1E7683F01;
+const IMG119 = CONTENT_IMAGES.CONTENT_IMAGE_AA9927F2F50D8CEDC061;
+const IMG120 = CONTENT_IMAGES.CONTENT_IMAGE_B4487598854B072B7E45;
+const IMG121 = CONTENT_IMAGES.CONTENT_IMAGE_7CE42B04885CF386EFFD;
+const IMG122 = CONTENT_IMAGES.CONTENT_IMAGE_AAD1A0D523BD096DA85E;
+const IMG_GOLGI_PHOTO = CONTENT_IMAGES.CONTENT_IMAGE_944A89EEB412456C7970;
+const IMG123 = CONTENT_IMAGES.CONTENT_IMAGE_596B62BF660374D93E68;
 
 const tds = { border:"1px solid #888", padding:"5px 9px", verticalAlign:"top", fontSize:13.5 };
 const ths = { border:"1.5px solid #555", padding:"6px 10px", textAlign:"center", fontWeight:700, fontFamily:"'Merriweather Sans',Arial,sans-serif", fontSize:13, background:"#f0f0f0" };
@@ -905,10 +906,10 @@ const content_b3 = [
 
 // ── BATCH 4: §1.11.5 Mitochondria through §1.17 ─────────────
 
-const IMG124 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//230130a2-60d5-4356-b677-81d31e0d71ca/markdown_0/imgs/img_in_image_box_326_202_903_615.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A46%3A55Z%2F-1%2F%2F5b2310d8cddc332b81f9d15a96f20aef492168f1c1c16b2395378e0b3d0db939";
-const IMG125 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//230130a2-60d5-4356-b677-81d31e0d71ca/markdown_1/imgs/img_in_image_box_559_199_1025_491.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A46%3A56Z%2F-1%2F%2Fc7078c941cb2b0c33841b7d093ac2180de2a3bab3bd26483e3ccc3e43aef89df";
-const IMG126 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//230130a2-60d5-4356-b677-81d31e0d71ca/markdown_4/imgs/img_in_image_box_680_981_1029_1341.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A00Z%2F-1%2F%2Fec1b609fd3d00497d033d6249cc39f3b6d6cbdb5d062be4e876c8d9106408c0c";
-const IMG127 = "https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//2d51e26a-a9fa-47ca-a9f0-76371ade0aca/markdown_0/imgs/img_in_image_box_571_380_1047_879.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-26T12%3A47%3A00Z%2F-1%2F%2Ffef290031dfa89d018c7df221ba38d70a4aeda6f0681e0ca7d887c499805e85b";
+const IMG124 = CONTENT_IMAGES.CONTENT_IMAGE_C7D88305DC2A21ECF76E;
+const IMG125 = CONTENT_IMAGES.CONTENT_IMAGE_4B86354E6B8F56442694;
+const IMG126 = CONTENT_IMAGES.CONTENT_IMAGE_E91B6A20D1986069A912;
+const IMG127 = CONTENT_IMAGES.CONTENT_IMAGE_162D4024A8D95CD49D1D;
 
 const tdb4 = { border:"1px solid #888", padding:"5px 9px", verticalAlign:"top", fontSize:13.5 };
 const thb4 = { border:"1.5px solid #555", padding:"6px 10px", textAlign:"center", fontWeight:700, fontFamily:"'Merriweather Sans',Arial,sans-serif", fontSize:13, background:"#f0f0f0" };

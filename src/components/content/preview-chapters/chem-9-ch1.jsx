@@ -1,4 +1,5 @@
 "use client";
+import { CONTENT_IMAGES } from "@/assets/content-images";
 // ── SECTION 1: FULL COMPONENT LIBRARY (batch 1 only) ────────
 import { useState, useEffect } from "react";
 
@@ -774,7 +775,7 @@ const content_b1 = [
       It is evident from the Fig. 1.1, most of the salts (<em>e.g.,</em> KNO<Sub c="3" />, NH<Sub c="4" />Br) show <em>marked increase</em> in solubility with increase in temperature. Some of them (<em>i.e.,</em> NaCl) show only a small increase in solubility with rise in temperature. However, there are only a few substances (<em>e.g.,</em> anhydrous sodium sulphate, Na<Sub c="2" />SO<Sub c="4" /> and cerium sulphate, Ce<Sub c="2" />(SO<Sub c="4" />)<Sub c="3" /> which show <strong>decrease</strong> in solubility with rise in temperature.
     </p>
     <Fig
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_2/imgs/img_in_chart_box_420_263_799_722.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A45Z%2F-1%2F%2F7bf05f7278e54ccd0a97f20091c13dd7d4f7fb1dc2478c702ae8bdcb16ed4fc3"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_0827B1785CF2284301FC}
       num="Fig. 1.1"
       caption="Solubility curves of various inorganic compounds"
     />
@@ -1036,7 +1037,7 @@ const content_b2 = [
   // PAGE 10
   <div key="p10" style={{display:"contents"}}>
     <Fig
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//adf428ad-487a-4277-99d6-8efe28c9a91d/markdown_4/imgs/img_in_image_box_264_198_941_413.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A47Z%2F-1%2F%2F249f83d7647241c9462af720f3f7371d059c5b2ecc054c9e5d5cd9057d823793"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_BE148CFAE49C28F5F95D}
       num="Fig. 1.2"
       caption="Particle sizes of a true solution, a colloidal solution and a suspension"
     />
@@ -1101,7 +1102,7 @@ const content_b2 = [
         <em>Brownian movement may be defined as continuous zig-zag movement of colloidal particles in a colloidal sol.</em>
       </DefBox>
       <Fig
-        src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_749_200_1030_407.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2Fd9106878ebe3084ee1c99a51195fce3953ffc1ee8eb216331037ed188becb56f"
+        src={CONTENT_IMAGES.CONTENT_IMAGE_AB2D779877F9022B42E3}
         num="Fig. 1.3"
         caption="Brownian movement"
       />
@@ -1119,7 +1120,7 @@ const content_b2 = [
       Thus, Tyndall effect can be used to distinguish between a true solution and a colloidal solution.
     </p>
     <Fig
-      src="https://pplines-online.bj.bcebos.com/deploy/official/paddleocr/pp-ocr-vl-15//1476daae-83c5-4944-8b47-00ea113a938f/markdown_1/imgs/img_in_image_box_228_877_980_1166.jpg?authorization=bce-auth-v1%2FALTAKzReLNvew3ySINYJ0fuAMN%2F2026-03-15T23%3A01%3A32Z%2F-1%2F%2F558e0af6a0bf02366513cae364573e4a0f284e613858c1fb820c893f6da82473"
+      src={CONTENT_IMAGES.CONTENT_IMAGE_CB5F1A63689AB385DFB9}
       num="Fig. 1.4"
       caption="(a) Solution of copper sulphate does not show Tyndall effect (b) Mixture of water and milk shows Tyndall effect"
     />

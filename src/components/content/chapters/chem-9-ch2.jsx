@@ -996,10 +996,10 @@ const content_b3 = [
       </thead>
       <tbody>
         {[
-          ["1st shell or K-shell (n = 1)", <span>2 <Times /> 1<Sup c="2" /> = 2</span>],
-          ["2nd shell or L-shell (n = 2)", <span>2 <Times /> 2<Sup c="2" /> = 8</span>],
-          ["3rd shell or M-shell (n = 3)", <span>2 <Times /> 3<Sup c="2" /> = 18</span>],
-          ["4th shell or N-shell (n = 4)", <span>2 <Times /> 4<Sup c="2" /> = 32</span>],
+          ["1st shell or K-shell (n = 1)", <span key="shell-k">2 <Times /> 1<Sup c="2" /> = 2</span>],
+          ["2nd shell or L-shell (n = 2)", <span key="shell-l">2 <Times /> 2<Sup c="2" /> = 8</span>],
+          ["3rd shell or M-shell (n = 3)", <span key="shell-m">2 <Times /> 3<Sup c="2" /> = 18</span>],
+          ["4th shell or N-shell (n = 4)", <span key="shell-n">2 <Times /> 4<Sup c="2" /> = 32</span>],
         ].map(([s, v], i) => (
           <tr key={i}>
             <td style={{ border: "1px solid #aaa", padding: "5px 14px" }}>{s}</td>

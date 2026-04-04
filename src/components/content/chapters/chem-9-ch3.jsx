@@ -1,6 +1,4 @@
 "use client";
-/* eslint-disable react/no-unescaped-entities -- textbook prose; escaping would harm readability */
-/* eslint-disable @next/next/no-img-element -- chapter figures use CONTENT_IMAGES URLs */
 // ── SECTION 1: FULL COMPONENT LIBRARY (batch 1 only) ────────
 import { CONTENT_IMAGES } from "@/assets/content-images";
 import { useState, useEffect } from "react";
