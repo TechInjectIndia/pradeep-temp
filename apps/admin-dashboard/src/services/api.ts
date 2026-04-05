@@ -725,6 +725,7 @@ export async function listTriggers(params: { page?: number; pageSize?: number } 
 
 export type QueueStats = {
   name: string;
+  dbFailed: number;
   counts: {
     wait: number;
     active: number;

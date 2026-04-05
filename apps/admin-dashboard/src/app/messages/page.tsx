@@ -120,16 +120,19 @@ export default function MessagesPage() {
                     { label: "Waiting", key: "wait" as const, color: "text-yellow-600" },
                     { label: "Active", key: "active" as const, color: "text-blue-600" },
                     { label: "Completed", key: "completed" as const, color: "text-green-600" },
-                    { label: "Failed", key: "failed" as const, color: "text-red-600" },
+                    { label: "Failed", key: "dbFailed" as const, color: "text-red-600" },
                     { label: "Delayed", key: "delayed" as const, color: "text-orange-600" },
-                  ] as const).map((s) => (
-                    <div key={s.key} className="flex items-center gap-1">
-                      <span className={`text-sm font-bold ${q.counts![s.key] > 0 ? s.color : "text-muted-foreground"}`}>
-                        {q.counts![s.key]}
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">{s.label}</span>
-                    </div>
-                  ))}
+                  ] as const).map((s) => {
+                    const value = s.key === "dbFailed" ? (q as {dbFailed?:number}).dbFailed : ((q.counts as Record<string,number>)?.[s.key] ?? 0);
+                    return (
+                      <div key={s.key} className="flex items-center gap-1">
+                        <span className={`text-sm font-bold ${value > 0 ? s.color : "text-muted-foreground"}`}>
+                          {value}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground">{s.label}</span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             ))}
