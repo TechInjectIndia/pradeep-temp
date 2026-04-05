@@ -1,5 +1,5 @@
 import { Elysia } from 'elysia';
-import { QUEUES } from '@/queue';
+import { QUEUES, getQueue } from '@/queue';
 import { db } from '@/db';
 import { failedMessages } from '@/db/schema';
 import { eq, sql } from 'drizzle-orm';
@@ -7,7 +7,7 @@ import { eq, sql } from 'drizzle-orm';
 export const queueRoutes = new Elysia({ prefix: '/queues' })
 
   .get('/stats', async () => {
-    // Get real failed counts from DB — BullMQ getJobCounts() is unreliable
+    // Get real failed counts from DB
     const failedCounts = await db
       .select({
         channel: failedMessages.channel,
@@ -22,24 +22,28 @@ export const queueRoutes = new Elysia({ prefix: '/queues' })
       if (row.channel) failedMap[row.channel] = row.count;
     }
 
+    // Map queue name → channel for failedMessages lookup
+    const queueChannelMap: Record<string, string> = {
+      'whatsapp-messages': 'WHATSAPP',
+      'email-messages': 'EMAIL',
+    };
+
     // BullMQ counts for completed/active/waiting (informational only)
     const queueNames = Object.values(QUEUES) as string[];
     const results = await Promise.allSettled(
       queueNames.map(async (name) => {
         try {
-          const { Queue } = await import('bullmq');
-          const queue = new Queue(name, { connection: { host: 'localhost', port: 6379 } });
+          const queue = getQueue(name);
           const counts = await queue.getJobCounts();
-          queue.close();
-          return { name, counts, error: null, dbFailed: failedMap[name] ?? 0 };
+          return { name, counts, error: null, dbFailed: failedMap[queueChannelMap[name] ?? ''] ?? 0 };
         } catch (err) {
-          return { name, counts: null, error: (err as Error).message, dbFailed: failedMap[name] ?? 0 };
+          return { name, counts: null, error: (err as Error).message, dbFailed: failedMap[queueChannelMap[name] ?? ''] ?? 0 };
         }
       })
     );
     return results.map((r, i) => ({
       name: queueNames[i],
-      dbFailed: failedMap[queueNames[i]] ?? 0,
+      dbFailed: failedMap[queueChannelMap[queueNames[i]] ?? ''] ?? 0,
       ...(r.status === 'fulfilled' ? r.value : { counts: null, error: r.reason?.message ?? 'unknown' }),
     }));
   });
