@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
+import { ChevronDown, ChevronRight } from "lucide-react";
 import { formatDateTime } from "@/utils/date";
 import { listCommLogs, type CommLogEntry, type BatchCommSummary, getQueueStats, type QueueStats } from "@/services/api";
 import SkeletonTable from "@/components/SkeletonTable";
@@ -30,6 +31,8 @@ export default function MessagesPage() {
   const [pageSize, setPageSize] = useState(10);
   const [batchPage, setBatchPage] = useState(1);
   const [batchPageSize, setBatchPageSize] = useState(10);
+
+  const [queueOpen, setQueueOpen] = useState(false);
 
   const { data: queueData } = useQuery({
     queryKey: ["queueStats"],
@@ -103,40 +106,46 @@ export default function MessagesPage() {
         </div>
       )}
 
-      {/* Queue live stats */}
+      {/* Queue live stats — collapsed by default */}
       {queueData && queueData.length > 0 && (
         <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-          <div className="flex items-center gap-2 px-5 py-3 border-b border-border">
+          <button
+            onClick={() => setQueueOpen((o) => !o)}
+            className="w-full flex items-center gap-2 px-5 py-3 border-b border-border hover:bg-muted/30 transition-colors cursor-pointer"
+          >
+            {queueOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
             <span className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
             <h2 className="font-semibold text-foreground text-sm">Queue Workers</h2>
-            <span className="text-xs text-muted-foreground ml-auto">Auto-refreshes every 3s</span>
-          </div>
-          <div className="divide-y divide-border">
-            {(queueData as QueueStats[]).filter((q) => q.counts).map((q) => (
-              <div key={q.name} className="flex items-center gap-4 px-5 py-3">
-                <span className="font-mono text-xs font-semibold text-foreground min-w-[40]">{q.name}</span>
-                <div className="flex items-center gap-3 flex-1">
-                  {([
-                    { label: "Waiting", key: "wait" as const, color: "text-yellow-600" },
-                    { label: "Active", key: "active" as const, color: "text-blue-600" },
-                    { label: "Completed", key: "completed" as const, color: "text-green-600" },
-                    { label: "Failed", key: "dbFailed" as const, color: "text-red-600" },
-                    { label: "Delayed", key: "delayed" as const, color: "text-orange-600" },
-                  ] as const).map((s) => {
-                    const value = s.key === "dbFailed" ? (q as {dbFailed?:number}).dbFailed : ((q.counts as Record<string,number>)?.[s.key] ?? 0);
-                    return (
-                      <div key={s.key} className="flex items-center gap-1">
-                        <span className={`text-sm font-bold ${value > 0 ? s.color : "text-muted-foreground"}`}>
-                          {value}
-                        </span>
-                        <span className="text-[10px] text-muted-foreground">{s.label}</span>
-                      </div>
-                    );
-                  })}
+            {queueOpen && <span className="text-xs text-muted-foreground ml-auto">Auto-refreshes every 3s</span>}
+          </button>
+          {queueOpen && (
+            <div className="divide-y divide-border">
+              {(queueData as QueueStats[]).filter((q) => q.counts).map((q) => (
+                <div key={q.name} className="flex items-center gap-4 px-5 py-3">
+                  <span className="font-mono text-xs font-semibold text-foreground min-w-[40]">{q.name}</span>
+                  <div className="flex items-center gap-3 flex-1">
+                    {([
+                      { label: "Waiting", key: "wait" as const, color: "text-yellow-600" },
+                      { label: "Active", key: "active" as const, color: "text-blue-600" },
+                      { label: "Completed", key: "completed" as const, color: "text-green-600" },
+                      { label: "Failed", key: "dbFailed" as const, color: "text-red-600" },
+                      { label: "Delayed", key: "delayed" as const, color: "text-orange-600" },
+                    ] as const).map((s) => {
+                      const value = s.key === "dbFailed" ? (q as {dbFailed?:number}).dbFailed : ((q.counts as Record<string,number>)?.[s.key] ?? 0);
+                      return (
+                        <div key={s.key} className="flex items-center gap-1">
+                          <span className={`text-sm font-bold ${value > 0 ? s.color : "text-muted-foreground"}`}>
+                            {value}
+                          </span>
+                          <span className="text-[10px] text-muted-foreground">{s.label}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
