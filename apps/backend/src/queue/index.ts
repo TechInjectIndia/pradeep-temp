@@ -22,7 +22,7 @@ export const QUEUES = {
 // Queue instances (lazy-created singletons)
 const queues = new Map<string, Queue>();
 
-function getQueue(name: string): Queue {
+export function getQueue(name: string): Queue {
   if (!queues.has(name)) {
     queues.set(name, new Queue(name, { connection }));
   }

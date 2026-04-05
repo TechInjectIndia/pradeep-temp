@@ -1,10 +1,5 @@
 import { Elysia } from 'elysia';
-import { QUEUES } from '@/queue';
-
-function getQueue(name: string) {
-  const { Queue } = require('bullmq');
-  return new Queue(name, { connection: { lazyConnect: true } });
-}
+import { QUEUES, getQueue } from '@/queue';
 
 export const queueRoutes = new Elysia({ prefix: '/queues' })
 
