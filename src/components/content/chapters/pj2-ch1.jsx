@@ -78,12 +78,12 @@ const SubSubHd = ({ id, label, title }) => (
 );
 
 const P2 = ({ children, style }) => (
-  <p style={{ margin: "0 0 8px", textAlign: "justify", ...style }}>{children}</p>
+  <p style={{ margin: "0 0 11px", textAlign: "justify", ...style }}>{children}</p>
 );
 
 const DefBox = ({ children }) => (
   <div style={{ border: "1.5px solid #888", padding: "10px 16px", margin: "12px 0",
-    fontStyle: "italic", background: "#fafafa", fontSize: "14px", lineHeight: 1.55 }}>
+    fontStyle: "italic", background: "#fafafa", fontSize: "16px", lineHeight: 1.65 }}>
     {children}
   </div>
 );
@@ -383,13 +383,13 @@ const content_b1 = [
   <p key="b1-p-com2p-2" style={{ textIndent: 28, textAlign: "justify" }}>
     Let origin be at {"$O$"} such that distance of {"$m_{1}$"} and {"$m_{2}$"} from origin are {"$x_{1}$"} and {"$x_{2}$"} respectively. We say that coordinates of {"$m_{1}$"} and {"$m_{2}$"} are {"$x_{1}$"} and {"$x_{2}$"} respectively. If {"$C$"} is the location of centre of mass whose coordinate is {"$x_{\\mathrm{cm}}$"}, then {"$x_{\\mathrm{cm}}$"} is given by
   </p>,
-  <div key="b1-math-1" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-1" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$x_{\\mathrm{cm}}=\\frac{m_{1} x_{1}+m_{2} x_{2}}{m_{1}+m_{2}}$$"}
   </div>,
   <p key="b1-p-com2p-3" style={{ textIndent: 28, textAlign: "justify" }}>
     Using above, we can compute distance {"$AC$"}, i.e., distance of centre of mass from {"$m_{1}$"}
   </p>,
-  <div key="b1-math-2" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-2" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & x_{\\mathrm{cm}}=\\frac{m_{1} x_{1}+m_{2} x_{2}}{m_{1}+m_{2}}=\\frac{m_{1} x_{1}+m_{2}\\left(x_{1}+d\\right)}{m_{1}+m_{2}} \\\\ & \\quad=\\frac{\\left(m_{1}+m_{2}\\right) x_{1}+m_{2} d}{m_{1}+m_{2}}=x_{1}+\\frac{m_{2} d}{m_{1}+m_{2}} \\\\ & \\therefore AC=x_{\\mathrm{cm}}-x_{1}=\\frac{m_{2} d}{m_{1}+m_{2}} \\end{aligned}$$"}
   </div>,
   <p key="b1-p-com2p-4" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -413,23 +413,23 @@ const content_b1 = [
   <p key="b1-p-comnp-1" style={{ textIndent: 28, textAlign: "justify" }}>
     The position vector {"$\\vec{r}_{\\mathrm{cm}}$"} of the centre of mass of {"$n$"} particles having masses {"$m_{1}, m_{2}, m_{3}, \\ldots m_{n}$"} and position vectors {"$\\overrightarrow{r_{1}}, \\overrightarrow{r_{2}}, \\overrightarrow{r_{3}}, \\ldots \\ldots \\overrightarrow{r_{n}}$"} respectively is defined as
   </p>,
-  <div key="b1-math-3" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-3" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\overrightarrow{r_{\\mathrm{cm}}}=\\frac{m_{1} \\overrightarrow{r_{1}}+m_{2} \\overrightarrow{r_{2}}+\\ldots \\ldots+m_{n} \\overrightarrow{r_{n}}}{m_{1}+m_{2}+\\ldots \\ldots+m_{n}}$$"}
   </div>,
   <p key="b1-p-comnp-2" style={{ textIndent: 28, textAlign: "justify" }}>
     If the coordinates of centre of mass are {"$x_{\\mathrm{cm}}, y_{\\mathrm{cm}}, z_{\\mathrm{cm}}$"}, then,
   </p>,
-  <div key="b1-math-4" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-4" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & x_{\\mathrm{cm}}=\\frac{m_{1} x_{1}+m_{2} x_{2}+\\ldots \\ldots m_{n} x_{n}}{m_{1}+m_{2}+\\ldots \\ldots m_{n}}=\\frac{\\Sigma m_{i} x_{i}}{M} \\\\ & y_{\\mathrm{cm}}=\\frac{m_{1} y_{1}+m_{2} y_{2}+\\ldots \\ldots m_{n} y_{n}}{m_{1}+m_{2}+\\ldots \\ldots m_{n}}=\\frac{\\Sigma m_{i} y_{i}}{M} \\\\ & z_{\\mathrm{cm}}=\\frac{m_{1} z_{1}+m_{2} z_{2}+\\ldots \\ldots m_{n} z_{n}}{m_{1}+m_{2}+\\ldots \\ldots m_{n}}=\\frac{\\Sigma m_{i} z_{i}}{M} \\end{aligned}$$"}
   </div>,
   <p key="b1-p-comnp-3" style={{ textAlign: "justify" }}>where,</p>,
-  <div key="b1-math-5" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-5" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$M=m_{1}+m_{2}+\\ldots \\ldots m_{n}=\\Sigma m_{i}=\\text{ Total mass of the system.}$$"}
   </div>,
   <p key="b1-p-comnp-4" style={{ textIndent: 28, textAlign: "justify" }}>
     For a continuous body, these equations take the form
   </p>,
-  <div key="b1-math-6" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-6" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$x_{\\mathrm{cm}}=\\frac{1}{M} \\int x\\, dm, \\quad y_{\\mathrm{cm}}=\\frac{1}{M} \\int y\\, dm, \\quad z_{\\mathrm{cm}}=\\frac{1}{M} \\int z\\, dm$$"}
   </div>,
   <p key="b1-p-comnp-5" style={{ textAlign: "justify" }}>
@@ -443,7 +443,7 @@ const content_b1 = [
     <P2>Take the axes as shown in the fig. 1.5. The coordinates of three particles are as follows:</P2>
     <TableIll1 />
     <P2>Hence, the coordinates of centre of mass of the system are</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & x_{\\mathrm{cm}}=\\frac{1 \\times 0+2 \\times 12+3 \\times 0}{1+2+3}=4 \\text{ cm} \\\\ & y_{\\mathrm{cm}}=\\frac{1 \\times 0+2 \\times 0+3 \\times 9}{1+2+3}=4.5 \\text{ cm} \\end{aligned}$$"}
     </div>
     <P2>Thus, the centre of mass is 4 cm to the right and {"$4 \\cdot 5$"} cm above the 1 kg particle.</P2>
@@ -456,7 +456,7 @@ const content_b1 = [
     <P2>Let the mass of each rod be {"$m$"}. Take {"$B$"} as the origin with {"$X$"} and {"$Y$"} axes as shown in the figure. Since the rods are uniform, their individual centre of mass will lie at the respective centres.</P2>
     <P2>For the calculation of centre of mass of the {"$L$"}-frame, rod {"$BC$"} can be replaced by a point particle of mass {"$m$"} placed at its centre {"$P$"}. Similarly rod {"$AB$"} can be replaced by a point particle of mass {"$m$"} placed at {"$Q$"}. Thus the system is equivalent to a system of two point masses, each of mass {"$m$"}, placed at points {"$P$"} and {"$Q$"}.</P2>
     <P2>The coordinate of point {"$P$"} and {"$Q$"} are {"$(l/2, 0)$"} and {"$(0, l/2)$"} respectively.</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} \\therefore \\quad & x_{\\mathrm{cm}}=\\frac{m l / 2+m \\times 0}{m+m}=l / 4 \\quad \\text{and} \\\\ & y_{\\mathrm{cm}}=\\frac{m \\times 0+m l / 2}{m+m}=l / 4 \\end{aligned}$$"}
     </div>
     <P2>The coordinates of centre of mass of the system are therefore, {"$l/4, l/4$"}.</P2>
@@ -473,13 +473,13 @@ const content_b1 = [
     <P2>This object can be visualized as a superposition of circular plate of radius {"$R$"} and density {"$\\sigma$"} and a uniform disc of radius {"$R/2$"} and density {"$(-\\sigma)$"} placed at the position of removed disc, whose centre of mass is at {"$x=R/2$"}.</P2>
     <P2>For the circular plate of radius {"$R$"},<br />{"$m_{1}=\\pi R^{2} \\sigma$"} and {"$x_{1}=0$"}</P2>
     <P2>For the disc of radius {"$R/2$"},<br />{"$m_{2}=\\pi\\left(\\dfrac{R}{2}\\right)^{2}(-\\sigma)=\\dfrac{-\\pi R^{2}}{4} \\sigma$"} and {"$x_{2}=\\dfrac{R}{2}$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\therefore\\, x_{\\mathrm{cm}}=\\frac{m_{1} x_{1}+m_{2} x_{2}}{m_{1}+m_{2}}=\\frac{\\pi R^{2} \\sigma \\times 0+\\left(\\frac{-\\pi R^{2}}{4} \\sigma\\right) \\times \\frac{R}{2}}{\\left(\\pi R^{2} \\sigma\\right)+\\left(\\frac{-\\pi R^{2}}{4} \\sigma\\right)}=-\\frac{R}{6}$$"}
     </div>
     <P2>Hence, the coordinates of the centre of mass are {"$(-R/6, 0)$"}.</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>Alternate Method.</p>
     <P2>Consider two point masses. One is the disc of radius {"$R/2$"} and mass {"$m_{1}$"} located at its centre of mass {"$C_{1}$"}. The other is the circular plate of radius {"$R$"} (after removal of disc) of mass {"$m_{2}$"} located at its centre of mass {"$C_{2}$"}. If {"$m_{1}=m$"}, then {"$m_{2}=4m-m=3m$"}. Their combined centre of mass is at {"$O$"} as shown in fig. 1.7. The distances of {"$C_{1}$"} and {"$C_{2}$"} from {"$O$"}, i.e., {"$r_{1}$"} and {"$r_{2}$"} must be in the inverse ratio of their masses, i.e.,</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\frac{r_{2}}{r_{1}}=\\frac{m_{1}}{m_{2}}=\\frac{m}{3m}=\\frac{1}{3} \\quad \\therefore \\quad r_{2}=\\frac{r_{1}}{3}=\\frac{R/2}{3}=\\frac{R}{6}$$"}
     </div>
     <P2>Hence, the coordinates of the centre of mass of the required object are {"$(-R/6, 0)$"}.</P2>
@@ -489,7 +489,7 @@ const content_b1 = [
   <p key="b1-p-vcm-1" style={{ textIndent: 28, textAlign: "justify" }}>
     The velocity of centre of mass is obtained by differentiating its position vector with respect to time
   </p>,
-  <div key="b1-math-7" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-7" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & \\quad \\frac{d \\vec{r}_{\\mathrm{cm}}}{dt}=\\frac{1}{M}\\left(m_{1} \\frac{d \\vec{r}_{1}}{dt}+m_{1} \\frac{d \\vec{r}_{2}}{dt}+\\ldots.+m_{n} \\frac{d \\overrightarrow{r_{n}}}{dt}\\right) \\\\ & \\text{or } \\vec{v}_{\\mathrm{cm}}=\\frac{m_{1} \\vec{v}_{1}+m_{2} \\vec{v}_{2}+\\ldots \\ldots+m_{n} \\vec{v}_{n}}{m_{1}+m_{2}+\\ldots \\ldots+m_{n}}=\\frac{\\Sigma m_{i} \\vec{v}_{i}}{M} \\\\ & \\text{or } M \\vec{v}_{\\mathrm{cm}}=m_{1} \\vec{v}_{1}+m_{2} \\vec{v}_{2}+\\ldots \\ldots+m_{n} \\vec{v}_{n}=\\Sigma m_{i} \\vec{v}_{i} \\end{aligned}$$"}
   </div>,
   <p key="b1-p-vcm-2" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -500,7 +500,7 @@ const content_b1 = [
   <p key="b1-p-acm-1" style={{ textIndent: 28, textAlign: "justify" }}>
     The acceleration of the centre of mass can be obtained by differentiating its velocity with respect to time.
   </p>,
-  <div key="b1-math-8" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-8" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & \\qquad \\frac{d \\vec{v}_{\\mathrm{cm}}}{dt}=\\frac{1}{M}\\left(m_{1} \\frac{d \\vec{v}_{1}}{dt}+m_{1} \\frac{d \\vec{v}_{2}}{dt}+\\ldots.+m_{n} \\frac{d \\vec{v}_{n}}{dt}\\right) \\\\ & \\text{or } \\vec{a}_{\\mathrm{cm}}=\\frac{m_{1} \\vec{a}_{1}+m_{2} \\vec{a}_{2}+\\ldots \\ldots+m_{n} \\vec{a}_{n}}{m_{1}+m_{2}+\\ldots \\ldots+m_{n}}=\\frac{\\Sigma m_{i} \\vec{a}_{i}}{M} \\\\ & \\text{or } M \\vec{a}_{\\mathrm{cm}}=m_{1} \\vec{a}_{1}+m_{2} \\vec{a}_{2}+\\ldots \\ldots+m_{n} \\vec{a}_{n} \\\\ & \\quad=\\overrightarrow{F_{1}}+\\overrightarrow{F_{2}}+\\ldots \\ldots. \\vec{F}_{n}=\\Sigma \\vec{F}_{i} \\end{aligned}$$"}
   </div>,
   <p key="b1-p-acm-2" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -523,7 +523,7 @@ const content_b1 = [
     <P2>{"$\\overrightarrow{v_{1}}=10 \\hat{k}$"} m/s</P2>
     <P2>{"$\\overrightarrow{v_{2}}=20\\left(\\cos 53^{\\circ} \\hat{j}+\\sin 53^{\\circ} \\hat{k}\\right)=(12 \\hat{j}+16 \\hat{k})$"} m/s</P2>
     <P2>{"$\\overrightarrow{v_{3}}=15 \\hat{i}$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} (a)\\; \\vec{v}_{\\mathrm{cm}} & =\\frac{m_{1} \\overrightarrow{v_{1}}+m_{2} \\overrightarrow{v_{2}}+m_{3} \\overrightarrow{v_{3}}}{m_{1}+m_{2}+m_{3}} \\\\ & =\\frac{10(10 \\hat{k})+5(12 \\hat{j}+16 \\hat{k})+15(15 \\hat{i})}{10+5+15} \\\\ & =(7 \\cdot 5 \\hat{i}+2 \\hat{j}+6 \\hat{k})\\text{ m/s} \\\\ (b)\\; \\vec{a}_{\\mathrm{cm}} & =\\frac{m_{1} \\vec{a}_{1}+m_{2} \\vec{a}_{2}+m_{3} \\vec{a}_{3}}{m_{1}+m_{2}+m_{3}} \\\\ & =\\frac{10(-9 \\cdot 8 \\hat{k})+5(-9 \\cdot 8 \\hat{k})+15(-9 \\cdot 8 \\hat{k})}{10+5+15} \\\\ & =(-9 \\cdot 8 \\hat{k})\\text{ m/s}^{2} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -535,14 +535,14 @@ const content_b1 = [
   <p key="b1-p-s12-2" style={{ textIndent: 28, textAlign: "justify" }}>
     Let an extended body be shown as a continuous distribution of mass in the fig. 1.9. Consider an infinitely small portion of mass {"$dm$"} of the extended body. It is called a mass element and let the position vector of this element be {"$\\vec{r}$"}. The total mass {"$M$"} of the body is {"$M=\\int dm$"} and the position vector {"$\\overrightarrow{r_{C}}$"} of center of mass {"$C$"} is given by
   </p>,
-  <div key="b1-math-9" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-9" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\overrightarrow{r_{C}}=\\frac{\\int \\vec{r}\\, dm}{M}$$"}
   </div>,
   <Fig key="fig-1-9" src={CONTENT_IMAGES.CONTENT_IMAGE_E0CAC8DD48728A35B3CA} num="Fig. 1.9" />,
   <p key="b1-p-s12-3" style={{ textIndent: 28, textAlign: "justify" }}>
     If {"$(x, y, z)$"} are the cartesian coordinates of the element of mass {"$dm$"}, then the coordinates {"$(x_{cm}, y_{cm}, z_{cm})$"} of center of mass are given by
   </p>,
-  <div key="b1-math-10" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-10" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$x_{cm}=\\frac{1}{M} \\int x\\, dm,\\quad y_{cm}=\\frac{1}{M} \\int y\\, dm,\\quad z_{cm}=\\frac{1}{M} \\int z\\, dm$$"}
   </div>,
 
@@ -552,7 +552,7 @@ const content_b1 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Let the rod lie on {"$x$"}-axis with its lighter end on the origin. Consider a small element of length {"$dx$"} at a distance {"$x$"} from the origin. Its mass is {"$dm=\\lambda\\, dx=(a+bx)\\,dx$"}.</P2>
     <P2>The distance of center of mass from origin is</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} x_{\\mathrm{cm}} & =\\frac{1}{M} \\int x\\, dm=\\frac{\\int_{0}^{L} x(a+bx)\\, dx}{\\int_{0}^{L}(a+bx)\\, dx}=\\frac{aL^{2}/2+bL^{3}/3}{aL+bL^{2}/2} \\\\ & =\\frac{(3a+2bL)L}{3(2a+bL)} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -568,7 +568,7 @@ const content_b1 = [
   <p key="b1-p-arcrod-3" style={{ textIndent: 28, textAlign: "justify" }}>
     Let us consider an element of length {"$dl=r\\,d\\alpha$"} at angular inclination of {"$\\alpha$"} to {"$x$"}-axis. Its mass is {"$dm=\\lambda r\\,d\\alpha$"} and its {"$x$"} coordinate is {"$x=r\\cos\\alpha$"}. Hence,
   </p>,
-  <div key="b1-math-11" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-11" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & x_{cm}=\\frac{1}{M} \\int x\\, dm=\\frac{1}{\\lambda r(2\\theta)R^{2}} \\int_{-\\theta}^{\\theta}(r\\cos\\alpha)\\lambda r\\, d\\alpha \\\\ & \\therefore\\; x_{cm}=\\frac{r\\sin\\theta}{\\theta} \\tag{1} \\end{aligned}$$"}
   </div>,
 
@@ -576,7 +576,7 @@ const content_b1 = [
     <P2>Find coordinates of center of mass of a quarter ring of radius {"$r$"} placed in the first quadrant of a cartesian coordinate system, with centre at origin.</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>We make use of the result obtained in equation (1) above. Distance {"$OC$"} of center of mass from the center is</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} OC & =\\frac{r\\sin(\\pi/4)}{\\pi/4}=\\frac{2\\sqrt{2}\\,r}{\\pi} \\\\ \\Rightarrow \\quad x_{cm} & =OC\\cos(\\pi/4)=2r/\\pi \\\\ y_{cm} & =OC\\sin(\\pi/4)=2r/\\pi \\end{aligned}$$"}
     </div>
     <Fig key="fig-1-12" src={CONTENT_IMAGES.CONTENT_IMAGE_483F758543A981CCFA04} num="Fig. 1.12" />
@@ -588,7 +588,7 @@ const content_b1 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Here, {"$y$"}-axis is the line of symmetry. Hence, center of mass of the ring lies on it. Distance {"$OC$"} of center of mass from centre is</P2>
     <Fig key="fig-1-13" src={CONTENT_IMAGES.CONTENT_IMAGE_B5412C9432BDF404F03C} num="Fig. 1.13" />
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$y_{cm}=OC=\\frac{r\\sin(\\pi/2)}{\\pi/2}=\\frac{2r}{\\pi}$$"}
     </div>
   </IllustrationBox>,
@@ -601,16 +601,16 @@ const content_b1 = [
   <p key="b1-p-sectordisc-2" style={{ textIndent: 28, textAlign: "justify" }}>
     Let us consider an element of radius {"$r$"} and width {"$dr$"} as shown in the figure. Its mass is
   </p>,
-  <div key="b1-math-12" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-12" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$dm=\\sigma(2r\\theta\\,dr)=2\\sigma r\\theta\\,dr$$"}
   </div>,
   <p key="b1-p-sectordisc-3" style={{ textIndent: 28, textAlign: "justify" }}>
     Due to symmetry, center of mass of this element must be on the angle bisector, i.e., on {"$x$"}-axis at distance {"$(r\\sin\\theta)/\\theta$"}. Hence,
   </p>,
-  <div key="b1-math-13" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-13" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$x_{cm}=\\frac{1}{M} \\int x\\, dm=\\frac{1}{\\sigma\\theta R^{2}} \\int_{0}^{R} \\frac{r\\sin\\theta}{\\theta} \\times 2\\sigma r\\theta\\, dr$$"}
   </div>,
-  <div key="b1-math-14" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-14" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\therefore \\quad x_{cm}=\\frac{2R\\sin\\theta}{3\\theta} \\tag{2}$$"}
   </div>,
 
@@ -619,7 +619,7 @@ const content_b1 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>We make use of the result obtained in equation (2) above. Distance {"$OC$"} of the center of mass from the center is</P2>
     <Fig key="fig-1-15" src={CONTENT_IMAGES.CONTENT_IMAGE_BA2FE324DC3FC49050F2} num="Fig. 1.15" />
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} OC & =\\frac{2r\\sin(\\pi/4)}{3\\pi/4}=\\frac{4\\sqrt{2}\\,r}{3\\pi} \\\\ \\Rightarrow \\quad x_{cm} & =OC\\cos(\\pi/4)=4r/3\\pi \\\\ \\text{and} \\quad y_{cm} & =OC\\sin(\\pi/4)=4r/3\\pi \\end{aligned}$$"}
     </div>
     <P2>Therefore, the coordinates of centre of mass are {"$\\left(\\dfrac{4r}{3\\pi}, \\dfrac{4r}{3\\pi}\\right)$"}.</P2>
@@ -630,7 +630,7 @@ const content_b1 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Here, the {"$y$"}-axis is the line of symmetry. Hence, centre of mass of the plate lies on it. Distance {"$OC$"} of center of mass from center is</P2>
     <Fig key="fig-1-16" src={CONTENT_IMAGES.CONTENT_IMAGE_7437CF670574FFDBBA76} num="Fig. 1.16" />
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$y_{cm}=OC=\\frac{2r\\sin(\\pi/2)}{3\\pi/2}=\\frac{4r}{3\\pi}$$"}
     </div>
   </IllustrationBox>,
@@ -648,7 +648,7 @@ const content_b1 = [
   <p key="b1-p-s13-4" style={{ textIndent: 28, textAlign: "justify" }}>
     The rate of change of total momentum is
   </p>,
-  <div key="b1-math-15" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-15" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\frac{d\\vec{p}}{dt}=M\\vec{a}_{\\mathrm{cm}}=\\vec{F}_{\\mathrm{ext}}$$"}
   </div>,
   <p key="b1-p-s13-5" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -683,7 +683,7 @@ const content_b1 = [
     <P2>As the net external force acting on the system is zero, the total momentum of the system is conserved.</P2>
     <Fig key="fig-1-20" src={CONTENT_IMAGES.CONTENT_IMAGE_A6B91C58FEDCD98B5B47} num="Fig. 1.20" />
     <P2>By conservation of linear momentum,</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$-Mv+m(u-v)=0 \\quad \\therefore\\; v=\\frac{mu}{M+m}$$"}
     </div>
   </IllustrationBox>,
@@ -692,7 +692,7 @@ const content_b1 = [
     <P2>In free space, three identical particles moving with velocities {"$6v_{0} \\hat{i}$"}, {"$-3v_{0} \\hat{j}$"} and {"$9v_{0} \\hat{k}$"} collide with each other to form a single particle. Find velocity vector of the particle formed.</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Let {"$m$"} be the mass of each particle before collision. The mass of particle formed after collision is {"$3m$"}. In free space, no external forces act on the particles. Hence, their total momentum is conserved.</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & \\Rightarrow 6mv_{0} \\hat{i}-3mv_{0} \\hat{j}+9mv_{0} \\hat{k}=3m\\vec{v} \\\\ & \\therefore\\; \\vec{v}=v_{0}(2\\hat{i}-\\hat{j}+3\\hat{k})\\text{ ms}^{-1} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -701,7 +701,7 @@ const content_b1 = [
   <p key="b1-p-s14-1" style={{ textIndent: 28, textAlign: "justify" }}>
     The kinetic energy of a system of particles is the sum of kinetic energies of the individual particles, i.e.,
   </p>,
-  <div key="b1-math-16" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-16" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$K=\\sum \\frac{1}{2} m_{i} v_{i}^{2}$$"}
   </div>,
   <p key="b1-p-s14-2" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -716,7 +716,7 @@ const content_b1 = [
   <p key="b1-p-s14-5" style={{ textIndent: 28, textAlign: "justify" }}>
     Therefore, the kinetic energy of the system of particles,
   </p>,
-  <div key="b1-math-17" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-17" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$K=\\sum \\frac{1}{2} m_{i} v_{i}^{2}=\\frac{1}{2} Mv_{\\mathrm{cm}}^{2}+\\frac{1}{2} \\sum m_{i} v_{i}^{\\prime 2}$$"}
   </div>,
   <p key="b1-p-s14-6" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -726,11 +726,11 @@ const content_b1 = [
   <GraspGripBox key="gg-s14">
     <P2>The internal forces acting within a system cannot change the total momentum of the system but they can change the kinetic energy of the system due to the influence of internal forces.</P2>
     <P2>For example, when a bomb of mass {"$m$"} moving with some velocity {"$v$"} explodes in mid air in two fragments of masses {"$m_{1}$"} and {"$m_{2}$"} which after explosion, moves with velocities {"$v_{1}$"} and {"$v_{2}$"} respectively, then the total momentum of the system remains conserved,</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\text{i.e.,}\\quad mv=m_{1}v_{1}+m_{2}v_{2}$$"}
     </div>
     <P2>However, the kinetic energy of the system increases,</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\text{i.e.,}\\quad \\frac{1}{2}mv^{2}<\\frac{1}{2}m_{1}v_{1}^{2}+\\frac{1}{2}m_{2}v_{2}^{2}$$"}
     </div>
   </GraspGripBox>,
@@ -742,7 +742,7 @@ const content_b1 = [
     <Fig key="fig-1-21" src={CONTENT_IMAGES.CONTENT_IMAGE_268206CD6F99AADA3418} num="Fig. 1.21" />
     <P2>Let the speed of the heavier piece after explosion be {"$v'$"}. Then by conservation of linear momentum, we have {"$mv=0+(3m/4)v' \\quad \\Rightarrow v'=4v/3$"}</P2>
     <P2>Therefore, kinetic energy added to the system in the explosion {"$=K_{\\text{final}}-K_{\\text{initial}}$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & =\\frac{1}{2}\\left(\\frac{3m}{4}\\right)v^{\\prime 2}-\\frac{1}{2}mv^{2} \\\\ & =\\frac{1}{2}\\left(\\frac{3m}{4}\\right)\\left(\\frac{4v}{3}\\right)^{2}-\\frac{1}{2}mv^{2}=\\frac{1}{6}mv^{2} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -759,7 +759,7 @@ const content_b1 = [
   <p key="b1-p-imp-2" style={{ textIndent: 28, textAlign: "justify" }}>
     If one body exerts on the other body, a force {"$\\vec{F}(t)$"} for a time interval from {"$t_{i}$"} to {"$t_{f}$"}, the impulse of the force is given by the integral.
   </p>,
-  <div key="b1-math-18" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-18" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\vec{J}=\\int_{t_{i}}^{t_{f}} \\vec{F}(t)\\, dt=\\vec{F}_{av}\\Delta t$$"}
   </div>,
   <p key="b1-p-imp-3" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -768,7 +768,7 @@ const content_b1 = [
   <p key="b1-p-imp-4" style={{ textIndent: 28, textAlign: "justify" }}>
     According to Newton's second law,
   </p>,
-  <div key="b1-math-19" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-19" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & \\vec{F}=m\\frac{d\\vec{v}}{dt} \\\\ \\therefore \\quad \\vec{J} & =\\int \\vec{F}\\, dt=\\int m\\frac{d\\vec{v}}{dt}\\, dt=\\int m\\, d\\vec{v} \\\\ \\text{or} \\quad \\vec{J} & =m\\vec{v}_{f}-m\\vec{v}_{i}=\\overrightarrow{\\Delta p} \\end{aligned}$$"}
   </div>,
   <p key="b1-p-imp-5" style={{ textAlign: "justify" }}>
@@ -781,7 +781,7 @@ const content_b1 = [
   <p key="b1-p-imp-7" style={{ textIndent: 28, textAlign: "justify" }}>
     If several forces {"$\\overrightarrow{F_{1}}, \\overrightarrow{F_{2}}, \\overrightarrow{F_{3}}, \\ldots. \\overrightarrow{F_{n}}$"} act on a body in a time interval, then the total impulse {"$\\vec{J}$"} of all these forces is equal to impulse of the net force given by
   </p>,
-  <div key="b1-math-20" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b1-math-20" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} \\vec{J} & =\\int_{t_{i}}^{t_{f}} \\overrightarrow{F_{1}}\\, dt+\\int_{t_{i}}^{t_{f}} \\overrightarrow{F_{2}}\\, dt+\\ldots..+\\int_{t_{i}}^{t_{f}} \\overrightarrow{F_{n}}\\, dt \\\\ & =\\int_{t_{i}}^{t_{f}}\\left(\\overrightarrow{F_{1}}+\\overrightarrow{F_{2}}+\\ldots.+\\overrightarrow{F_{n}}\\right)dt \\end{aligned}$$"}
   </div>,
 
@@ -803,14 +803,14 @@ const content_b1 = [
 
   <IllustrationBox key="ill-16" num="16">
     <P2>Calculate impulse over the time interval from {"$\\boldsymbol{t}=\\mathbf{1}$"} s to {"$\\boldsymbol{t}=\\mathbf{4}$"} s of force</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\vec{F}=\\left(3t^{2} \\hat{i}+2t \\hat{j}+4 \\hat{k}\\right)\\text{ N}$$"}
     </div>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\vec{J}=\\int_{1}^{4} \\vec{F}\\, dt=\\int_{1}^{4}\\left(3t^{2} \\hat{i}+2t \\hat{j}+4 \\hat{k}\\right)dt$$"}
     </div>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$=\\left[t^{3} \\hat{i}+t^{2} \\hat{j}+4t \\hat{k}\\right]_{1}^{4}=(63 \\hat{i}+15 \\hat{j}+12 \\hat{k})\\text{ Ns}$$"}
     </div>
   </IllustrationBox>,
@@ -819,7 +819,7 @@ const content_b1 = [
     <P2>A particle of mass 2 kg is moving with velocity {"$\\vec{v}=(2\\hat{i}-3\\hat{j})$"} ms{"$^{-1}$"} in free space. Find its velocity 3 s after constant force {"$\\vec{F}=(3\\hat{i}+4\\hat{j})$"} N starts acting on it.</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>{"$\\vec{J}=\\vec{F}\\,t=m(\\vec{v}_{f}-\\vec{v}_{i})$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & \\Rightarrow(3\\hat{i}+4\\hat{j})\\times 3=2\\times \\vec{v}_{f}-2\\times(2\\hat{i}-3\\hat{j}) \\\\ & \\Rightarrow 9\\hat{i}+12\\hat{j}=2\\vec{v}_{f}-(4\\hat{i}-6\\hat{j}) \\\\ & \\Rightarrow 2\\vec{v}_{f}=(9\\hat{i}+12\\hat{j})+(4\\hat{i}-6\\hat{j})=13\\hat{i}+6\\hat{j} \\\\ & \\therefore\\; \\vec{v}_{f}=(6 \\cdot 5\\hat{i}+3\\hat{j})\\text{ ms}^{-1} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -925,7 +925,7 @@ const content_b2 = [
   <p key="b2-p-s16-4" style={{ textIndent: 28, textAlign: "justify" }}>
     The total linear momentum before collision {"$=m_{1}u_{1}+m_{2}u_{2}$"}. The total linear momentum after collision {"$=m_{1}v_{1}+m_{2}v_{2}$"}. Then, {"$\\quad m_{1}u_{1}+m_{2}u_{2}=m_{1}v_{1}+m_{2}v_{2}$"}. We can write
   </p>,
-  <div key="b2-math-1" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-1" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & \\frac{m_{1}u_{1}+m_{2}u_{2}}{m_{1}+m_{2}}=\\frac{m_{1}v_{1}+m_{2}v_{2}}{m_{1}+m_{2}} \\\\ & \\therefore\\; u_{\\mathrm{cm}}=v_{\\mathrm{cm}} \\end{aligned}$$"}
   </div>,
 
@@ -983,25 +983,25 @@ const content_b2 = [
   <p key="b2-p-s17-4" style={{ textIndent: 28, textAlign: "justify" }}>
     The ratio of magnitudes of impulse of restitution to that of deformation is called the coefficient of restitution and is denoted by {"$e$"}.
   </p>,
-  <div key="b2-math-2" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-2" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$e=\\frac{\\int R\\, dt}{\\int D\\, dt}$$"}
   </div>,
   <p key="b2-p-s17-5" style={{ textIndent: 28, textAlign: "justify" }}>
     During deformation phase, the impulse on balls {"$m_{1}$"} and {"$m_{2}$"} are respectively
   </p>,
-  <div key="b2-math-3" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-3" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} \\int D\\, dt & =m_{1}\\left(u_{1}-v\\right) \\text{ and } \\int D\\, dt=m_{2}\\left(v-u_{2}\\right) \\\\ \\Rightarrow \\int D\\, dt & =\\frac{m_{1}m_{2}}{m_{1}+m_{2}}\\left(u_{1}-u_{2}\\right) \\tag{1} \\end{aligned}$$"}
   </div>,
   <p key="b2-p-s17-6" style={{ textIndent: 28, textAlign: "justify" }}>
     During restitution phase, the impulse on balls {"$m_{1}$"} and {"$m_{2}$"} are respectively
   </p>,
-  <div key="b2-math-4" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-4" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & \\int R\\, dt=m_{1}\\left(v-v_{1}\\right) \\quad \\text{and} \\quad \\int R\\, dt=m_{2}\\left(v_{2}-v\\right) \\\\ \\Rightarrow & \\int R\\, dt=\\frac{m_{1}m_{2}}{m_{1}+m_{2}}\\left(v_{2}-v_{1}\\right) \\tag{2} \\end{aligned}$$"}
   </div>,
   <p key="b2-p-s17-7" style={{ textIndent: 28, textAlign: "justify" }}>
     From (1) and (2),
   </p>,
-  <div key="b2-math-5" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-5" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$e=\\frac{\\int R\\, dt}{\\int D\\, dt}=\\frac{v_{2}-v_{1}}{u_{1}-u_{2}}$$"}
   </div>,
   <p key="b2-p-s17-8" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -1014,7 +1014,7 @@ const content_b2 = [
   <p key="b2-p-s17-10" style={{ textAlign: "justify" }}>
     {"$e=\\dfrac{\\text{relative velocity of separation (after collision)}}{\\text{relative velocity of approach (before collision)}}$"}
   </p>,
-  <div key="b2-math-6" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-6" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\text{i.e., } e=\\frac{v_{2}-v_{1}}{u_{1}-u_{2}}$$"}
   </div>,
   <p key="b2-p-s17-11" style={{ textAlign: "justify" }}>
@@ -1037,13 +1037,13 @@ const content_b2 = [
   <p key="b2-p-s18-3" style={{ textIndent: 28, textAlign: "justify" }}>
     Let this be an elastic collision in one dimension. Then we can write
   </p>,
-  <div key="b2-math-7" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-7" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$m_{1}u_{1}+m_{2}u_{2}=m_{1}v_{1}+m_{2}v_{2} \\tag{1}$$"}
   </div>,
   <p key="b2-p-s18-4" style={{ textAlign: "center", fontStyle: "italic" }}>
     (By conservation of linear momentum)
   </p>,
-  <div key="b2-math-8" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-8" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\frac{1}{2}m_{1}u_{1}^{2}+\\frac{1}{2}m_{2}u_{2}^{2}=\\frac{1}{2}m_{1}v_{1}^{2}+\\frac{1}{2}m_{2}v_{2}^{2} \\tag{2}$$"}
   </div>,
   <p key="b2-p-s18-5" style={{ textAlign: "center", fontStyle: "italic" }}>
@@ -1052,19 +1052,19 @@ const content_b2 = [
   <p key="b2-p-s18-6" style={{ textIndent: 28, textAlign: "justify" }}>
     If {"$m_{1}, m_{2}, u_{1}$"} and {"$u_{2}$"} are known, using the above two equations, we can determine the two unknown variables {"$v_{1}$"} and {"$v_{2}$"}. On solving equations (1) and (2), we get
   </p>,
-  <div key="b2-math-9" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-9" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & v_{1}=\\frac{m_{1}-m_{2}}{m_{1}+m_{2}}u_{1}+\\frac{2m_{2}u_{2}}{m_{1}+m_{2}} \\\\ & v_{2}=\\frac{2m_{1}u_{1}}{m_{1}+m_{2}}+\\frac{m_{2}-m_{1}}{m_{1}+m_{2}}u_{2} \\end{aligned}$$"}
   </div>,
   <p key="b2-p-s18-7" style={{ textIndent: 28, textAlign: "justify" }}>
     Also, from equations (1) and (2), we get
   </p>,
-  <div key="b2-math-10" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-10" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & m_{1}\\left(u_{1}-v_{1}\\right)=m_{2}\\left(v_{2}-u_{2}\\right) \\qquad \\text{...(3)} \\\\ & m_{1}\\left(u_{1}^{2}-v_{1}^{2}\\right)=m_{2}\\left(v_{2}^{2}-u_{2}^{2}\\right) \\qquad \\text{...(4)} \\end{aligned}$$"}
   </div>,
   <p key="b2-p-s18-8" style={{ textIndent: 28, textAlign: "justify" }}>
     On dividing equation (4) by equation (3), we get
   </p>,
-  <div key="b2-math-11" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-11" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\begin{aligned} & u_{1}+v_{1}=v_{2}+u_{2} \\quad \\Rightarrow v_{2}-v_{1}=u_{1}-u_{2} \\\\ & \\therefore \\quad e=\\frac{v_{2}-v_{1}}{u_{1}-u_{2}}=1 \\end{aligned}$$"}
   </div>,
 
@@ -1076,19 +1076,19 @@ const content_b2 = [
   <p key="b2-p-s19-2" style={{ textIndent: 28, textAlign: "justify" }}>
     Since, the collision is perfectly inelastic, {"$\\quad v_{1}=v_{2}=v$"}. Then, by conservation of linear momentum, we can write
   </p>,
-  <div key="b2-math-12" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-12" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$m_{1}u_{1}+m_{2}u_{2}=\\left(m_{1}+m_{2}\\right)v$$"}
   </div>,
   <p key="b2-p-s19-3" style={{ textIndent: 28, textAlign: "justify" }}>
     If {"$m_{1}, m_{2}, u_{1}$"} and {"$u_{2}$"} are known, we have only one unknown variable {"$v$"}. Hence,
   </p>,
-  <div key="b2-math-13" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-13" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$v=\\frac{m_{1}u_{1}+m_{2}u_{2}}{m_{1}+m_{2}}$$"}
   </div>,
   <p key="b2-p-s19-4" style={{ textIndent: 28, textAlign: "justify" }}>
     Clearly since, {"$v_{1}=v_{2}=v$"}, we have
   </p>,
-  <div key="b2-math-14" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-14" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$e=\\frac{v_{2}-v_{1}}{u_{1}-u_{2}}=0$$"}
   </div>,
 
@@ -1106,31 +1106,31 @@ const content_b2 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Here, {"$m_{1}=2$"} kg, {"$m_{2}=3$"} kg, {"$u_{1}=10$"} m/s, {"$u_{2}=5$"} m/s. Let {"$v_{1}$"} and {"$v_{2}$"} be the final velocities of the two balls.</P2>
     <P2>From conservation of linear momentum, we have</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & m_{1}u_{1}+m_{2}u_{2}=m_{1}v_{1}+m_{2}v_{2} \\\\ \\Rightarrow & 2 \\times 10+3 \\times 5=2v_{1}+3v_{2} \\\\ \\Rightarrow & 2v_{1}+3v_{2}=35 \\tag{1} \\\\ & v_{2}-v_{1}=e(u_{1}-u_{2}) \\\\ \\Rightarrow & v_{2}-v_{1}=e(10-5)=5e \\end{aligned}$$"}
     </div>
     <P2>(a) For elastic collision, {"$e=1$"}</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow\\; v_{2}-v_{1}=5 \\tag{2}$$"}
     </div>
     <P2>On solving eqn. (1) and eqn. (2), we get</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v_{1}=4\\text{ m/s} \\quad \\text{and} \\quad v_{2}=9\\text{ m/s}$$"}
     </div>
     <P2>(b) For perfectly inelastic collision, {"$e=0$"}</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow\\; v_{2}-v_{1}=0 \\tag{3}$$"}
     </div>
     <P2>On solving eqn. (1) and eqn. (3), we get</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v_{1}=v_{2}=7\\text{ m/s}$$"}
     </div>
     <P2>(c) If {"$e=0 \\cdot 5$"}, we have</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v_{2}-v_{1}=2 \\cdot 5 \\tag{4}$$"}
     </div>
     <P2>On solving eqn. (1) and eqn. (4), we get</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v_{1}=5 \\cdot 5\\text{ m/s} \\quad \\text{and} \\quad v_{2}=8\\text{ m/s}$$"}
     </div>
   </IllustrationBox>,
@@ -1140,15 +1140,15 @@ const content_b2 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Here, {"$m_{1}=2$"} kg, {"$m_{2}=4$"} kg, {"$u_{1}=10$"} m/s, {"$u_{2}=-20$"} m/s. Let {"$v_{1}$"} and {"$v_{2}$"} be the final velocities of the two balls.</P2>
     <P2>From conservation of linear momentum, we have</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & m_{1}u_{1}+m_{2}u_{2}=m_{1}v_{1}+m_{2}v_{2} \\\\ \\Rightarrow & 2 \\times 10-4 \\times 20=2v_{1}+4v_{2} \\\\ \\Rightarrow & v_{1}+2v_{2}=-30 \\tag{1} \\end{aligned}$$"}
     </div>
     <P2>For elastic collision, {"$e=1$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & \\Rightarrow \\quad v_{2}-v_{1}=u_{1}-u_{2} \\\\ & \\Rightarrow \\quad v_{2}-v_{1}=30 \\tag{2} \\end{aligned}$$"}
     </div>
     <P2>On solving eqn. (1) and eqn. (2), we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$v_{1}=-30\\text{ m/s} \\quad \\text{and} \\quad v_{2}=0$$"}
     </div>
     <P2>Hence, {"$m_{2}$"} comes to rest while {"$m_{1}$"} rebounds back with a speed of 30 m/s.</P2>
@@ -1160,11 +1160,11 @@ const content_b2 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>During collision, momentum of the system is conserved. Hence, {"$mu=(M+m)v$"}, where, {"$v$"} is the velocity of system immediately after the collision.</P2>
     <P2>After the collision, mechanical energy will be conserved. If the block swings by an angle {"$\\theta_{0}$"}, the centre of mass of the system rises by</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & h=L-L\\cos\\theta_{0}=L\\left(1-\\cos\\theta_{0}\\right) \\\\ \\Rightarrow \\quad & \\frac{1}{2}(M+m)v^{2}=(M+m)gL\\left(1-\\cos\\theta_{0}\\right) \\\\ \\Rightarrow \\quad & v=\\sqrt{2gL\\left(1-\\cos\\theta_{0}\\right)} \\end{aligned}$$"}
     </div>
     <P2>Substituting this value in eqn. (1), we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$u=\\frac{M+m}{m}\\sqrt{2gL\\left(1-\\cos\\theta_{0}\\right)}$$"}
     </div>
   </IllustrationBox>,
@@ -1176,20 +1176,20 @@ const content_b2 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>As the balls are identical, their mass is same. Let it be {"$m$"}. Let the velocities of the balls after collision be {"$v_{1}$"} and {"$v_{2}$"}.</P2>
     <P2>Equation of momentum conservation is</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & mu_{1}+mu_{2}=mv_{1}+mv_{2} \\\\ & \\Rightarrow u_{1}+u_{2}=v_{1}+v_{2} \\tag{1} \\end{aligned}$$"}
     </div>
     <P2>Equation of coefficient of restitution is</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$v_{2}-v_{1}=e\\left(u_{1}-u_{2}\\right) \\tag{2}$$"}
     </div>
     <P2>(a) On solving equations (1) and (2), we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$v_{1}=\\left(\\frac{1-e}{2}\\right)u_{1}+\\left(\\frac{1+e}{2}\\right)u_{2} \\quad \\text{and} \\quad v_{2}=\\left(\\frac{1+e}{2}\\right)u_{1}+\\left(\\frac{1-e}{2}\\right)u_{2}$$"}
     </div>
     <P2>(b) For perfectly elastic collision, {"$e=1$"}.</P2>
     <P2>On putting {"$e=1$"} in above equations, we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$v_{1}=u_{2} \\quad \\text{and} \\quad v_{2}=u_{1}$$"}
     </div>
     <P2>We conclude that identical bodies exchange their velocities after perfectly elastic collision.</P2>
@@ -1242,7 +1242,7 @@ const content_b2 = [
   <p key="b2-p-s110-15" style={{ textIndent: 28, textAlign: "justify" }}>
     Then, we have {"$u=\\sqrt{2gh_{0}}$"} and {"$v=\\sqrt{2gh_{1}}$"}. Since, the ground is at rest and has a large mass, we have {"$v=eu$"}
   </p>,
-  <div key="b2-math-15" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+  <div key="b2-math-15" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
     {"$$\\Rightarrow \\frac{v}{u}=\\frac{\\sqrt{2gh_{1}}}{\\sqrt{2gh_{0}}} \\quad \\therefore\\; h_{1}=h_{0}e^{2}$$"}
   </div>,
   <p key="b2-p-s110-16" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -1273,7 +1273,7 @@ const content_b2 = [
     <P2>(d) What do you conclude for impulse of weight of the ball as duration of contact decreases?</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Consider axes {"$X$"} and {"$Y$"} in the direction shown in the fig. 1.29. The impulse on ball is</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} \\vec{J} & =\\Delta\\vec{p}=m\\left(\\vec{v}_{f}-\\vec{v}_{i}\\right) \\\\ & =0 \\cdot 1 \\times\\left[\\left(35\\cos37^{\\circ} \\hat{i}+35\\sin37^{\\circ} \\hat{j}\\right)-(-20\\hat{i})\\right] \\\\ \\Rightarrow \\vec{F}_{av}\\Delta t & =0 \\cdot 1 \\times[(28\\hat{i}+21\\hat{j})+20\\hat{i})] \\\\ & =(4 \\cdot 8\\hat{i}+2 \\cdot 1\\hat{j})\\text{ Ns} \\end{aligned}$$"}
     </div>
     <P2>(a) For {"$\\Delta t=0 \\cdot 3$"} s, {"$\\quad \\vec{F}_{av}=(16\\hat{i}+7\\hat{j})$"} N</P2>
@@ -1299,7 +1299,7 @@ const content_b2 = [
     <P2>{"$0.05 \\times 600=0.05 \\times 200+2 \\times v \\quad \\therefore \\quad v=10$"} m/s</P2>
     <P2>(c) Friction, {"$\\quad f=\\mu mg$"}</P2>
     <P2>To calculate distance {"$s$"} traveled by the block, we apply work energy theorem, {"$W=\\Delta K$"}.</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & \\Rightarrow -fs=0-\\frac{1}{2}mv^{2} \\quad \\Rightarrow \\mu mgs=\\frac{1}{2}mv^{2} \\\\ & \\therefore\\; s=\\frac{v^{2}}{2\\mu g}=\\frac{10^{2}}{2 \\times 0 \\cdot 25 \\times 10}=20\\text{ m} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -1315,7 +1315,7 @@ const content_b2 = [
     <P2>For the block, {"$100-h=\\dfrac{1}{2}gt^{2}$"} &nbsp;&nbsp; ...(1)</P2>
     <P2>For the bullet, {"$h=100t-\\dfrac{1}{2}gt^{2}$"} &nbsp;&nbsp; ...(2)</P2>
     <P2>On solving eqn. (1) and eqn. (2), we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$t=1\\text{ sec} \\quad \\text{and} \\quad h=95\\text{ m}$$"}
     </div>
     <P2>(b) Take upward direction as positive,</P2>
@@ -1327,11 +1327,11 @@ const content_b2 = [
     <P2>and {"$\\quad u_{2}=100-10 \\times 1=90$"} m/s</P2>
     <P2>Conserving linear momentum during collision, we get</P2>
     <P2>{"$mu_{1}+mu_{2}=2mv$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\Rightarrow v=\\frac{u_{1}+u_{2}}{2}=\\frac{-10+90}{2}=40\\text{ m/s}$$"}
     </div>
     <P2>If the system rises to height {"$H$"} above this point, then</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6, fontFamily: "'Times New Roman', Times, serif" }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif" }}>
       {"$$\\begin{aligned} & 0^{2}-v^{2}=-2gH \\\\ \\Rightarrow & H=\\frac{v^{2}}{2g}=\\frac{40^{2}}{2 \\times 10}=80\\text{ m} \\end{aligned}$$"}
     </div>
     <P2>Hence, height above the cliff is equal to</P2>
@@ -1348,13 +1348,13 @@ const content_b3 = [
   <p key="b3-p-s111-2" style={{ textIndent: 28, textAlign: "justify" }}>
     This kind of collision is collision in two dimension and is also called <em>oblique collision</em>. However, not all is random. There are relationships which connect these masses, velocities and angles. By conservation of linear momentum along {"$X$"} and {"$Y$"} axis, we get the following equations
   </p>,
-  <div key="b3-math-1" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-1" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$\\begin{aligned} & m_{1}u_{1}=m_{1}v_{1}\\cos\\theta_{1}+m_{2}v_{2}\\cos\\theta_{2} \\\\ & 0=m_{1}v_{1}\\sin\\theta_{1}-m_{2}v_{2}\\sin\\theta_{2} \\end{aligned}$$"}
   </div>,
   <p key="b3-p-s111-3" style={{ textIndent: 28, textAlign: "justify" }}>
     By conservation of kinetic energy, we get
   </p>,
-  <div key="b3-math-2" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-2" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$\\frac{1}{2}m_{1}u_{1}^{2}=\\frac{1}{2}m_{1}v_{1}^{2}+\\frac{1}{2}m_{2}v_{2}^{2}$$"}
   </div>,
   <p key="b3-p-s111-4" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -1371,17 +1371,17 @@ const content_b3 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <Fig key="fig-1-34" src={CONTENT_IMAGES.CONTENT_IMAGE_E3434AF32A0403C2D1D2} num="Fig. 1.34" />
     <P2>If {"$r$"} is the radius of discs, then</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\sin\\theta=r/2r=1/2 \\quad \\Rightarrow \\theta=30^{\\circ}$$"}
     </div>
     <P2>Before collision, the components of velocity of {"$A$"} are</P2>
     <P2>{"$u\\cos\\theta$"} &nbsp;&nbsp; along normal &nbsp;&nbsp; and &nbsp;&nbsp; {"$u\\sin\\theta$"} &nbsp;&nbsp; along tangent.</P2>
     <P2>Along tangent, there is no impulse and therefore there is no change in velocities of both balls.</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow v_{1t}=u\\sin\\theta \\quad \\text{and} \\quad v_{2t}=0$$"}
     </div>
     <P2>Since, the discs are identical and collision is elastic, along normal, the velocities interchange.</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\begin{aligned} \\Rightarrow & v_{1n}=0 \\quad \\text{and} \\quad v_{2n}=u\\cos\\theta \\\\ \\therefore & v_{1}=\\sqrt{v_{1t}^{2}+v_{1n}^{2}}=u\\sin\\theta=u\\sin30^{\\circ}=u/2 \\\\ & v_{2}=\\sqrt{v_{2t}^{2}+v_{2n}^{2}}=u\\cos\\theta=u\\cos30^{\\circ}=\\sqrt{3}\\,u/2 \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -1390,15 +1390,15 @@ const content_b3 = [
     <P2>In the previous illustration, if disc {"$A$"} is moving with velocity {"$u_{1}$"} towards right and disc {"$B$"} is moving with velocity {"$u_{2}$"} towards right such that {"$u_{1}>u_{2}$"}, find velocities of the discs after the impact if all other things remain the same.</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>It is convenient to solve the problem in the frame of disc {"$B$"} so that in this frame, disc {"$B$"} is at rest before collision. The problem now becomes the same as the previous one. In the frame of disc {"$B$"}, disc {"$A$"} strikes it with velocity</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$u=u_{1}-u_{2}$$"}
     </div>
     <P2>In this frame,</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\begin{aligned} & v_{1}=u/2=(u_{1}-u_{2})/2 \\text{ along the tangent and} \\\\ & v_{2}=\\sqrt{3}\\,u/2=\\sqrt{3}(u_{1}-u_{2})/2 \\text{ along the normal.} \\end{aligned}$$"}
     </div>
     <P2>In ground frame, we add {"$u_{2}$"} towards right to the above velocities to obtain final velocities {"$v_{A}$"} and {"$v_{B}$"}.</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\begin{aligned} v_{A} & =\\sqrt{v_{1}^{2}+u_{2}^{2}+2v_{1}u_{2}\\cos60^{\\circ}} \\\\ & =\\sqrt{\\left(\\frac{u_{1}-u_{2}}{2}\\right)^{2}+u_{2}^{2}+2\\times\\frac{u_{1}-u_{2}}{2}\\times u_{2}\\times\\frac{1}{2}} \\\\ \\therefore & \\; v_{A}=\\frac{1}{2}\\sqrt{u_{1}^{2}+3u_{2}^{2}} \\\\ & v_{B}=\\sqrt{v_{2}^{2}+u_{2}^{2}+2v_{2}u_{2}\\cos30^{\\circ}} \\\\ & =\\sqrt{\\left(\\frac{\\sqrt{3}(u_{1}-u_{2})}{2}\\right)^{2}+u_{2}^{2}+2\\times\\frac{\\sqrt{3}(u_{1}-u_{2})}{2}\\times u_{2}\\times\\frac{\\sqrt{3}}{2}} \\\\ \\therefore & \\; v_{B}=\\frac{1}{2}\\sqrt{3u_{1}^{2}+u_{2}^{2}} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -1412,24 +1412,24 @@ const content_b3 = [
     <P2>A ball moving with a velocity of 50 cm/s on a frictionless horizontal plane hits an identical ball at rest. If the collision is elastic, calculate the speed imparted to the target ball, if the speed of the incident ball is 30 cm/s after the collision. Show that the two balls move at right angles to each other after the collision.</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>From momentum conservation, we have</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$m\\vec{u}=m\\overrightarrow{v_{1}}+m\\overrightarrow{v_{2}} \\quad \\Rightarrow \\vec{u}=\\overrightarrow{v_{1}}+\\overrightarrow{v_{2}} \\tag{1}$$"}
     </div>
     <P2>From energy conservation, we have</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\frac{1}{2}mu^{2}=\\frac{1}{2}mv_{1}^{2}+\\frac{1}{2}mv_{2}^{2} \\Rightarrow u^{2}=v_{1}^{2}+v_{2}^{2} \\tag{2}$$"}
     </div>
     <P2>Squaring each side of eqn. (1), leads to</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$u^{2}=v_{1}^{2}+v_{2}^{2}+2\\overrightarrow{v_{1}}\\cdot\\overrightarrow{v_{2}} \\tag{3}$$"}
     </div>
     <P2>From eqn. (2) and eqn. (3), we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\overrightarrow{v_{1}}\\cdot\\overrightarrow{v_{2}}=0$$"}
     </div>
     <P2>which means that their velocities are perpendicular.</P2>
     <P2>The speed {"$v_{2}$"} of the target ball from eqn. (2) is</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v_{2}=\\sqrt{u^{2}-v_{1}^{2}}=\\sqrt{50^{2}-30^{2}}=40\\text{ cm/s}$$"}
     </div>
   </IllustrationBox>,
@@ -1442,10 +1442,10 @@ const content_b3 = [
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Choose {"$X$"}-axis along the direction of {"$\\vec{u}$"} and {"$Y$"}-axis perpendicular to its direction.</P2>
     <P2>(a) Applying conservation of linear momentum along {"$X$"} and {"$Y$"}-axis, we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$mu=mv_{1}\\cos30^{\\circ}+mv_{2}\\cos30^{\\circ} \\tag{1}$$"}
     </div>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\text{and} \\quad 0=mv_{1}\\sin30^{\\circ}-mv_{2}\\sin30^{\\circ} \\tag{2}$$"}
     </div>
     <P2>On putting {"$u=9$"} m/s and solving eqn. (1) and eqn. (2), we get {"$\\quad v_{1}=v_{2}=3\\sqrt{3}$"} m/s</P2>
@@ -1467,14 +1467,14 @@ const content_b3 = [
     <P2>{"$v_{1y}=u_{1y}=u\\sin\\alpha$"} &nbsp;&nbsp; and &nbsp;&nbsp; {"$v_{2y}=u_{2y}=0$"}</P2>
     <P2>Initial kinetic energy {"$=\\frac{1}{2}mu^{2}$"}</P2>
     <P2>Final kinetic energy</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$=\\frac{1}{2}mv_{1x}^{2}+\\frac{1}{2}mv_{1y}^{2}+\\frac{1}{2}mv_{2x}^{2}+\\frac{1}{2}mv_{2y}^{2}=\\frac{mu^{2}\\cos^{2}\\alpha}{8}+\\frac{mu^{2}\\sin^{2}\\alpha}{2}+\\frac{mu^{2}\\cos^{2}\\alpha}{8}+0=\\frac{3}{8}mu^{2}$$"}
     </div>
     <P2>Loss in kinetic energy</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$=\\frac{1}{2}mu^{2}-\\frac{3}{8}mu^{2}=\\frac{1}{4}\\times\\frac{1}{2}mu^{2}=\\text{gain in potential energy.}$$"}
     </div>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\therefore \\quad \\eta=\\frac{\\text{Loss in kinetic energy}}{\\text{initial kinetic energy}}=\\frac{1}{4}$$"}
     </div>
   </IllustrationBox>,
@@ -1486,23 +1486,23 @@ const content_b3 = [
     <Fig key="fig-1-37" src={CONTENT_IMAGES.CONTENT_IMAGE_3F055EC0F351D2DD0DD1} num="Fig. 1.37" />
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>(a) Conserving momentum before and after collision, we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\begin{aligned} & mv_{1}\\hat{i}+Mv_{2}\\hat{j}=(M+m)\\vec{v} \\tag{1} \\\\ & \\therefore\\;|\\vec{p}|=\\sqrt{(mv_{1})^{2}+(Mv_{2})^{2}} \\end{aligned}$$"}
     </div>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\tan\\theta=\\frac{Mv_{2}}{mv_{1}} \\quad \\therefore \\quad \\theta=\\tan^{-1}\\!\\left(\\frac{Mv_{2}}{mv_{1}}\\right)$$"}
     </div>
     <P2>From eqn. (1), {"$\\vec{v}=\\dfrac{mv_{1}}{M+m}\\hat{i}+\\dfrac{Mv_{2}}{M+m}\\hat{j}$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow|\\vec{v}|=\\sqrt{\\left(\\frac{mv_{1}}{M+m}\\right)^{2}+\\left(\\frac{Mv_{2}}{M+m}\\right)^{2}}=\\frac{\\sqrt{(mv_{1})^{2}+(Mv_{2})^{2}}}{M+m}$$"}
     </div>
     <P2>(b) Initial kinetic energy {"$=K_{i}=\\frac{1}{2}mv_{1}^{2}+\\frac{1}{2}Mv_{2}^{2}$"}</P2>
     <P2>Loss in kinetic energy</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$=K_{i}-K_{f}=\\left[\\frac{1}{2}mv_{1}^{2}+\\frac{1}{2}Mv_{2}^{2}\\right]-\\frac{1}{2}(M+m)\\frac{(mv_{1})^{2}+(Mv_{2})^{2}}{(M+m)^{2}}=\\frac{Mm(v_{1}^{2}+v_{2}^{2})}{2(M+m)}$$"}
     </div>
     <P2>Fraction of energy changed into heat</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$=\\frac{\\text{Loss in KE}}{\\text{Initial KE}}=\\frac{Mm}{M+m}\\left(\\frac{v_{1}^{2}+v_{2}^{2}}{mv_{1}^{2}+Mv_{2}^{2}}\\right)$$"}
     </div>
   </IllustrationBox>,
@@ -1515,7 +1515,7 @@ const content_b3 = [
   <p key="b3-p-s112-2" style={{ textIndent: 28, textAlign: "justify" }}>
     Let {"$v_{1}$"} and {"$v_{2}$"} be respectively the velocities of these particles after collision and the components of these four velocity vectors be {"$u_{1x}, u_{2x}, v_{1x}$"} and {"$v_{2x}$"}. The coefficient of restitution is given by
   </p>,
-  <div key="b3-math-3" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-3" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$e=\\frac{v_{2x}-v_{1x}}{u_{1x}-u_{2x}}$$"}
   </div>,
 
@@ -1526,13 +1526,13 @@ const content_b3 = [
   <p key="b3-p-oc-2" style={{ textIndent: 28, textAlign: "justify" }}>
     <strong>Component of velocity along tangent.</strong> If surfaces of the bodies undergoing collision are smooth, the component of velocity along the tangent of the body that is free to move before and after the collision remain conserved. So, if body 1 is free to move before and after the collision, then
   </p>,
-  <div key="b3-math-4" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-4" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$v_{1t}=u_{1t}$$"}
   </div>,
   <p key="b3-p-oc-3" style={{ textIndent: 28, textAlign: "justify" }}>
     <strong>Component of velocity along normal (line of impact).</strong> The concept of coefficient of restitution {"$e$"} is applicable to the component of velocity along the normal even if one or both bodies are constrained to move in some particular direction only. So we have
   </p>,
-  <div key="b3-math-5" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-5" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$v_{2n}-v_{1n}=e(u_{1n}-u_{2n})$$"}
   </div>,
   <p key="b3-p-oc-4" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -1549,13 +1549,13 @@ const content_b3 = [
     <P2>As there is no external force on the system in horizontal direction, the momentum in this direction is conserved.</P2>
     <P2>{"$\\Rightarrow \\quad mu=mv_{t}\\cos\\theta+mv_{n}\\sin\\theta+Mv$"}</P2>
     <P2>{"$\\Rightarrow 0.25 \\times 10=0.25 \\times 8\\cos37^{\\circ}+0.25v_{n}\\sin37^{\\circ}+0.72v$"}</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow\\; 5v_{n}+24v=30 \\tag{1}$$"}
     </div>
     <P2>Along normal, {"$v_{2}-v_{1}=e(u_{1}-u_{2})$"}</P2>
     <P2>{"$\\Rightarrow v\\sin\\theta-v_{n}=0.8(u\\sin\\theta-0)$"}</P2>
     <P2>{"$\\Rightarrow v\\sin37^{\\circ}-v_{n}=0.8 \\times 10 \\times \\sin37^{\\circ}$"}</P2>
-    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "10px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow\\; 3v-5v_{n}=24 \\tag{2}$$"}
     </div>
     <P2>From (1) and (2), {"$v=2$"} ms{"$^{-1}$"}</P2>
@@ -1565,16 +1565,16 @@ const content_b3 = [
     <P2>A ball of mass {"$m$"} hits a floor with a speed {"$u$"} making an angle of incidence {"$\\alpha$"} with the normal. The coefficient of restitution is {"$e$"}. Find the speed of the reflected ball and the angle of reflection of the ball.</P2>
     <p style={{ fontWeight: 700, color: P_COLOR, margin: "10px 0 6px" }}>SOLUTION.</p>
     <P2>Here, {"$u_{1x}=u\\sin\\alpha$"} and {"$u_{1y}=-u\\cos\\alpha$"}. Since, there is no impulse along {"$X$"}-axis,</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v_{1x}=u_{1x} \\quad \\Rightarrow v\\sin\\beta=u\\sin\\alpha \\tag{1}$$"}
     </div>
     <Fig key="fig-1-41" src={CONTENT_IMAGES.CONTENT_IMAGE_E4A00626D7D1407454EE} num="Fig. 1.41" />
     <P2>Since, the floor is at rest and has a large mass,</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v_{1y}=-eu_{1y} \\quad \\Rightarrow v\\cos\\beta=eu\\cos\\alpha \\tag{2}$$"}
     </div>
     <P2>From equations (1) and (2),</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$v=\\sqrt{(u\\sin\\alpha)^{2}+(eu\\cos\\alpha)^{2}} \\quad \\text{and} \\quad \\tan\\beta=\\frac{\\tan\\alpha}{e}$$"}
     </div>
   </IllustrationBox>,
@@ -1595,7 +1595,7 @@ const content_b3 = [
     <P2>Here, {"$\\vec{v}_{1}=30\\hat{i}$"} m/s and {"$\\vec{v}_{2}=30\\hat{j}$"} m/s</P2>
     <P2>Conserving momentum before and after explosion, we get</P2>
     <P2>{"$m \\times 30\\hat{i}+m \\times 30\\hat{j}+3m \\times \\vec{v}_{3}=0$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow \\overrightarrow{v_{3}}=-10\\hat{i}-10\\hat{j} \\quad \\therefore \\quad |\\overrightarrow{v_{3}}|=10\\sqrt{2}\\text{ m/s}$$"}
     </div>
   </IllustrationBox>,
@@ -1612,7 +1612,7 @@ const content_b3 = [
     <P2>{"$v=u-gt=100-10 \\times 5=50$"} m/s</P2>
     <P2>Let {"$v_{0}=$"} Velocity of other fragment. Conserving momentum during explosion, we get</P2>
     <P2>{"$50 \\times 50=20 \\times 150+30v_{0}$"}</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\Rightarrow \\quad v_{0}=\\frac{2500-3000}{30}=-16 \\cdot 7\\text{ m/s}$$"}
     </div>
     <P2>The negative sign indicates that it moves vertically downward.</P2>
@@ -1646,13 +1646,13 @@ const content_b3 = [
   <p key="b3-p-s114-6" style={{ textIndent: 28, textAlign: "justify" }}>
     As per Newton's second law of motion, the net external force acting on the system is equal to the rate of change in its momentum, i.e.,
   </p>,
-  <div key="b3-math-6" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-6" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$\\vec{F}_{\\mathrm{ext}}=\\frac{d\\vec{p}}{dt}=\\frac{d(m\\vec{v})}{dt}=m\\frac{d\\vec{v}}{dt}+\\vec{v}\\frac{dm}{dt}=m\\vec{a}+\\vec{v}\\frac{dm}{dt}$$"}
   </div>,
   <p key="b3-p-s114-7" style={{ textIndent: 28, textAlign: "justify" }}>
     We write this expression as
   </p>,
-  <div key="b3-math-7" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-7" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$\\vec{F}_{\\mathrm{ext}}=m\\vec{a}+\\vec{v}_{\\mathrm{incr}}\\frac{dm}{dt}$$"}
   </div>,
   <p key="b3-p-s114-8" style={{ textIndent: 28, textAlign: "justify" }}>
@@ -1667,7 +1667,7 @@ const content_b3 = [
   <p key="b3-p-s114-11" style={{ textIndent: 28, textAlign: "justify" }}>
     If we define a term {"$\\vec{v}_{\\text{rel}}$"} as the relative velocity of incoming mass with respect to the velocity of the system given by {"$\\vec{v}_{\\text{rel}}=\\vec{v}'-\\vec{v}$"}, then {"$\\vec{v}_{\\text{rel}}=-\\vec{v}_{\\text{incr}}$"} and the equation written above can be written as
   </p>,
-  <div key="b3-math-8" style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+  <div key="b3-math-8" style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
     {"$$\\vec{F}_{\\mathrm{ext}}=m\\vec{a}-\\vec{v}_{\\mathrm{rel}}\\frac{dm}{dt} \\quad \\text{or} \\quad \\vec{F}_{\\mathrm{ext}}+\\vec{v}_{\\mathrm{rel}}\\frac{dm}{dt}=m\\vec{a}$$"}
   </div>,
   <p key="b3-p-s114-12" style={{ textAlign: "justify" }}>
@@ -1688,7 +1688,7 @@ const content_b3 = [
     <Fig key="fig-1-43" src={CONTENT_IMAGES.CONTENT_IMAGE_A24E68702D5B182A18C7} num="Fig. 1.43" />
     <P2>Since, {"$F_{\\mathrm{th}}>0$"}, it accelerated the rocket forward.</P2>
     <P2>In free space, {"$F_{\\text{ext}}=0$"} and from Newton's second law, we get</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\begin{aligned} m\\frac{dv}{dt} & =-\\frac{dm}{dt}\\,v_{\\mathrm{ex}} \\quad \\text{or} \\quad \\int_{0}^{v}dv=-v_{\\mathrm{ex}}\\int_{m_{0}}^{m_{0}/2}\\frac{dm}{m} \\\\ \\therefore \\quad v & =-v_{\\mathrm{ex}}\\left[\\ln(m_{0}/2)-\\ln(m_{0})\\right] \\\\ & =-v_{\\mathrm{ex}}\\ln\\left(\\frac{1}{2}\\right)=v_{\\mathrm{ex}}\\ln2=0.693\\,v_{\\mathrm{ex}} \\end{aligned}$$"}
     </div>
   </IllustrationBox>,
@@ -1700,7 +1700,7 @@ const content_b3 = [
     <P2>Let {"$v$"} be the velocity of chain when it has fallen through a distance {"$x$"}.</P2>
     <P2>Then its velocity, {"$v=\\sqrt{2gx}$"}</P2>
     <P2>Taking the system as the part of chain that has already fallen, its mass,</P2>
-    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "14.5px", lineHeight: 1.6 }}>
+    <div style={{ textAlign: "center", margin: "14px 20px", fontSize: "16.5px", lineHeight: 2.2 }}>
       {"$$\\begin{aligned} m & =\\frac{M}{L}x \\quad \\text{and} \\quad v_{\\text{rel}}=(v-0)=v \\\\ \\Rightarrow \\frac{dm}{dt} & =\\frac{d}{dt}\\!\\left(\\frac{M}{L}x\\right)=\\frac{M}{L}\\frac{dx}{dt}=\\frac{M}{L}v \\\\ \\therefore & \\; F_{\\text{th}}=v_{\\text{rel}}\\frac{dm}{dt}=\\frac{M}{L}v^{2}=\\frac{M}{L}(2gx)=2\\left(\\frac{Mx}{L}\\right)g \\end{aligned}$$"}
     </div>
     <P2>Note that this is twice the weight of the part already resting on the table.</P2>
@@ -1743,7 +1743,7 @@ export default function Chapter1() {
     <div style={{
       background: "#fff", minHeight: "100vh",
       fontFamily: "'Lora',Georgia,serif",
-      fontSize: 15, lineHeight: 1.58, color: "#1a1a1a",
+      fontSize: 17, lineHeight: 1.58, color: "#1a1a1a",
     }}>
       <HamburgerBtn open={tocOpen} setOpen={setTocOpen} />
       <Backdrop open={tocOpen} onClick={() => setTocOpen(false)} />
