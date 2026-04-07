@@ -1,12 +1,6 @@
 /**
- * ResendService — bulk email sending via Resend.
- *
- * Uses individual send() calls per email (NOT resend.batch.send) because the batch
- * API returns a single error for the entire chunk if any email fails — making all
- * emails in the chunk unretryable individually. Individual sends allow per-email
- * retry and accurate DLQ tracking.
- *
- * Rate limit: 1 email/sec via built-in delay loop.
+ * ResendService — bulk email sending via Resend batch API.
+ * Sends in chunks of 100 (Resend batch limit).
  */
 import { config } from '@/config';
 import { formatName } from '@/utils/formatName';
@@ -21,7 +15,30 @@ export type BulkEmailMessage = {
   batchId: string;
 };
 
-const SEND_DELAY_MS = 1000; // Resend rate limit: ~1 email/sec
+const BULK_CHUNK_SIZE = 100;
+
+// ─── Email validation ─────────────────────────────────────────────────────────
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const mxCache = new Map<string, boolean>(); // domain → has MX records
+
+async function isEmailValid(email: string): Promise<boolean> {
+  if (!EMAIL_REGEX.test(email)) return false;
+
+  const domain = email.split('@')[1]!.toLowerCase();
+  if (mxCache.has(domain)) return mxCache.get(domain)!;
+
+  try {
+    const { resolveMx } = await import('dns/promises');
+    const records = await resolveMx(domain);
+    const valid = records.length > 0;
+    mxCache.set(domain, valid);
+    return valid;
+  } catch {
+    mxCache.set(domain, false);
+    return false;
+  }
+}
 
 function buildEmailHtml(
   name: string,
@@ -61,62 +78,90 @@ export async function sendEmailBulk(
   const failedIds: string[] = [];
   const errors: Record<string, string> = {};
 
-  for (const msg of messages) {
-    const t0 = Date.now();
-    let statusCode: number | undefined;
-    let responseBody: unknown;
-    let errMsg: string | undefined;
-
-    try {
-      const { data, error } = await resend.emails.send({
-        from,
-        to: msg.email,
-        subject: `Digital Specimen Books from Pradeep Publications`,
-        html: buildEmailHtml(msg.name, msg.specimenDetails, msg.books),
-      });
-
-      if (error) {
-        errMsg = error.message ?? JSON.stringify(error);
-        statusCode = 400;
-        responseBody = error;
-        console.error(`[ResendService] email failed to ${msg.email}:`, errMsg);
-        errors[msg.commLogId] = errMsg;
-        failedIds.push(msg.commLogId);
-      } else {
-        statusCode = 200;
-        responseBody = { id: data?.id };
-        console.log(`[ResendService] email sent to ${msg.email} (${data?.id ?? 'no-id'})`);
-        sentIds.push(msg.commLogId);
-      }
-    } catch (err) {
-      errMsg = (err as Error).message;
-      statusCode = 500;
-      responseBody = { error: errMsg };
-      console.error(`[ResendService] email exception for ${msg.email}:`, errMsg);
-      errors[msg.commLogId] = errMsg;
+  // Validate all emails before batching — filter out bad ones up front
+  const valid: BulkEmailMessage[] = [];
+  await Promise.all(messages.map(async (msg) => {
+    const ok = await isEmailValid(msg.email);
+    if (ok) {
+      valid.push(msg);
+    } else {
+      const reason = EMAIL_REGEX.test(msg.email) ? `Invalid domain (no MX): ${msg.email}` : `Invalid email format: ${msg.email}`;
+      console.warn(`[ResendService] skipping invalid email: ${msg.email} — ${reason}`);
+      errors[msg.commLogId] = reason;
       failedIds.push(msg.commLogId);
     }
+  }));
 
-    await logApiCall({
-      service: 'resend',
-      endpoint: '/emails',
-      requestBody: { from, to: msg.email, subject: 'Digital Specimen Books from Pradeep Publications' },
-      responseBody,
-      statusCode,
-      errorMessage: errMsg,
-      latencyMs: Date.now() - t0,
-      batchId: msg.batchId,
-      commLogId: msg.commLogId,
-      teacherEmail: msg.email,
-      teacherName: msg.name,
-    });
+  if (valid.length === 0) {
+    console.log(`[ResendService] all ${messages.length} emails invalid — nothing to send`);
+    return { sentIds, failedIds, errors };
+  }
 
-    // Rate limit: 1 email/sec
-    if (messages.indexOf(msg) < messages.length - 1) {
-      await new Promise((r) => setTimeout(r, SEND_DELAY_MS));
+  console.log(`[ResendService] ${valid.length} valid, ${failedIds.length} invalid (of ${messages.length})`);
+
+  for (let i = 0; i < valid.length; i += BULK_CHUNK_SIZE) {
+    const chunk = valid.slice(i, i + BULK_CHUNK_SIZE);
+
+    const payload = chunk.map((msg) => ({
+      from,
+      to: msg.email,
+      subject: `Digital Specimen Books from Pradeep Publications`,
+      html: buildEmailHtml(msg.name, msg.specimenDetails, msg.books),
+    }));
+
+    const t0 = Date.now();
+    try {
+      const result = await resend.batch.send(payload);
+      const latencyMs = Date.now() - t0;
+
+      if (result.error) {
+        const errMsg = result.error.message ?? JSON.stringify(result.error);
+        console.error(`[ResendService] batch chunk error:`, errMsg);
+        for (const msg of chunk) errors[msg.commLogId] = errMsg;
+        failedIds.push(...chunk.map((m) => m.commLogId));
+        await logApiCall({
+          service: 'resend',
+          endpoint: '/emails/batch',
+          requestBody: { from, count: chunk.length },
+          responseBody: result.error,
+          statusCode: 400,
+          errorMessage: errMsg,
+          latencyMs,
+          batchId: chunk[0]?.batchId,
+          requestCount: chunk.length,
+        });
+      } else {
+        console.log(`[ResendService] batch chunk sent: ${chunk.length} emails`);
+        sentIds.push(...chunk.map((m) => m.commLogId));
+        await logApiCall({
+          service: 'resend',
+          endpoint: '/emails/batch',
+          requestBody: { from, count: chunk.length },
+          responseBody: { ids: result.data?.map((d) => d.id) },
+          statusCode: 200,
+          latencyMs,
+          batchId: chunk[0]?.batchId,
+          requestCount: chunk.length,
+        });
+      }
+    } catch (err) {
+      const errMsg = (err as Error).message;
+      console.error(`[ResendService] batch chunk exception:`, errMsg);
+      for (const msg of chunk) errors[msg.commLogId] = errMsg;
+      failedIds.push(...chunk.map((m) => m.commLogId));
+      await logApiCall({
+        service: 'resend',
+        endpoint: '/emails/batch',
+        requestBody: { from, count: chunk.length },
+        statusCode: 500,
+        errorMessage: errMsg,
+        latencyMs: Date.now() - t0,
+        batchId: chunk[0]?.batchId,
+        requestCount: chunk.length,
+      });
     }
   }
 
-  console.log(`[ResendService] bulk complete: ${sentIds.length} sent, ${failedIds.length} failed (of ${messages.length})`);
+  console.log(`[ResendService] bulk complete: ${sentIds.length} sent, ${failedIds.length} failed (of ${messages.length}, ${messages.length - valid.length} invalid emails skipped)`);
   return { sentIds, failedIds, errors };
 }
