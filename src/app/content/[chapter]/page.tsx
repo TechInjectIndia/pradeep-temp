@@ -17,6 +17,7 @@ import Phy9Ch3Content from "@/components/content/chapters/phy-9-ch3";
 import Phy9Ch4Content from "@/components/content/chapters/phy-9-ch4";
 import Phy9Ch5Content from "@/components/content/chapters/phy-9-ch5";
 import Pj2Ch1Content from "@/components/content/chapters/pj2-ch1";
+import Pj2Ch1TheoryContent from "@/components/content/chapters/pj2-ch1-theory";
 
 const CHAPTER_NAMES = [
   "bio-9-ch1",
@@ -49,7 +50,7 @@ export const CHAPTER_CONTENT: Record<Chapter, React.ComponentType> = {
   "phy-9-ch3": Phy9Ch3Content,
   "phy-9-ch4": Phy9Ch4Content,
   "phy-9-ch5": Phy9Ch5Content,
-  "pj2-ch1-theory": Pj2Ch1Content,
+  "pj2-ch1-theory": Pj2Ch1TheoryContent,
 };
 
 export const PREVIEW_CHAPTER_CONTENT: Partial<
