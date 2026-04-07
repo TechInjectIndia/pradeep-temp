@@ -137,7 +137,7 @@ export async function sendEmailBulk(
           service: 'resend',
           endpoint: '/emails/batch',
           requestBody: { from, count: chunk.length },
-          responseBody: { ids: result.data?.map((d) => d.id) },
+          responseBody: { ids: result.data?.data?.map((d) => d.id) },
           statusCode: 200,
           latencyMs,
           batchId: chunk[0]?.batchId,
