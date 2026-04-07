@@ -286,6 +286,34 @@ export async function getBatchLogs(
   );
 }
 
+export type ApiCallLogEntry = {
+  id: string;
+  service: string;
+  endpoint: string;
+  method: string;
+  requestBody: unknown;
+  responseBody: unknown;
+  statusCode: number | null;
+  errorMessage: string | null;
+  latencyMs: number | null;
+  batchId: string | null;
+  commLogId: string | null;
+  teacherPhone: string | null;
+  teacherEmail: string | null;
+  teacherName: string | null;
+  requestCount: number | null;
+  createdAt: string;
+};
+
+export async function getBatchApiLogs(
+  batchId: string,
+  params?: { service?: string; page?: number; pageSize?: number }
+): Promise<PaginatedResponse<ApiCallLogEntry>> {
+  return request<PaginatedResponse<ApiCallLogEntry>>(
+    `/batches/${batchId}/api-logs${toQueryString(params ?? {})}`
+  );
+}
+
 // ---- Batch Errors ----
 
 export async function getBatchErrors(

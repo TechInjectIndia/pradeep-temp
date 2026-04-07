@@ -21,7 +21,7 @@ import {
   useBatch, usePauseBatch, useResumeBatch, useCancelBatch,
   useRetryResolution, useRetryOrderCreation, useRetryDispatching,
 } from "@/hooks/useBatches";
-import { getBatchLogs, getBatchTeachers, getBatchOrders, listCommLogs, type CommLogEntry, type BatchOrder } from "@/services/api";
+import { getBatchLogs, getBatchTeachers, getBatchOrders, listCommLogs, getBatchApiLogs, type CommLogEntry, type BatchOrder, type ApiCallLogEntry } from "@/services/api";
 
 export default function BatchDetailPage() {
   const params = useParams();
@@ -31,7 +31,10 @@ export default function BatchDetailPage() {
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [imageModal, setImageModal] = useState<{ src: string; title: string } | null>(null);
-  const [activeTab, setActiveTab] = useState<"orders" | "messages" | "logs" | "teachers">("orders");
+  const [activeTab, setActiveTab] = useState<"orders" | "messages" | "logs" | "teachers" | "api-logs">("orders");
+  const [apiLogsService, setApiLogsService] = useState<"" | "lms" | "resend" | "wati" | "firebase">("");
+  const [apiLogsPage, setApiLogsPage] = useState(1);
+  const [expandedApiLog, setExpandedApiLog] = useState<string | null>(null);
   const [teachersPage, setTeachersPage] = useState(1);
   const [messagesPage, setMessagesPage] = useState(1);
   const [messagesChannel, setMessagesChannel] = useState<"" | "WHATSAPP" | "EMAIL">("");
@@ -74,6 +77,16 @@ export default function BatchDetailPage() {
     }),
     enabled: !!batchId,
     refetchInterval: isTerminal ? false : 5000,
+  });
+
+  const { data: apiLogsData } = useQuery({
+    queryKey: ["batchApiLogs", batchId, apiLogsService, apiLogsPage],
+    queryFn: () => getBatchApiLogs(batchId, {
+      page: apiLogsPage,
+      pageSize: 50,
+      ...(apiLogsService ? { service: apiLogsService } : {}),
+    }),
+    enabled: !!batchId && activeTab === "api-logs",
   });
 
   const batchLogs = logsData?.data ?? [];
@@ -266,7 +279,7 @@ export default function BatchDetailPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 rounded-lg bg-muted/40 p-1">
-        {(["orders", "messages", "logs", "teachers"] as const).map((tab) => (
+        {(["orders", "messages", "logs", "teachers", "api-logs"] as const).map((tab) => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className={clsx(
               "flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors",
@@ -275,6 +288,7 @@ export default function BatchDetailPage() {
             {tab === "orders" ? `Orders (${ordersData?.total ?? 0})`
               : tab === "messages" ? `Messages (${messagesData?.total ?? 0})`
               : tab === "logs" ? "Logs"
+              : tab === "api-logs" ? `API Logs (${apiLogsData?.total ?? 0})`
               : `Teachers (${teachersData?.total ?? batchTeachers.length})`}
           </button>
         ))}
@@ -535,6 +549,135 @@ export default function BatchDetailPage() {
               ))
             )}
           </div>
+        </div>
+      )}
+
+      {/* API Logs */}
+      {activeTab === "api-logs" && (
+        <div className="rounded-xl border border-border bg-card overflow-hidden shadow-sm">
+          <div className="px-4 py-3 border-b border-border/60 flex items-center gap-2 flex-wrap">
+            <FileText className="h-4 w-4 text-muted-foreground" />
+            <h2 className="text-sm font-semibold text-foreground uppercase tracking-wider">API Call Logs</h2>
+            <div className="ml-auto flex items-center gap-2">
+              <select
+                value={apiLogsService}
+                onChange={(e) => { setApiLogsService(e.target.value as typeof apiLogsService); setApiLogsPage(1); }}
+                className="rounded-lg border border-border bg-card px-2 py-1 text-xs text-foreground focus:outline-none"
+              >
+                <option value="">All services</option>
+                <option value="lms">LMS</option>
+                <option value="resend">Resend</option>
+                <option value="wati">WATI</option>
+                <option value="firebase">Firebase</option>
+              </select>
+              <span className="text-xs text-muted-foreground">{apiLogsData?.total ?? 0} entries</span>
+            </div>
+          </div>
+
+          {!apiLogsData || apiLogsData.data.length === 0 ? (
+            <p className="py-8 text-center text-sm text-muted-foreground">No API logs for this batch</p>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border/60 bg-muted/30">
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Service</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Endpoint</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Status</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Latency</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Count</th>
+                      <th className="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/60">
+                    {apiLogsData.data.map((log) => (
+                      <>
+                        <tr
+                          key={log.id}
+                          onClick={() => setExpandedApiLog(expandedApiLog === log.id ? null : log.id)}
+                          className={clsx(
+                            "cursor-pointer transition-colors hover:bg-muted/40",
+                            log.errorMessage && "bg-destructive/5",
+                            expandedApiLog === log.id && "bg-muted/50"
+                          )}
+                        >
+                          <td className="px-4 py-2.5">
+                            <span className={clsx(
+                              "rounded px-2 py-0.5 text-xs font-semibold uppercase",
+                              log.service === "lms" && "bg-blue-500/15 text-blue-600 dark:text-blue-400",
+                              log.service === "resend" && "bg-violet-500/15 text-violet-600 dark:text-violet-400",
+                              log.service === "wati" && "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400",
+                              log.service === "firebase" && "bg-orange-500/15 text-orange-600 dark:text-orange-400",
+                            )}>{log.service}</span>
+                          </td>
+                          <td className="px-4 py-2.5 font-mono text-xs text-foreground">{log.endpoint}</td>
+                          <td className="px-4 py-2.5">
+                            <span className={clsx(
+                              "rounded px-2 py-0.5 text-xs font-semibold",
+                              log.statusCode && log.statusCode < 300 ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400"
+                              : log.statusCode && log.statusCode < 500 ? "bg-amber-500/15 text-amber-600 dark:text-amber-400"
+                              : "bg-destructive/15 text-destructive"
+                            )}>{log.statusCode ?? "—"}</span>
+                          </td>
+                          <td className="px-4 py-2.5 text-xs text-muted-foreground">
+                            {log.latencyMs != null ? `${log.latencyMs}ms` : "—"}
+                          </td>
+                          <td className="px-4 py-2.5 text-xs text-muted-foreground">{log.requestCount ?? 1}</td>
+                          <td className="px-4 py-2.5 text-xs text-muted-foreground">{formatDateTime(log.createdAt)}</td>
+                        </tr>
+                        {expandedApiLog === log.id && (
+                          <tr key={`${log.id}-expanded`} className="bg-muted/30">
+                            <td colSpan={6} className="px-4 py-3">
+                              {log.errorMessage && (
+                                <p className="mb-2 text-xs font-medium text-destructive">{log.errorMessage}</p>
+                              )}
+                              {log.teacherEmail && <p className="mb-1 text-xs text-muted-foreground">Email: {log.teacherEmail}</p>}
+                              {log.teacherPhone && <p className="mb-1 text-xs text-muted-foreground">Phone: {log.teacherPhone}</p>}
+                              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                                <div>
+                                  <p className="mb-1 text-xs font-medium text-muted-foreground uppercase">Request</p>
+                                  <pre className="max-h-64 overflow-auto rounded bg-muted p-2 text-[11px] text-foreground whitespace-pre-wrap break-all">
+                                    {JSON.stringify(log.requestBody, null, 2)}
+                                  </pre>
+                                </div>
+                                <div>
+                                  <p className="mb-1 text-xs font-medium text-muted-foreground uppercase">Response</p>
+                                  <pre className="max-h-64 overflow-auto rounded bg-muted p-2 text-[11px] text-foreground whitespace-pre-wrap break-all">
+                                    {JSON.stringify(log.responseBody, null, 2)}
+                                  </pre>
+                                </div>
+                              </div>
+                            </td>
+                          </tr>
+                        )}
+                      </>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              {/* Pagination */}
+              {(apiLogsData.totalPages ?? 1) > 1 && (
+                <div className="flex items-center justify-between border-t border-border/60 px-4 py-3">
+                  <button
+                    onClick={() => setApiLogsPage((p) => Math.max(1, p - 1))}
+                    disabled={apiLogsPage === 1}
+                    className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" /> Prev
+                  </button>
+                  <span className="text-xs text-muted-foreground">Page {apiLogsPage} of {apiLogsData.totalPages}</span>
+                  <button
+                    onClick={() => setApiLogsPage((p) => p + 1)}
+                    disabled={apiLogsPage >= (apiLogsData.totalPages ?? 1)}
+                    className="flex items-center gap-1 rounded-lg border border-border px-3 py-1.5 text-xs font-medium disabled:opacity-40 hover:bg-muted transition-colors"
+                  >
+                    Next <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              )}
+            </>
+          )}
         </div>
       )}
 

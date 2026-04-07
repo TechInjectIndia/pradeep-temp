@@ -3,7 +3,7 @@ import { BatchService } from '@/services/BatchService';
 import { LinkService } from '@/services/LinkService';
 import { formatBatchId } from '@/utils/ids';
 import { db } from '@/db';
-import { orders, commLog } from '@/db/schema';
+import { orders, commLog, apiCallLogs } from '@/db/schema';
 import { eq, and, desc, count, sql } from 'drizzle-orm';
 
 const paginationQuery = t.Object({
@@ -174,6 +174,40 @@ export const batchRoutes = new Elysia({ prefix: '/batches' })
       };
     },
     { query: t.Object({ page: t.Optional(t.Numeric()), pageSize: t.Optional(t.Numeric()) }) }
+  )
+  // API call logs for a batch
+  .get(
+    '/:id/api-logs',
+    async ({ params, query }) => {
+      const batchId = await resolveId(params.id);
+      const page = query.page ?? 1;
+      const pageSize = query.pageSize ?? 50;
+      const offset = (page - 1) * pageSize;
+
+      const where = query.service
+        ? and(eq(apiCallLogs.batchId, batchId), eq(apiCallLogs.service, query.service))
+        : eq(apiCallLogs.batchId, batchId);
+
+      const [rows, countResult] = await Promise.all([
+        db.select().from(apiCallLogs).where(where).orderBy(desc(apiCallLogs.createdAt)).limit(pageSize).offset(offset),
+        db.select({ total: count() }).from(apiCallLogs).where(where),
+      ]);
+
+      return {
+        data: rows,
+        total: Number(countResult[0]?.total ?? 0),
+        page,
+        pageSize,
+        totalPages: Math.ceil(Number(countResult[0]?.total ?? 0) / pageSize),
+      };
+    },
+    {
+      query: t.Object({
+        page: t.Optional(t.Numeric({ minimum: 1, default: 1 })),
+        pageSize: t.Optional(t.Numeric({ minimum: 1, maximum: 100, default: 50 })),
+        service: t.Optional(t.String()),
+      }),
+    }
   )
   // Generate specimen links via LMS API
   .post('/:id/links', async ({ params, set }) => {
