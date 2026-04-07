@@ -54,6 +54,18 @@ export function normalizeIndianPhone(phone: string): string {
   return digits;
 }
 
+// ─── Phone validation ─────────────────────────────────────────────────────────
+
+/**
+ * Valid Indian mobile: after normalization must be 12 digits starting with 91,
+ * and the 10-digit subscriber number must start with 6–9.
+ */
+export function isPhoneValid(phone: string): boolean {
+  if (!phone || typeof phone !== 'string') return false;
+  const normalized = normalizeIndianPhone(phone);
+  return /^91[6-9]\d{9}$/.test(normalized);
+}
+
 // ─── Bulk Send ────────────────────────────────────────────────────────────────
 
 export type BulkWAMessage = {
@@ -77,10 +89,10 @@ const BULK_CHUNK_SIZE = 100;
  */
 export async function sendWhatsAppBulk(
   messages: BulkWAMessage[]
-): Promise<{ sentIds: string[]; failedIds: string[] }> {
+): Promise<{ sentIds: string[]; failedIds: string[]; errors: Record<string, string> }> {
   if (config.disableMessaging) {
     console.log(`[WatiService] DISABLE_MESSAGING=true — skipping ${messages.length} WhatsApp sends`);
-    return { sentIds: messages.map((m) => m.commLogId), failedIds: [] };
+    return { sentIds: messages.map((m) => m.commLogId), failedIds: [], errors: {} };
   }
   if (!config.wati.baseUrl || !config.wati.apiKey) {
     throw new Error('WATI not configured');
@@ -88,10 +100,31 @@ export async function sendWhatsAppBulk(
 
   const sentIds: string[] = [];
   const failedIds: string[] = [];
+  const errors: Record<string, string> = {};
+
+  // Validate phone numbers before grouping — filter out invalid ones up front
+  const valid: BulkWAMessage[] = [];
+  for (const msg of messages) {
+    if (isPhoneValid(msg.phone)) {
+      valid.push(msg);
+    } else {
+      const reason = `Invalid phone number: ${msg.phone}`;
+      console.warn(`[WatiService] skipping invalid phone: ${msg.phone}`);
+      errors[msg.commLogId] = reason;
+      failedIds.push(msg.commLogId);
+    }
+  }
+
+  if (valid.length === 0) {
+    console.log(`[WatiService] all ${messages.length} phone numbers invalid — nothing to send`);
+    return { sentIds, failedIds, errors };
+  }
+
+  console.log(`[WatiService] ${valid.length} valid, ${failedIds.length} invalid phones (of ${messages.length})`);
 
   // Group by book count — all messages in one WATI request must share a template
   const groups = new Map<number, BulkWAMessage[]>();
-  for (const msg of messages) {
+  for (const msg of valid) {
     const count = msg.books.length;
     if (!groups.has(count)) groups.set(count, []);
     groups.get(count)!.push(msg);
@@ -158,7 +191,9 @@ export async function sendWhatsAppBulk(
           });
         } else {
           const text = await response.text();
+          const errMsg = `HTTP ${response.status}: ${text.slice(0, 200)}`;
           console.error(`[wati] bulk chunk failed ${response.status}: ${text}`);
+          for (const msg of chunk) errors[msg.commLogId] = errMsg;
           failedIds.push(...chunk.map((m) => m.commLogId));
           await logApiCall({
             service: 'wati',
@@ -166,7 +201,7 @@ export async function sendWhatsAppBulk(
             requestBody: { template_name: templateName, broadcast_name: batchId, receiverCount: receivers.length },
             responseBody: { raw: text },
             statusCode: response.status,
-            errorMessage: `HTTP ${response.status}: ${text.slice(0, 200)}`,
+            errorMessage: errMsg,
             latencyMs,
             batchId: chunk[0]?.batchId,
             requestCount: chunk.length,
@@ -175,6 +210,7 @@ export async function sendWhatsAppBulk(
       } catch (err) {
         const errMsg = (err as Error).message;
         console.error(`[wati] bulk chunk error:`, errMsg);
+        for (const msg of chunk) errors[msg.commLogId] = errMsg;
         failedIds.push(...chunk.map((m) => m.commLogId));
         await logApiCall({
           service: 'wati',
@@ -190,5 +226,5 @@ export async function sendWhatsAppBulk(
     }
   }
 
-  return { sentIds, failedIds };
+  return { sentIds, failedIds, errors };
 }

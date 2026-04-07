@@ -220,7 +220,7 @@ async function handleMessaging(batchId: string) {
 
   if (waTotal > 0) {
     await BatchService.addLog(batchId, 'outbox_queued', `Sending ${waTotal} WhatsApp messages in bulk...`);
-    const { sentIds, failedIds } = await sendWhatsAppBulk(waBulkMessages);
+    const { sentIds, failedIds, errors: waErrors } = await sendWhatsAppBulk(waBulkMessages);
     waSent = sentIds.length;
     waFailed = failedIds.length;
 
@@ -234,16 +234,16 @@ async function handleMessaging(batchId: string) {
     }
 
     if (failedIds.length > 0) {
-      await db
-        .update(commLog)
-        .set({ status: 'DLQ', lastError: 'Bulk send chunk failed', updatedAt: now })
-        .where(inArray(commLog.id, failedIds));
-
       // Insert DLQ entries so the user can retry from the failed messages page
       const msgMap = new Map(waBulkMessages.map((m) => [m.commLogId, m]));
       for (const commLogId of failedIds) {
         const msg = msgMap.get(commLogId);
         if (!msg) continue;
+        const errMsg = waErrors[commLogId] ?? 'Bulk send failed';
+        await db
+          .update(commLog)
+          .set({ status: 'DLQ', lastError: errMsg, updatedAt: now })
+          .where(eq(commLog.id, commLogId));
         await db.insert(failedMessages).values({
           id: nanoid(),
           commLogId,
@@ -251,7 +251,7 @@ async function handleMessaging(batchId: string) {
           channel: 'WHATSAPP',
           teacherPhone: msg.phone,
           errorType: 'UNKNOWN',
-          errorMessage: 'Bulk send chunk failed — retryable individually',
+          errorMessage: errMsg,
           attemptCount: 1,
           isRetryable: true,
           status: 'FAILED',
