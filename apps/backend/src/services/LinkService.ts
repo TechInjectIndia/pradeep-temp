@@ -16,6 +16,7 @@ import { eq, inArray, and } from 'drizzle-orm';
 import { config } from '@/config';
 import { nanoid } from 'nanoid';
 import { BatchService } from '@/services/BatchService';
+import { logApiCall } from '@/services/ApiCallLogger';
 import type { BookLink } from '@/db/schema';
 
 type UserMeta = {
@@ -195,6 +196,7 @@ export class LinkService {
       if (Object.keys(users).length + Object.keys(newUsers).length + Object.keys(mergedUsers).length === 0) continue;
 
       // Call LMS API for this chunk
+      const t0 = Date.now();
       const res = await fetch(`${baseUrl}/v1/teacher-batch-links`, {
         method: 'POST',
         headers: {
@@ -203,13 +205,36 @@ export class LinkService {
         },
         body: JSON.stringify(lmsPayload),
       });
+      const latencyMs = Date.now() - t0;
 
       if (!res.ok) {
         const text = await res.text();
+        await logApiCall({
+          service: 'lms',
+          endpoint: '/v1/teacher-batch-links',
+          requestBody: lmsPayload,
+          responseBody: { raw: text },
+          statusCode: res.status,
+          errorMessage: `LMS API error ${res.status}: ${text.slice(0, 200)}`,
+          latencyMs,
+          batchId,
+          requestCount: Object.keys(users).length + Object.keys(newUsers).length + Object.keys(mergedUsers).length,
+        });
         throw new Error(`LMS API error ${res.status}: ${text}`);
       }
 
       const lmsData = (await res.json()) as LmsResponse;
+
+      await logApiCall({
+        service: 'lms',
+        endpoint: '/v1/teacher-batch-links',
+        requestBody: lmsPayload,
+        responseBody: lmsData,
+        statusCode: res.status,
+        latencyMs,
+        batchId,
+        requestCount: Object.keys(users).length + Object.keys(newUsers).length + Object.keys(mergedUsers).length,
+      });
 
       // Log the full LMS API request & response to batch_logs
       await BatchService.addLog(
