@@ -19,6 +19,7 @@ import { nanoid } from 'nanoid';
 import { resolveParams } from '@/services/TemplateEngine';
 import { BatchService } from '@/services/BatchService';
 import { getCachedTemplate, normalizeIndianPhone, clearTemplateCache } from '@/services/WatiService';
+import { logApiCall } from '@/services/ApiCallLogger';
 
 export { clearTemplateCache };
 
@@ -62,28 +63,65 @@ async function sendWhatsApp(job: WhatsAppMessageJob): Promise<string> {
 
   const normalizedPhone = normalizeIndianPhone(job.phone);
   const url = `${config.wati.baseUrl}/api/v1/sendTemplateMessage?whatsappNumber=${normalizedPhone}`;
+  const requestBody = { template_name: templateName, broadcast_name: job.batchId, parameters };
+  const t0 = Date.now();
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       Authorization: `Bearer ${config.wati.apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      template_name: templateName,
-      broadcast_name: job.batchId,
-      parameters,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!response.ok) {
     const text = await response.text();
+    await logApiCall({
+      service: 'wati',
+      endpoint: `/api/v1/sendTemplateMessage`,
+      requestBody,
+      responseBody: { raw: text },
+      statusCode: response.status,
+      errorMessage: `HTTP ${response.status}: ${text.slice(0, 200)}`,
+      latencyMs: Date.now() - t0,
+      batchId: job.batchId,
+      commLogId: job.commLogId,
+      teacherPhone: job.phone,
+      teacherName: job.name,
+    });
     throw new Error(`WATI API error ${response.status}: ${text}`);
   }
 
   const data = (await response.json()) as { result?: boolean; local_message_id?: string; id?: string; info?: string };
   if (data.result === false) {
+    await logApiCall({
+      service: 'wati',
+      endpoint: `/api/v1/sendTemplateMessage`,
+      requestBody,
+      responseBody: data,
+      statusCode: 200,
+      errorMessage: `WATI rejected: ${data.info ?? 'unknown'}`,
+      latencyMs: Date.now() - t0,
+      batchId: job.batchId,
+      commLogId: job.commLogId,
+      teacherPhone: job.phone,
+      teacherName: job.name,
+    });
     throw new Error(`WATI rejected message: ${data.info ?? 'unknown error'}`);
   }
+
+  await logApiCall({
+    service: 'wati',
+    endpoint: `/api/v1/sendTemplateMessage`,
+    requestBody,
+    responseBody: data,
+    statusCode: 200,
+    latencyMs: Date.now() - t0,
+    batchId: job.batchId,
+    commLogId: job.commLogId,
+    teacherPhone: job.phone,
+    teacherName: job.name,
+  });
   return data.local_message_id ?? data.id ?? 'unknown';
 }
 

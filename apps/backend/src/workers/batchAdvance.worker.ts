@@ -274,7 +274,7 @@ async function handleMessaging(batchId: string) {
 
   if (emailTotal > 0) {
     await BatchService.addLog(batchId, 'outbox_queued', `Sending ${emailTotal} emails in bulk...`);
-    const { sentIds: emailSentIds, failedIds: emailFailedIds } = await sendEmailBulk(emailBulkMessages);
+    const { sentIds: emailSentIds, failedIds: emailFailedIds, errors: emailErrors } = await sendEmailBulk(emailBulkMessages);
     emailSent = emailSentIds.length;
     emailFailed = emailFailedIds.length;
 
@@ -288,15 +288,15 @@ async function handleMessaging(batchId: string) {
     }
 
     if (emailFailedIds.length > 0) {
-      await db
-        .update(commLog)
-        .set({ status: 'DLQ', lastError: 'Bulk email send failed', updatedAt: now })
-        .where(inArray(commLog.id, emailFailedIds));
-
       const emailMap = new Map(emailBulkMessages.map((m) => [m.commLogId, m]));
       for (const commLogId of emailFailedIds) {
         const msg = emailMap.get(commLogId);
         if (!msg) continue;
+        const errMsg = emailErrors[commLogId] ?? 'Email send failed';
+        await db
+          .update(commLog)
+          .set({ status: 'DLQ', lastError: errMsg, updatedAt: now })
+          .where(eq(commLog.id, commLogId));
         await db.insert(failedMessages).values({
           id: nanoid(),
           commLogId,
@@ -304,7 +304,7 @@ async function handleMessaging(batchId: string) {
           channel: 'EMAIL',
           teacherEmail: msg.email,
           errorType: 'UNKNOWN',
-          errorMessage: 'Bulk email send failed — retryable individually',
+          errorMessage: errMsg,
           attemptCount: 1,
           isRetryable: true,
           status: 'FAILED',

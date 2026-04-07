@@ -286,7 +286,7 @@ export default function TeachersPage() {
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/70" />
           <input
             type="text"
-            placeholder="Search by name, phone, email, school, or city..."
+            placeholder="Search by name, phone, email, school, city, or Firebase UID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-border bg-card py-2 pl-10 pr-4 text-sm placeholder:text-muted-foreground/70 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"

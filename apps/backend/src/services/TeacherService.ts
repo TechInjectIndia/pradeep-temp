@@ -50,6 +50,7 @@ export class TeacherService {
           ilike(teachers.name, `%${params.search}%`),
           ilike(teachers.school, `%${params.search}%`),
           ilike(teachers.city, `%${params.search}%`),
+          ilike(teachers.firebaseId, `%${params.search}%`),
           // phones/emails are JSONB arrays — search as text
           sql`${teachers.phones}::text ilike ${'%' + params.search + '%'}`,
           sql`${teachers.emails}::text ilike ${'%' + params.search + '%'}`

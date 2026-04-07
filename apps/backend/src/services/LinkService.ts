@@ -15,6 +15,7 @@ import { orders, teachersRaw, teachers, bookMappings, batchLinks, possibleDuplic
 import { eq, inArray, and } from 'drizzle-orm';
 import { config } from '@/config';
 import { nanoid } from 'nanoid';
+import { BatchService } from '@/services/BatchService';
 import type { BookLink } from '@/db/schema';
 
 type UserMeta = {
@@ -209,6 +210,20 @@ export class LinkService {
       }
 
       const lmsData = (await res.json()) as LmsResponse;
+
+      // Log the full LMS API request & response to batch_logs
+      await BatchService.addLog(
+        batchId,
+        'lms_api',
+        `LMS API chunk ${Math.floor(i / CHUNK_SIZE) + 1}: ${Object.keys(users).length} users, ${Object.keys(newUsers).length} newUsers, ${Object.keys(mergedUsers).length} mergedUsers → ${Object.keys(lmsData.users ?? {}).length} users, ${Object.keys(lmsData.newUsers ?? {}).length} newUsers, ${Object.keys(lmsData.mergedUsers ?? {}).length} mergedUsers returned`,
+        undefined,
+        {
+          chunkIndex: Math.floor(i / CHUNK_SIZE) + 1,
+          chunkSize: CHUNK_SIZE,
+          request: lmsPayload,
+          response: lmsData,
+        },
+      );
 
       // For newUsers: LMS just created them — save firebaseUserId back to teacher record
       // Do this BEFORE building allResponses so we can also index by teacherRecordId

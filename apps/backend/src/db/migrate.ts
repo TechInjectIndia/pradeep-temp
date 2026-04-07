@@ -262,6 +262,29 @@ async function main() {
       logged_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
 
+    CREATE TABLE IF NOT EXISTS api_call_logs (
+      id TEXT PRIMARY KEY,
+      service TEXT NOT NULL,
+      endpoint TEXT NOT NULL,
+      method TEXT NOT NULL DEFAULT 'POST',
+      request_body JSONB,
+      response_body JSONB,
+      status_code INTEGER,
+      error_message TEXT,
+      latency_ms INTEGER,
+      batch_id TEXT REFERENCES batches(id),
+      comm_log_id TEXT REFERENCES comm_log(id),
+      teacher_phone TEXT,
+      teacher_email TEXT,
+      teacher_name TEXT,
+      request_count INTEGER DEFAULT 1,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS api_call_logs_batch_idx ON api_call_logs(batch_id);
+    CREATE INDEX IF NOT EXISTS api_call_logs_service_idx ON api_call_logs(service);
+    CREATE INDEX IF NOT EXISTS api_call_logs_created_idx ON api_call_logs(created_at);
+
     CREATE TABLE IF NOT EXISTS batch_links (
       id TEXT PRIMARY KEY,
       batch_id TEXT NOT NULL UNIQUE REFERENCES batches(id),

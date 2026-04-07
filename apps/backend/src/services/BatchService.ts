@@ -273,13 +273,20 @@ export class BatchService {
     };
   }
 
-  static async addLog(batchId: string, step: typeof batchLogs.$inferInsert['step'], message: string, detail?: string) {
+  static async addLog(
+    batchId: string,
+    step: typeof batchLogs.$inferInsert['step'],
+    message: string,
+    detail?: string,
+    metadata?: Record<string, unknown>,
+  ) {
     await db.insert(batchLogs).values({
       id: nanoid(),
       batchId,
       step,
       message,
       detail,
+      metadata: metadata ?? undefined,
       loggedAt: new Date(),
     });
   }

@@ -7,6 +7,7 @@ import { db } from '@/db';
 import { watiTemplates } from '@/db/schema';
 import { eq, gte, asc, desc, and } from 'drizzle-orm';
 import { resolveParams } from './TemplateEngine';
+import { logApiCall } from '@/services/ApiCallLogger';
 
 // ─── Template cache (60s TTL) ─────────────────────────────────────────────────
 
@@ -126,6 +127,9 @@ export async function sendWhatsAppBulk(
       });
 
       const url = `${config.wati.baseUrl}/api/v2/sendTemplateMessages`;
+      const batchId = chunk[0]?.batchId ?? 'bulk';
+      const requestBody = { template_name: templateName, broadcast_name: batchId, receivers };
+      const t0 = Date.now();
       try {
         const response = await fetch(url, {
           method: 'POST',
@@ -133,24 +137,55 @@ export async function sendWhatsAppBulk(
             Authorization: `Bearer ${config.wati.apiKey}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            template_name: templateName,
-            broadcast_name: chunk[0]?.batchId ?? 'bulk',
-            receivers,
-          }),
+          body: JSON.stringify(requestBody),
         });
 
+        const latencyMs = Date.now() - t0;
+
         if (response.ok) {
+          const responseBody = await response.json().catch(() => null);
           sentIds.push(...chunk.map((m) => m.commLogId));
           console.log(`[wati] bulk chunk sent: ${chunk.length} msgs (template=${templateName})`);
+          await logApiCall({
+            service: 'wati',
+            endpoint: '/api/v2/sendTemplateMessages',
+            requestBody: { template_name: templateName, broadcast_name: batchId, receiverCount: receivers.length },
+            responseBody,
+            statusCode: response.status,
+            latencyMs,
+            batchId: chunk[0]?.batchId,
+            requestCount: chunk.length,
+          });
         } else {
           const text = await response.text();
           console.error(`[wati] bulk chunk failed ${response.status}: ${text}`);
           failedIds.push(...chunk.map((m) => m.commLogId));
+          await logApiCall({
+            service: 'wati',
+            endpoint: '/api/v2/sendTemplateMessages',
+            requestBody: { template_name: templateName, broadcast_name: batchId, receiverCount: receivers.length },
+            responseBody: { raw: text },
+            statusCode: response.status,
+            errorMessage: `HTTP ${response.status}: ${text.slice(0, 200)}`,
+            latencyMs,
+            batchId: chunk[0]?.batchId,
+            requestCount: chunk.length,
+          });
         }
       } catch (err) {
-        console.error(`[wati] bulk chunk error:`, (err as Error).message);
+        const errMsg = (err as Error).message;
+        console.error(`[wati] bulk chunk error:`, errMsg);
         failedIds.push(...chunk.map((m) => m.commLogId));
+        await logApiCall({
+          service: 'wati',
+          endpoint: '/api/v2/sendTemplateMessages',
+          requestBody: { template_name: templateName, broadcast_name: batchId, receiverCount: receivers.length },
+          statusCode: 500,
+          errorMessage: errMsg,
+          latencyMs: Date.now() - t0,
+          batchId: chunk[0]?.batchId,
+          requestCount: chunk.length,
+        });
       }
     }
   }

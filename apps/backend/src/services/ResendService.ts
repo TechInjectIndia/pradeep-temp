@@ -1,8 +1,16 @@
 /**
- * ResendService — bulk email sending via Resend batch API.
+ * ResendService — bulk email sending via Resend.
+ *
+ * Uses individual send() calls per email (NOT resend.batch.send) because the batch
+ * API returns a single error for the entire chunk if any email fails — making all
+ * emails in the chunk unretryable individually. Individual sends allow per-email
+ * retry and accurate DLQ tracking.
+ *
+ * Rate limit: 1 email/sec via built-in delay loop.
  */
 import { config } from '@/config';
 import { formatName } from '@/utils/formatName';
+import { logApiCall } from '@/services/ApiCallLogger';
 
 export type BulkEmailMessage = {
   commLogId: string;
@@ -13,7 +21,7 @@ export type BulkEmailMessage = {
   batchId: string;
 };
 
-const BULK_CHUNK_SIZE = 100;
+const SEND_DELAY_MS = 1000; // Resend rate limit: ~1 email/sec
 
 function buildEmailHtml(
   name: string,
@@ -37,10 +45,10 @@ function buildEmailHtml(
 
 export async function sendEmailBulk(
   messages: BulkEmailMessage[]
-): Promise<{ sentIds: string[]; failedIds: string[] }> {
+): Promise<{ sentIds: string[]; failedIds: string[]; errors: Record<string, string> }> {
   if (config.disableMessaging) {
     console.log(`[ResendService] DISABLE_MESSAGING=true — skipping ${messages.length} emails`);
-    return { sentIds: messages.map((m) => m.commLogId), failedIds: [] };
+    return { sentIds: messages.map((m) => m.commLogId), failedIds: [], errors: {} };
   }
   if (!config.resend.apiKey) {
     throw new Error('Resend not configured');
@@ -51,35 +59,64 @@ export async function sendEmailBulk(
   const from = `${config.resend.fromName} <${config.resend.fromEmail}>`;
   const sentIds: string[] = [];
   const failedIds: string[] = [];
+  const errors: Record<string, string> = {};
 
-  for (let i = 0; i < messages.length; i += BULK_CHUNK_SIZE) {
-    const chunk = messages.slice(i, i + BULK_CHUNK_SIZE);
-
-    const payload = chunk.map((msg) => ({
-      from,
-      to: msg.email,
-      subject: `Digital Specimen Books from Pradeep Publications`,
-      html: buildEmailHtml(msg.name, msg.specimenDetails, msg.books),
-    }));
+  for (const msg of messages) {
+    const t0 = Date.now();
+    let statusCode: number | undefined;
+    let responseBody: unknown;
+    let errMsg: string | undefined;
 
     try {
-      const result = await resend.batch.send(payload);
+      const { data, error } = await resend.emails.send({
+        from,
+        to: msg.email,
+        subject: `Digital Specimen Books from Pradeep Publications`,
+        html: buildEmailHtml(msg.name, msg.specimenDetails, msg.books),
+      });
 
-      if (result.error) {
-        console.error(`[ResendService] batch chunk error:`, result.error);
-        failedIds.push(...chunk.map((m) => m.commLogId));
-      } else if (result.data && Array.isArray(result.data)) {
-        // result.data is { id: string }[] — one per email
-        console.log(`[ResendService] bulk chunk sent: ${result.data.length} emails`);
-        sentIds.push(...chunk.map((m) => m.commLogId));
+      if (error) {
+        errMsg = error.message ?? JSON.stringify(error);
+        statusCode = 400;
+        responseBody = error;
+        console.error(`[ResendService] email failed to ${msg.email}:`, errMsg);
+        errors[msg.commLogId] = errMsg;
+        failedIds.push(msg.commLogId);
       } else {
-        failedIds.push(...chunk.map((m) => m.commLogId));
+        statusCode = 200;
+        responseBody = { id: data?.id };
+        console.log(`[ResendService] email sent to ${msg.email} (${data?.id ?? 'no-id'})`);
+        sentIds.push(msg.commLogId);
       }
     } catch (err) {
-      console.error(`[ResendService] bulk chunk exception:`, (err as Error).message);
-      failedIds.push(...chunk.map((m) => m.commLogId));
+      errMsg = (err as Error).message;
+      statusCode = 500;
+      responseBody = { error: errMsg };
+      console.error(`[ResendService] email exception for ${msg.email}:`, errMsg);
+      errors[msg.commLogId] = errMsg;
+      failedIds.push(msg.commLogId);
+    }
+
+    await logApiCall({
+      service: 'resend',
+      endpoint: '/emails',
+      requestBody: { from, to: msg.email, subject: 'Digital Specimen Books from Pradeep Publications' },
+      responseBody,
+      statusCode,
+      errorMessage: errMsg,
+      latencyMs: Date.now() - t0,
+      batchId: msg.batchId,
+      commLogId: msg.commLogId,
+      teacherEmail: msg.email,
+      teacherName: msg.name,
+    });
+
+    // Rate limit: 1 email/sec
+    if (messages.indexOf(msg) < messages.length - 1) {
+      await new Promise((r) => setTimeout(r, SEND_DELAY_MS));
     }
   }
 
-  return { sentIds, failedIds };
+  console.log(`[ResendService] bulk complete: ${sentIds.length} sent, ${failedIds.length} failed (of ${messages.length})`);
+  return { sentIds, failedIds, errors };
 }

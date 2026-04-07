@@ -103,6 +103,8 @@ export const batchLogStepEnum = pgEnum('batch_log_step', [
   'batch_resumed',
   'batch_cancelled',
   'error',
+  'lms_api',
+  'firebase_api',
 ]);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -543,6 +545,37 @@ export const batchLogs = pgTable(
   (t) => ({
     batchIdx: index('batch_logs_batch_idx').on(t.batchId),
     stepIdx: index('batch_logs_step_idx').on(t.step),
+  }),
+);
+
+/**
+ * Every external API call — WATI, Resend, LMS, Firebase.
+ * Captures request body, response body, status code, and latency for debugging.
+ */
+export const apiCallLogs = pgTable(
+  'api_call_logs',
+  {
+    id: text('id').primaryKey(),
+    service: text('service').notNull(),              // 'wati' | 'resend' | 'lms' | 'firebase'
+    endpoint: text('endpoint').notNull(),
+    method: text('method').notNull().default('POST'),
+    requestBody: jsonb('request_body'),
+    responseBody: jsonb('response_body'),
+    statusCode: integer('status_code'),
+    errorMessage: text('error_message'),
+    latencyMs: integer('latency_ms'),
+    batchId: text('batch_id').references(() => batches.id),
+    commLogId: text('comm_log_id').references(() => commLog.id),
+    teacherPhone: text('teacher_phone'),
+    teacherEmail: text('teacher_email'),
+    teacherName: text('teacher_name'),
+    requestCount: integer('request_count').default(1), // for bulk: how many items in the batch call
+    createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  },
+  (t) => ({
+    batchIdx: index('api_call_logs_batch_idx').on(t.batchId),
+    serviceIdx: index('api_call_logs_service_idx').on(t.service),
+    createdIdx: index('api_call_logs_created_idx').on(t.createdAt),
   }),
 );
 
