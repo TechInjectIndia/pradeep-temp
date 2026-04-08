@@ -20,6 +20,8 @@ import Pj2Ch1Content from "@/components/content/chapters/pj2-ch1";
 import Pj2Ch1TheoryContent from "@/components/content/chapters/pj2-ch1-theory";
 import Phys12Ch1AppboosterL1Content from "@/components/content/chapters/phys12-ch1-appbooster-l1";
 import Phys12Ch1AppboosterL2Content from "@/components/content/chapters/phys12-ch1-appbooster-l2";
+import Pj2Ch1AppboosterL1Content from "@/components/content/chapters/pj2-ch1-appbooster-l1";
+import Pj2Ch1AppboosterL2Content from "@/components/content/chapters/pj2-ch1-appbooster-l2";
 
 const CHAPTER_NAMES = [
   "bio-9-ch1",
@@ -35,6 +37,8 @@ const CHAPTER_NAMES = [
   "phy-9-ch4",
   "phy-9-ch5",
   "pj2-ch1-theory",
+  "pj2-ch1-appbooster-l1",
+  "pj2-ch1-appbooster-l2",
   "phys12-ch1-appbooster-l1",
   "phys12-ch1-appbooster-l2",
 ] as const;
@@ -55,6 +59,8 @@ export const CHAPTER_CONTENT: Record<Chapter, React.ComponentType> = {
   "phy-9-ch4": Phy9Ch4Content,
   "phy-9-ch5": Phy9Ch5Content,
   "pj2-ch1-theory": Pj2Ch1TheoryContent,
+  "pj2-ch1-appbooster-l1": Pj2Ch1AppboosterL1Content,
+  "pj2-ch1-appbooster-l2": Pj2Ch1AppboosterL2Content,
   "phys12-ch1-appbooster-l1": Phys12Ch1AppboosterL1Content,
   "phys12-ch1-appbooster-l2": Phys12Ch1AppboosterL2Content,
 };
