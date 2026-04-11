@@ -78,7 +78,7 @@ const SubSubHd = ({ id, label, title }) => (
 );
 
 const P2 = ({ children, style }) => (
-  <p style={{ margin: "0 0 11px", textAlign: "justify", ...style }}>{children}</p>
+  <p style={{ margin: "0 0 14px", textAlign: "justify", ...style }}>{children}</p>
 );
 
 const DefBox = ({ children }) => (
@@ -349,50 +349,50 @@ const content_b1 = [
   <SecHd key="sec-fe" id="fe" title="Foundation Essentials" />,
 
   <SecHd key="sec-s10" id="s10" label="1.0" title="System of Particles" />,
-  <p key="b1-p-s10-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s10-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The term system of particles means a well defined collection of several or large number of particles, which may or may not interact or be connected to each other. If some of them interact with each other, the forces of mutual interaction between a pair of particles of the system are <em>internal forces</em> of the system. These internal forces always exist in pairs and are forces of equal magnitudes and opposite directions. Other than internal forces, external forces may also act on all or some of the particles.
   </p>,
-  <p key="b1-p-s10-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s10-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     So far, the focus had been more on a single particle or a point particle to which various theorems and principles had been applied. Now we will inquire into possibilities of applying these principles to a system of particles which may either be finite number of discrete particles or may be infinitely large in number having infinitely small separations between them (or large bodies having a continuous mass distribution).
   </p>,
 
   <SecHd key="sec-s11" id="s11" label="1.1" title="Centre of Mass" />,
-  <p key="b1-p-s11-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s11-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     For an extended body or a system of particles, we can define a special point called the <em>centre of mass</em> where the entire mass of the system is assumed to be concentrated.
   </p>,
-  <p key="b1-p-s11-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s11-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Under the application of forces, a body may have a translation motion, rotational motion or the combination of both translational and rotational motions. The path of most of the particles of the body is complicated. However, the motion of centre of mass of the body will be just like the motion of a single particle when subjected to the same forces.
   </p>,
-  <p key="b1-p-s11-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s11-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>Examples.</strong> Consider a uniform rod thrown at an angle such that it rotates while in motion. The centre of the rod (which is the centre of mass in this case), shall follow parabolic path while the path of all other points on the rod shall be complicated.
   </p>,
   <Fig key="fig-1-1" src={CONTENT_IMAGES.CONTENT_IMAGE_5738C7E89DC2C6DC6FD4} num="Fig. 1.1" />,
-  <p key="b1-p-s11-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s11-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Another example is of a bomb thrown at an angle and moving along a parabola. It explodes in mid air and splits in two parts (as shown in fig. 1.2) so that each part after explosion follows its own parabolic path.
   </p>,
   <Fig key="fig-1-2" src={CONTENT_IMAGES.CONTENT_IMAGE_5A7F8213EADE1F87CE04} num="Fig. 1.2" />,
-  <p key="b1-p-s11-5" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s11-5" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     However, the centre of mass of the two parts at any given instant shall be at the same position as the bomb if the explosion would not have been there, i.e., the centre of mass continue to move along the original parabola.
   </p>,
 
   <SubHd key="sub-com2p" id="com2p" title="Position of centre of mass of two particle system" />,
-  <p key="b1-p-com2p-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-com2p-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider a system of two particles of masses {"$m_{1}$"} and {"$m_{2}$"} separated by distance {"$d$"}. We may set up the coordinate axes such that {"$X$"}-axis passes through the two particles.
   </p>,
   <Fig key="fig-1-3" src={CONTENT_IMAGES.CONTENT_IMAGE_AF0C3ED2CF7F462574BD} num="Fig. 1.3" />,
-  <p key="b1-p-com2p-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-com2p-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Let origin be at {"$O$"} such that distance of {"$m_{1}$"} and {"$m_{2}$"} from origin are {"$x_{1}$"} and {"$x_{2}$"} respectively. We say that coordinates of {"$m_{1}$"} and {"$m_{2}$"} are {"$x_{1}$"} and {"$x_{2}$"} respectively. If {"$C$"} is the location of centre of mass whose coordinate is {"$x_{\\mathrm{cm}}$"}, then {"$x_{\\mathrm{cm}}$"} is given by
   </p>,
   <div key="b1-math-1" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$x_{\\mathrm{cm}}=\\frac{m_{1} x_{1}+m_{2} x_{2}}{m_{1}+m_{2}}$$"}
   </div>,
-  <p key="b1-p-com2p-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-com2p-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Using above, we can compute distance {"$AC$"}, i.e., distance of centre of mass from {"$m_{1}$"}
   </p>,
   <div key="b1-math-2" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} & x_{\\mathrm{cm}}=\\frac{m_{1} x_{1}+m_{2} x_{2}}{m_{1}+m_{2}}=\\frac{m_{1} x_{1}+m_{2}\\left(x_{1}+d\\right)}{m_{1}+m_{2}} \\\\ & \\quad=\\frac{\\left(m_{1}+m_{2}\\right) x_{1}+m_{2} d}{m_{1}+m_{2}}=x_{1}+\\frac{m_{2} d}{m_{1}+m_{2}} \\\\ & \\therefore AC=x_{\\mathrm{cm}}-x_{1}=\\frac{m_{2} d}{m_{1}+m_{2}} \\end{aligned}$$"}
   </div>,
-  <p key="b1-p-com2p-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-com2p-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     For convenience, we may choose the origin at {"$m_{1}$"} so that the coordinates of {"$m_{1}$"} and {"$m_{2}$"} are {"$x_{1}=0$"} and {"$x_{2}=d$"} respectively.
   </p>,
   <Fig key="fig-1-4" src={CONTENT_IMAGES.CONTENT_IMAGE_B9C9AF9AA0EB4E2E0679} num="Fig. 1.4" />,
@@ -410,13 +410,13 @@ const content_b1 = [
   </GraspGripBox>,
 
   <SubHd key="sub-comnp" id="comnp" title="Position of centre of mass of n particle system" />,
-  <p key="b1-p-comnp-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-comnp-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The position vector {"$\\vec{r}_{\\mathrm{cm}}$"} of the centre of mass of {"$n$"} particles having masses {"$m_{1}, m_{2}, m_{3}, \\ldots m_{n}$"} and position vectors {"$\\overrightarrow{r_{1}}, \\overrightarrow{r_{2}}, \\overrightarrow{r_{3}}, \\ldots \\ldots \\overrightarrow{r_{n}}$"} respectively is defined as
   </p>,
   <div key="b1-math-3" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\overrightarrow{r_{\\mathrm{cm}}}=\\frac{m_{1} \\overrightarrow{r_{1}}+m_{2} \\overrightarrow{r_{2}}+\\ldots \\ldots+m_{n} \\overrightarrow{r_{n}}}{m_{1}+m_{2}+\\ldots \\ldots+m_{n}}$$"}
   </div>,
-  <p key="b1-p-comnp-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-comnp-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If the coordinates of centre of mass are {"$x_{\\mathrm{cm}}, y_{\\mathrm{cm}}, z_{\\mathrm{cm}}$"}, then,
   </p>,
   <div key="b1-math-4" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -426,7 +426,7 @@ const content_b1 = [
   <div key="b1-math-5" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$M=m_{1}+m_{2}+\\ldots \\ldots m_{n}=\\Sigma m_{i}=\\text{ Total mass of the system.}$$"}
   </div>,
-  <p key="b1-p-comnp-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-comnp-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     For a continuous body, these equations take the form
   </p>,
   <div key="b1-math-6" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -486,24 +486,24 @@ const content_b1 = [
   </IllustrationBox>,
 
   <SubHd key="sub-vcm" id="vcm" title="Velocity of centre of mass" />,
-  <p key="b1-p-vcm-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-vcm-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The velocity of centre of mass is obtained by differentiating its position vector with respect to time
   </p>,
   <div key="b1-math-7" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} & \\quad \\frac{d \\vec{r}_{\\mathrm{cm}}}{dt}=\\frac{1}{M}\\left(m_{1} \\frac{d \\vec{r}_{1}}{dt}+m_{1} \\frac{d \\vec{r}_{2}}{dt}+\\ldots.+m_{n} \\frac{d \\overrightarrow{r_{n}}}{dt}\\right) \\\\ & \\text{or } \\vec{v}_{\\mathrm{cm}}=\\frac{m_{1} \\vec{v}_{1}+m_{2} \\vec{v}_{2}+\\ldots \\ldots+m_{n} \\vec{v}_{n}}{m_{1}+m_{2}+\\ldots \\ldots+m_{n}}=\\frac{\\Sigma m_{i} \\vec{v}_{i}}{M} \\\\ & \\text{or } M \\vec{v}_{\\mathrm{cm}}=m_{1} \\vec{v}_{1}+m_{2} \\vec{v}_{2}+\\ldots \\ldots+m_{n} \\vec{v}_{n}=\\Sigma m_{i} \\vec{v}_{i} \\end{aligned}$$"}
   </div>,
-  <p key="b1-p-vcm-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-vcm-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The quantity {"$m_{i} \\vec{v}_{i}$"} is the momentum of {"$i$"}th particle. The right hand side of the equation is therefore the total momentum of the system. We thus have the important result that the total momentum of a system of particles equals the product of the total mass {"$M$"} and the velocity of centre of mass {"$\\vec{v}_{\\mathbf{cm}}$"} i.e., {"$\\vec{p}=\\Sigma m_{i} \\vec{v}_{i}=M \\vec{v}_{\\mathrm{cm}}$"}
   </p>,
 
   <SubHd key="sub-acm" id="acm" title="Acceleration of centre of mass" />,
-  <p key="b1-p-acm-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-acm-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The acceleration of the centre of mass can be obtained by differentiating its velocity with respect to time.
   </p>,
   <div key="b1-math-8" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} & \\qquad \\frac{d \\vec{v}_{\\mathrm{cm}}}{dt}=\\frac{1}{M}\\left(m_{1} \\frac{d \\vec{v}_{1}}{dt}+m_{1} \\frac{d \\vec{v}_{2}}{dt}+\\ldots.+m_{n} \\frac{d \\vec{v}_{n}}{dt}\\right) \\\\ & \\text{or } \\vec{a}_{\\mathrm{cm}}=\\frac{m_{1} \\vec{a}_{1}+m_{2} \\vec{a}_{2}+\\ldots \\ldots+m_{n} \\vec{a}_{n}}{m_{1}+m_{2}+\\ldots \\ldots+m_{n}}=\\frac{\\Sigma m_{i} \\vec{a}_{i}}{M} \\\\ & \\text{or } M \\vec{a}_{\\mathrm{cm}}=m_{1} \\vec{a}_{1}+m_{2} \\vec{a}_{2}+\\ldots \\ldots+m_{n} \\vec{a}_{n} \\\\ & \\quad=\\overrightarrow{F_{1}}+\\overrightarrow{F_{2}}+\\ldots \\ldots. \\vec{F}_{n}=\\Sigma \\vec{F}_{i} \\end{aligned}$$"}
   </div>,
-  <p key="b1-p-acm-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-acm-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     where, {"$\\vec{F}_{i}$"} is the net force acting on the {"$i$"}th particle.
   </p>,
 
@@ -529,17 +529,17 @@ const content_b1 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s12" id="s12" label="1.2" title="Center of Mass of an Extended Body or Continuous Distribution of Mass" />,
-  <p key="b1-p-s12-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s12-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     An extended body is collection of infinitely large number of particles so closely located that we neglect separation between them and assume the body as a continuous distribution of mass. A rigid body is an extended body in which relative locations of all the particles remain unchanged. Therefore a rigid body does not get deformed under any situation.
   </p>,
-  <p key="b1-p-s12-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s12-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Let an extended body be shown as a continuous distribution of mass in the fig. 1.9. Consider an infinitely small portion of mass {"$dm$"} of the extended body. It is called a mass element and let the position vector of this element be {"$\\vec{r}$"}. The total mass {"$M$"} of the body is {"$M=\\int dm$"} and the position vector {"$\\overrightarrow{r_{C}}$"} of center of mass {"$C$"} is given by
   </p>,
   <div key="b1-math-9" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\overrightarrow{r_{C}}=\\frac{\\int \\vec{r}\\, dm}{M}$$"}
   </div>,
   <Fig key="fig-1-9" src={CONTENT_IMAGES.CONTENT_IMAGE_E0CAC8DD48728A35B3CA} num="Fig. 1.9" />,
-  <p key="b1-p-s12-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s12-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If {"$(x, y, z)$"} are the cartesian coordinates of the element of mass {"$dm$"}, then the coordinates {"$(x_{cm}, y_{cm}, z_{cm})$"} of center of mass are given by
   </p>,
   <div key="b1-math-10" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -558,14 +558,14 @@ const content_b1 = [
   </IllustrationBox>,
 
   <SubHd key="sub-arcrod" id="arcrod" title="Center of mass of a segment of a uniform circular rod (arc)" />,
-  <p key="b1-p-arcrod-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-arcrod-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider a thin rod of mass per unit length {"$\\lambda$"} and radius {"$r$"} subtending angle {"$2\\theta$"} on its center {"$O$"}. Let us choose the angle bisector as {"$x$"}-axis (with origin at {"$O$"}) as shown in fig. 1.11.
   </p>,
-  <p key="b1-p-arcrod-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-arcrod-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     By symmetry, centre of mass must lie on {"$x$"}-axis.
   </p>,
   <Fig key="fig-1-11" src={CONTENT_IMAGES.CONTENT_IMAGE_F4969A6309E32B0725E8} num="Fig. 1.11" />,
-  <p key="b1-p-arcrod-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-arcrod-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Let us consider an element of length {"$dl=r\\,d\\alpha$"} at angular inclination of {"$\\alpha$"} to {"$x$"}-axis. Its mass is {"$dm=\\lambda r\\,d\\alpha$"} and its {"$x$"} coordinate is {"$x=r\\cos\\alpha$"}. Hence,
   </p>,
   <div key="b1-math-11" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -594,17 +594,17 @@ const content_b1 = [
   </IllustrationBox>,
 
   <SubHd key="sub-sectordisc" id="sectordisc" title="Center of mass of a sector of a uniform circular plate" />,
-  <p key="b1-p-sectordisc-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-sectordisc-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider a sector of a thin uniform plate of mass per unit area {"$\\sigma$"} and radius {"$R$"} subtending angle {"$2\\theta$"} on its center {"$O$"}. Let us choose the angle bisector as {"$x$"}-axis (with origin at {"$O$"}) as shown in fig. 1.14.
   </p>,
   <Fig key="fig-1-14" src={CONTENT_IMAGES.CONTENT_IMAGE_B9FAA215AAF42565DC98} num="Fig. 1.14" />,
-  <p key="b1-p-sectordisc-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-sectordisc-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Let us consider an element of radius {"$r$"} and width {"$dr$"} as shown in the figure. Its mass is
   </p>,
   <div key="b1-math-12" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$dm=\\sigma(2r\\theta\\,dr)=2\\sigma r\\theta\\,dr$$"}
   </div>,
-  <p key="b1-p-sectordisc-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-sectordisc-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Due to symmetry, center of mass of this element must be on the angle bisector, i.e., on {"$x$"}-axis at distance {"$(r\\sin\\theta)/\\theta$"}. Hence,
   </p>,
   <div key="b1-math-13" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -636,7 +636,7 @@ const content_b1 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s13" id="s13" label="1.3" title="Linear Momentum and its Conservation Principle" />,
-  <p key="b1-p-s13-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s13-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The linear momentum of a single particle is defined as {"$\\vec{p}=m\\vec{v}$"}. The momentum of a system of {"$n$"}-particles is the vector sum of linear momentum of the particles of the system,
   </p>,
   <p key="b1-p-s13-2" style={{ textAlign: "justify" }}>
@@ -645,13 +645,13 @@ const content_b1 = [
   <p key="b1-p-s13-3" style={{ textAlign: "justify" }}>
     where, {"$M$"} is the total mass of the system.
   </p>,
-  <p key="b1-p-s13-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s13-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The rate of change of total momentum is
   </p>,
   <div key="b1-math-15" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\frac{d\\vec{p}}{dt}=M\\vec{a}_{\\mathrm{cm}}=\\vec{F}_{\\mathrm{ext}}$$"}
   </div>,
-  <p key="b1-p-s13-5" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s13-5" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Therefore, if the resultant external force on a system is zero, the velocity of centre of mass and total momentum of system remains constant.
   </p>,
 
@@ -698,13 +698,13 @@ const content_b1 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s14" id="s14" label="1.4" title="Kinetic Energy of a System" />,
-  <p key="b1-p-s14-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s14-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The kinetic energy of a system of particles is the sum of kinetic energies of the individual particles, i.e.,
   </p>,
   <div key="b1-math-16" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$K=\\sum \\frac{1}{2} m_{i} v_{i}^{2}$$"}
   </div>,
-  <p key="b1-p-s14-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s14-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The kinetic energy can be written as the sum of two terms:
   </p>,
   <p key="b1-p-s14-3" style={{ textAlign: "justify" }}>
@@ -713,13 +713,13 @@ const content_b1 = [
   <p key="b1-p-s14-4" style={{ textAlign: "justify" }}>
     (b) the kinetic energy relative to the centre of mass equal to {"$\\frac{1}{2}\\sum m_{i}v_{i}^{\\prime 2}$"} where {"$v_{i}^{\\prime}$"} is the velocity of the {"$i$"}th particle relative to the centre of mass.
   </p>,
-  <p key="b1-p-s14-5" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s14-5" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Therefore, the kinetic energy of the system of particles,
   </p>,
   <div key="b1-math-17" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$K=\\sum \\frac{1}{2} m_{i} v_{i}^{2}=\\frac{1}{2} Mv_{\\mathrm{cm}}^{2}+\\frac{1}{2} \\sum m_{i} v_{i}^{\\prime 2}$$"}
   </div>,
-  <p key="b1-p-s14-6" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s14-6" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     For an isolated system, velocity of centre of mass is constant and therefore first term does not change. However, the second term may increase or decrease even for an isolated system.
   </p>,
 
@@ -748,24 +748,24 @@ const content_b1 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s15" id="s15" label="1.5" title="Impulse" />,
-  <p key="b1-p-s15-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-s15-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     When two bodies come close together and exert large forces on each other for a short duration of time, a collision is said to have taken place between them. We must be able to distinguish times before, during and after a collision. In before and after stages interaction forces are negligible. But during collision, interaction forces are very large and usually the dominating forces that determine the motion of the two bodies.
   </p>,
 
   <SubHd key="sub-impulsechange" id="impulsechange" title="Impulse and change in momentum" />,
-  <p key="b1-p-imp-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-imp-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The forces of interaction of bodies during collision are usually very large and act for short duration of time. What is important is not the force alone or its duration alone but a combination called the <em>impulse</em> of the force.
   </p>,
-  <p key="b1-p-imp-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-imp-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If one body exerts on the other body, a force {"$\\vec{F}(t)$"} for a time interval from {"$t_{i}$"} to {"$t_{f}$"}, the impulse of the force is given by the integral.
   </p>,
   <div key="b1-math-18" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\vec{J}=\\int_{t_{i}}^{t_{f}} \\vec{F}(t)\\, dt=\\vec{F}_{av}\\Delta t$$"}
   </div>,
-  <p key="b1-p-imp-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-imp-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     where, {"$F_{av}$"} is the average force during collision and {"$\\Delta t$"} is the duration of the collision.
   </p>,
-  <p key="b1-p-imp-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-imp-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     According to Newton's second law,
   </p>,
   <div key="b1-math-19" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -774,11 +774,11 @@ const content_b1 = [
   <p key="b1-p-imp-5" style={{ textAlign: "justify" }}>
     (Impulse-momentum theorem)
   </p>,
-  <p key="b1-p-imp-6" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-imp-6" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     For one-dimensional force, impulse is also equal to area under force-time graph. In the given figure, the impulse of force {"$F$"} in time interval {"$t_{i}$"} to {"$t_{f}$"} equals to area of the shaded portion.
   </p>,
   <Fig key="fig-1-22" src={CONTENT_IMAGES.CONTENT_IMAGE_8BF838A9342AA82AEEA0} num="Fig. 1.22" />,
-  <p key="b1-p-imp-7" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b1-p-imp-7" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If several forces {"$\\overrightarrow{F_{1}}, \\overrightarrow{F_{2}}, \\overrightarrow{F_{3}}, \\ldots. \\overrightarrow{F_{n}}$"} act on a body in a time interval, then the total impulse {"$\\vec{J}$"} of all these forces is equal to impulse of the net force given by
   </p>,
   <div key="b1-math-20" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -912,17 +912,17 @@ const TableCollisionSummary = () => (
 
 const content_b2 = [
   <SecHd key="sec-s16" id="s16" label="1.6" title="Collisions" />,
-  <p key="b2-p-s16-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s16-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     We define collision as an event in which two or more colliding bodies exert relatively strong forces on each other but for a relatively short time.
   </p>,
-  <p key="b2-p-s16-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s16-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider two particles moving on a horizontal surface collide. Then an equal and opposite impulse act on both bodies. The impulse on first body towards left is equal to the impulse on the second body towards right. This means that the decrease in momentum of the first body is equal to the increase in momentum of the second body. Hence, the total momentum of the system before collision is equal to the total momentum of the system after collision. In all collisions, the total linear momentum is conserved.
   </p>,
-  <p key="b2-p-s16-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s16-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider two particles of mass {"$m_{1}$"} and {"$m_{2}$"} collide. Let their velocities be {"$u_{1}$"} and {"$u_{2}$"} before collision and {"$v_{1}$"} and {"$v_{2}$"} after collision respectively.
   </p>,
   <Fig key="fig-1-24" src={CONTENT_IMAGES.CONTENT_IMAGE_7E3885D539306E885F54} num="Fig. 1.24" />,
-  <p key="b2-p-s16-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s16-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The total linear momentum before collision {"$=m_{1}u_{1}+m_{2}u_{2}$"}. The total linear momentum after collision {"$=m_{1}v_{1}+m_{2}v_{2}$"}. Then, {"$\\quad m_{1}u_{1}+m_{2}u_{2}=m_{1}v_{1}+m_{2}v_{2}$"}. We can write
   </p>,
   <div key="b2-math-1" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -936,7 +936,7 @@ const content_b2 = [
   </GraspGripBox>,
 
   <SubHd key="sub-elastic" id="elastic" title="Elastic Collisions" />,
-  <p key="b2-p-elastic-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-elastic-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     An elastic collision is one in which in addition to total linear momentum, the total kinetic energy is also conserved.
   </p>,
   <SubSubHd key="subsub-elasticchar" id="elasticchar" title="The basic characteristics of an elastic collision are" />,
@@ -946,12 +946,12 @@ const content_b2 = [
   <p key="b2-p-elasticchar-2" style={{ textAlign: "justify" }}>
     (ii) The total kinetic energy of the system is conserved.
   </p>,
-  <p key="b2-p-elasticchar-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-elasticchar-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     A body is said to be elastic if on application of deforming forces, the body deforms and subsequently on removal of these forces, the body reforms back to its original shape and size like in case of a spring. As the name suggests, in elastic collision, the deformation of particles that occur during collision is relieved and hence a part of initial kinetic energy that is consumed in deformation gets released. This results in no loss of kinetic energy.
   </p>,
 
   <SubHd key="sub-inelastic" id="inelastic" title="Inelastic Collisions" />,
-  <p key="b2-p-inelastic-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-inelastic-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     An inelastic collision is one in which the linear momentum is conserved but the total kinetic energy is not conserved. The basic characteristics of an inelastic collision are
   </p>,
   <p key="b2-p-inelastic-2" style={{ textAlign: "justify" }}>
@@ -960,7 +960,7 @@ const content_b2 = [
   <p key="b2-p-inelastic-3" style={{ textAlign: "justify" }}>
     (ii) The total kinetic energy of the system is not conserved.
   </p>,
-  <p key="b2-p-inelastic-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-inelastic-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     In an inelastic collision, the deformation of particles that occur during collision is not completely relieved and hence a part of initial kinetic energy is permanently consumed in permanent deformation resulting in a loss of kinetic energy. In most of the cases, the deformation is partly relieved. However, if there is absolutely no relieving of deformation, the collision is called <em>perfectly inelastic collision</em>. In the case of perfectly inelastic collision,
   </p>,
   <p key="b2-p-inelastic-5" style={{ textAlign: "justify" }}>
@@ -971,44 +971,44 @@ const content_b2 = [
   </p>,
 
   <SecHd key="sec-s17" id="s17" label="1.7" title="Coefficient of Restitution or Coefficient of Resilience" />,
-  <p key="b2-p-s17-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     In real practice, the collisions between all real objects are neither perfectly elastic nor they are perfectly inelastic. To quantitatively measure the degree of elasticity of a collision, we introduce a term called <em>coefficient of restitution</em>. It is also called <em>coefficient of resilience</em> and is denoted by letter {"'$e$'"}.
   </p>,
-  <p key="b2-p-s17-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Restitution means restoration or recovery of shape and size of the body that has undergone deformation during collision. To understand what happens in a head-on collision, let us consider two balls of masses {"$m_{1}$"} and {"$m_{2}$"} moving with velocities {"$u_{1}$"} and {"$u_{2}$"} in the same direction. Velocity {"$u_{1}$"} is larger than {"$u_{2}$"} so that the balls collide. During impact, both balls apply force on each other and they get deformed till the deformation reaches a maximum value. At this stage, the velocity {"$v$"} of both balls is same. Then, they try to regain their original shape due to elastic behaviors of the materials forming the balls.
   </p>,
-  <p key="b2-p-s17-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Usually the force {"$D$"} applied by the balls on each other during deformation phase differs from the force {"$R$"} applied by the balls on each other during restitution phase. Therefore, it is not necessary that magnitude of impulse {"$\\int D\\, dt$"} during deformation phase equals the magnitude of impulse {"$\\int R\\, dt$"} during restitution phase.
   </p>,
-  <p key="b2-p-s17-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The ratio of magnitudes of impulse of restitution to that of deformation is called the coefficient of restitution and is denoted by {"$e$"}.
   </p>,
   <div key="b2-math-2" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$e=\\frac{\\int R\\, dt}{\\int D\\, dt}$$"}
   </div>,
-  <p key="b2-p-s17-5" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-5" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     During deformation phase, the impulse on balls {"$m_{1}$"} and {"$m_{2}$"} are respectively
   </p>,
   <div key="b2-math-3" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} \\int D\\, dt & =m_{1}\\left(u_{1}-v\\right) \\text{ and } \\int D\\, dt=m_{2}\\left(v-u_{2}\\right) \\\\ \\Rightarrow \\int D\\, dt & =\\frac{m_{1}m_{2}}{m_{1}+m_{2}}\\left(u_{1}-u_{2}\\right) \\qquad\\text{...(1)} \\end{aligned}$$"}
   </div>,
-  <p key="b2-p-s17-6" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-6" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     During restitution phase, the impulse on balls {"$m_{1}$"} and {"$m_{2}$"} are respectively
   </p>,
   <div key="b2-math-4" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} & \\int R\\, dt=m_{1}\\left(v-v_{1}\\right) \\quad \\text{and} \\quad \\int R\\, dt=m_{2}\\left(v_{2}-v\\right) \\\\ \\Rightarrow & \\int R\\, dt=\\frac{m_{1}m_{2}}{m_{1}+m_{2}}\\left(v_{2}-v_{1}\\right) \\qquad\\text{...(2)} \\end{aligned}$$"}
   </div>,
-  <p key="b2-p-s17-7" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-7" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     From (1) and (2),
   </p>,
   <div key="b2-math-5" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$e=\\frac{\\int R\\, dt}{\\int D\\, dt}=\\frac{v_{2}-v_{1}}{u_{1}-u_{2}}$$"}
   </div>,
-  <p key="b2-p-s17-8" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-8" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     In general, its value ranges from zero to one but in collision where kinetic energy is generated, its value may exceed one.
   </p>,
   <TableCorPhases key="tbl-corphases" />,
-  <p key="b2-p-s17-9" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s17-9" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Coefficient of restitution is also defined as the ratio of relative velocity of separation of particles after collision to the relative velocity of approach before collision.
   </p>,
   <p key="b2-p-s17-10" style={{ textAlign: "justify" }}>
@@ -1027,14 +1027,14 @@ const content_b2 = [
   <TableCollisionSummary key="tbl-collsummary" />,
 
   <SecHd key="sec-s18" id="s18" label="1.8" title="Elastic Collision in One Dimension" />,
-  <p key="b2-p-s18-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s18-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Collision in one dimension involves the collision of two particles when their motion is along a straight line joining the centres of the two particles. In such case, the motion of the particles both before and after collision is in a straight line and hence is called collision in one dimension. This is also known as <em>head on collision</em>.
   </p>,
-  <p key="b2-p-s18-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s18-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider two particles as shown in Fig. 1.25.
   </p>,
   <Fig key="fig-1-25" src={CONTENT_IMAGES.CONTENT_IMAGE_71258C7C3745CC03E4AD} num="Fig. 1.25" />,
-  <p key="b2-p-s18-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s18-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Let this be an elastic collision in one dimension. Then we can write
   </p>,
   <div key="b2-math-7" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -1049,19 +1049,19 @@ const content_b2 = [
   <p key="b2-p-s18-5" style={{ textAlign: "center", fontStyle: "italic" }}>
     (By conservation of Kinetic Energy)
   </p>,
-  <p key="b2-p-s18-6" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s18-6" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If {"$m_{1}, m_{2}, u_{1}$"} and {"$u_{2}$"} are known, using the above two equations, we can determine the two unknown variables {"$v_{1}$"} and {"$v_{2}$"}. On solving equations (1) and (2), we get
   </p>,
   <div key="b2-math-9" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} & v_{1}=\\frac{m_{1}-m_{2}}{m_{1}+m_{2}}u_{1}+\\frac{2m_{2}u_{2}}{m_{1}+m_{2}} \\\\ & v_{2}=\\frac{2m_{1}u_{1}}{m_{1}+m_{2}}+\\frac{m_{2}-m_{1}}{m_{1}+m_{2}}u_{2} \\end{aligned}$$"}
   </div>,
-  <p key="b2-p-s18-7" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s18-7" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Also, from equations (1) and (2), we get
   </p>,
   <div key="b2-math-10" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} & m_{1}\\left(u_{1}-v_{1}\\right)=m_{2}\\left(v_{2}-u_{2}\\right) \\qquad \\text{...(3)} \\\\ & m_{1}\\left(u_{1}^{2}-v_{1}^{2}\\right)=m_{2}\\left(v_{2}^{2}-u_{2}^{2}\\right) \\qquad \\text{...(4)} \\end{aligned}$$"}
   </div>,
-  <p key="b2-p-s18-8" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s18-8" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     On dividing equation (4) by equation (3), we get
   </p>,
   <div key="b2-math-11" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -1069,23 +1069,23 @@ const content_b2 = [
   </div>,
 
   <SecHd key="sec-s19" id="s19" label="1.9" title="Perfectly Inelastic Collision in One Dimension" />,
-  <p key="b2-p-s19-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s19-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     In this case, the two particles stick together after collision and move together with same velocity say {"'$v$'"}. Consider the two particles as shown.
   </p>,
   <Fig key="fig-1-26" src={CONTENT_IMAGES.CONTENT_IMAGE_FD737BA1ACC8D73D595B} num="Fig. 1.26" />,
-  <p key="b2-p-s19-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s19-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Since, the collision is perfectly inelastic, {"$\\quad v_{1}=v_{2}=v$"}. Then, by conservation of linear momentum, we can write
   </p>,
   <div key="b2-math-12" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$m_{1}u_{1}+m_{2}u_{2}=\\left(m_{1}+m_{2}\\right)v$$"}
   </div>,
-  <p key="b2-p-s19-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s19-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If {"$m_{1}, m_{2}, u_{1}$"} and {"$u_{2}$"} are known, we have only one unknown variable {"$v$"}. Hence,
   </p>,
   <div key="b2-math-13" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$v=\\frac{m_{1}u_{1}+m_{2}u_{2}}{m_{1}+m_{2}}$$"}
   </div>,
-  <p key="b2-p-s19-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s19-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Clearly since, {"$v_{1}=v_{2}=v$"}, we have
   </p>,
   <div key="b2-math-14" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -1196,7 +1196,7 @@ const content_b2 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s110" id="s110" label="1.10" title="Some Special Cases of Collision in One Dimension" />,
-  <p key="b2-p-s110-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The two equations that we shall be using are
   </p>,
   <p key="b2-p-s110-2" style={{ textAlign: "justify" }}>
@@ -1205,47 +1205,47 @@ const content_b2 = [
   <p key="b2-p-s110-3" style={{ textAlign: "justify" }}>
     and {"$v_{2}-v_{1}=e(u_{1}-u_{2})$"}
   </p>,
-  <p key="b2-p-s110-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>(i) Case-I:</strong> The collision is elastic and the mass of both particles is same. Here, {"$m_{1}=m_{2}$"}. Substituting this in above equations, we get
   </p>,
   <p key="b2-p-s110-5" style={{ textAlign: "justify" }}>
     {"$v_{1}=u_{2}$"} &nbsp;&nbsp; and &nbsp;&nbsp; {"$v_{2}=u_{1}$"}
   </p>,
-  <p key="b2-p-s110-6" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-6" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Hence, we conclude that if collision is elastic in one dimension and the mass of both particles is same, the velocities of the particles after collision interchange.
   </p>,
-  <p key="b2-p-s110-7" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-7" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>(ii) Case-II:</strong> The collision is elastic, the second particle has initial velocity zero and also has large mass, i.e., {"$u_{2}=0$"} and {"$m_{2} \\gg m_{1}$"}. Substituting this in above equations, we get
   </p>,
   <p key="b2-p-s110-8" style={{ textAlign: "justify" }}>
     {"$v_{1}=-u_{1}$"} &nbsp;&nbsp; and &nbsp;&nbsp; {"$v_{2}=0$"}
   </p>,
-  <p key="b2-p-s110-9" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-9" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Hence, we conclude that when a particle makes an elastic collision in one dimension with a large mass at rest, the colliding particle moves with the same speed and reverses its direction.
   </p>,
-  <p key="b2-p-s110-10" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-10" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>(iii) Case-III:</strong> The collision is inelastic, the second particle has initial velocity zero and also has large mass, i.e., {"$u_{2}=0$"} and {"$m_{2} \\gg m_{1}$"}. Substituting this in above equations, we get
   </p>,
   <p key="b2-p-s110-11" style={{ textAlign: "justify" }}>
     {"$v_{1}=-eu_{1}$"} &nbsp;&nbsp; and &nbsp;&nbsp; {"$v_{2}=0$"}
   </p>,
-  <p key="b2-p-s110-12" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-12" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Hence, we conclude that when a particle makes an inelastic collision in one dimension with a large mass at rest, the colliding particle reverses its direction and moves with a speed equal to {"$\\boldsymbol{e}$"} times its initial speed.
   </p>,
-  <p key="b2-p-s110-13" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-13" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>(iv) Case-IV: A body is dropped from height {"$\\boldsymbol{h}$"}</strong>
   </p>,
-  <p key="b2-p-s110-14" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-14" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider a body dropped from a height {"$h_{0}$"} which rises to a height {"$h_{1}$"} after collision with ground. Let {"$u$"} be the speed with which the ball strikes the ground and {"$v$"} be the speed with which it rebounds back.
   </p>,
   <Fig key="fig-1-28" src={CONTENT_IMAGES.CONTENT_IMAGE_4A1C86BCB0B44D8A3D9E} num="Fig. 1.28" />,
-  <p key="b2-p-s110-15" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-15" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Then, we have {"$u=\\sqrt{2gh_{0}}$"} and {"$v=\\sqrt{2gh_{1}}$"}. Since, the ground is at rest and has a large mass, we have {"$v=eu$"}
   </p>,
   <div key="b2-math-15" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\Rightarrow \\frac{v}{u}=\\frac{\\sqrt{2gh_{1}}}{\\sqrt{2gh_{0}}} \\quad \\therefore\\; h_{1}=h_{0}e^{2}$$"}
   </div>,
-  <p key="b2-p-s110-16" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-s110-16" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If after {"$n$"} collisions, the body rises to a height {"$h_{n}$"}, then {"$h_{n}=h_{0}e^{2n}$"}.
   </p>,
 
@@ -1256,7 +1256,7 @@ const content_b2 = [
   </IllustrationBox>,
 
   <SubHd key="sub-smallforces" id="smallforces" title="Impulse due to small forces" />,
-  <p key="b2-p-smallf-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b2-p-smallf-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The conservation of momentum is also valid if two bodies falling under gravity collide. This is because the time duration of collision is very small and the impulse due to relatively small forces such as gravitational force is negligible and therefore can be ignored.
   </p>,
 
@@ -1341,23 +1341,23 @@ const content_b2 = [
 
 const content_b3 = [
   <SecHd key="sec-s111" id="s111" label="1.11" title="Elastic Collision in Two Dimensions" />,
-  <p key="b3-p-s111-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s111-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     When the motion of particles before collision is not along the line joining their centres, the two masses after collision seemingly move in random directions as shown in fig. 1.32.
   </p>,
   <Fig key="fig-1-32" src={CONTENT_IMAGES.CONTENT_IMAGE_58EFC361B19664103882} num="Fig. 1.32" />,
-  <p key="b3-p-s111-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s111-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     This kind of collision is collision in two dimension and is also called <em>oblique collision</em>. However, not all is random. There are relationships which connect these masses, velocities and angles. By conservation of linear momentum along {"$X$"} and {"$Y$"} axis, we get the following equations
   </p>,
   <div key="b3-math-1" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\begin{aligned} & m_{1}u_{1}=m_{1}v_{1}\\cos\\theta_{1}+m_{2}v_{2}\\cos\\theta_{2} \\\\ & 0=m_{1}v_{1}\\sin\\theta_{1}-m_{2}v_{2}\\sin\\theta_{2} \\end{aligned}$$"}
   </div>,
-  <p key="b3-p-s111-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s111-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     By conservation of kinetic energy, we get
   </p>,
   <div key="b3-math-2" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\frac{1}{2}m_{1}u_{1}^{2}=\\frac{1}{2}m_{1}v_{1}^{2}+\\frac{1}{2}m_{2}v_{2}^{2}$$"}
   </div>,
-  <p key="b3-p-s111-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s111-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Here, we have four unknown variables i.e., {"$v_{1}, v_{2}, \\theta_{1}$"} and {"$\\theta_{2}$"}. However, we have only three equations. Therefore, at least one of the four unknowns say {"$\\theta_{1}$"} must be made known to solve the problem.
   </p>,
 
@@ -1404,7 +1404,7 @@ const content_b3 = [
   </IllustrationBox>,
 
   <SubHd key="sub-elastic2dspecial" id="elastic2dspecial" title="Special case of elastic collision in two dimension" />,
-  <p key="b3-p-e2ds-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-e2ds-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If two bodies of equal masses suffer an oblique collision with one of the bodies initially at rest, the two bodies after collision move perpendicular to each other.
   </p>,
 
@@ -1508,11 +1508,11 @@ const content_b3 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s112" id="s112" label="1.12" title="Coefficient of Restitution (e) in Oblique Collision" />,
-  <p key="b3-p-s112-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s112-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Consider two particles of masses {"$m_{1}$"} and {"$m_{2}$"} moving with velocities {"$u_{1}$"} and {"$u_{2}$"} respectively collide such that the line of contact is along {"$X$"}-axis. Then the impulsive forces of deformation and restitution act only in the {"$X$"}-direction.
   </p>,
   <Fig key="fig-1-38" src={CONTENT_IMAGES.CONTENT_IMAGE_48DA9FD0AC5D0EDB829F} num="Fig. 1.38" />,
-  <p key="b3-p-s112-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s112-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Let {"$v_{1}$"} and {"$v_{2}$"} be respectively the velocities of these particles after collision and the components of these four velocity vectors be {"$u_{1x}, u_{2x}, v_{1x}$"} and {"$v_{2x}$"}. The coefficient of restitution is given by
   </p>,
   <div key="b3-math-3" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -1520,22 +1520,22 @@ const content_b3 = [
   </div>,
 
   <SubHd key="sub-obliqueconstrained" id="obliqueconstrained" title="Oblique Collision when one or both colliding bodies are constrained in motion" />,
-  <p key="b3-p-oc-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-oc-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     In oblique collision, we have discussed how to analyze impact of bodies that were free to move before as well as after the impact. Now we will see what happens if one or both the bodies undergoing oblique collision are constrained in motion. In such a situation, we observe/analyze the following.
   </p>,
-  <p key="b3-p-oc-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-oc-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>Component of velocity along tangent.</strong> If surfaces of the bodies undergoing collision are smooth, the component of velocity along the tangent of the body that is free to move before and after the collision remain conserved. So, if body 1 is free to move before and after the collision, then
   </p>,
   <div key="b3-math-4" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$v_{1t}=u_{1t}$$"}
   </div>,
-  <p key="b3-p-oc-3" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-oc-3" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>Component of velocity along normal (line of impact).</strong> The concept of coefficient of restitution {"$e$"} is applicable to the component of velocity along the normal even if one or both bodies are constrained to move in some particular direction only. So we have
   </p>,
   <div key="b3-math-5" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$v_{2n}-v_{1n}=e(u_{1n}-u_{2n})$$"}
   </div>,
-  <p key="b3-p-oc-4" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-oc-4" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     <strong>Momentum Conservation.</strong> We may find a direction in which no external force acts on both the bodies. The component of total momentum of both the bodies along this direction remains conserved.
   </p>,
 
@@ -1580,10 +1580,10 @@ const content_b3 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s113" id="s113" label="1.13" title="Explosion" />,
-  <p key="b3-p-s113-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s113-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     When explosion takes, the total momentum of the system under consideration remains constant. The reason for this is that impulsive forces of explosion are internal forces. The momentum can change only when external forces act.
   </p>,
-  <p key="b3-p-s113-2" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s113-2" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     The internal chemical energy stored in the system is converted to kinetic energy. In a way, explosion is the reverse process of completely inelastic collision. In this case, mechanical energy of the system increases.
   </p>,
 
@@ -1628,7 +1628,7 @@ const content_b3 = [
   </IllustrationBox>,
 
   <SecHd key="sec-s114" id="s114" label="1.14" title="System of Variable Mass" />,
-  <p key="b3-p-s114-1" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-1" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     We have so far dealt with the system whose mass remains constant. We shall now consider systems whose mass is variable. Some of the examples of variable mass system are
   </p>,
   <p key="b3-p-s114-2" style={{ textAlign: "justify" }}>
@@ -1643,28 +1643,28 @@ const content_b3 = [
   <p key="b3-p-s114-5" style={{ textAlign: "justify" }}>
     (iv) Sand leaking out of a trolley moving with constant velocity.
   </p>,
-  <p key="b3-p-s114-6" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-6" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     As per Newton's second law of motion, the net external force acting on the system is equal to the rate of change in its momentum, i.e.,
   </p>,
   <div key="b3-math-6" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\vec{F}_{\\mathrm{ext}}=\\frac{d\\vec{p}}{dt}=\\frac{d(m\\vec{v})}{dt}=m\\frac{d\\vec{v}}{dt}+\\vec{v}\\frac{dm}{dt}=m\\vec{a}+\\vec{v}\\frac{dm}{dt}$$"}
   </div>,
-  <p key="b3-p-s114-7" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-7" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     We write this expression as
   </p>,
   <div key="b3-math-7" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
     {"$$\\vec{F}_{\\mathrm{ext}}=m\\vec{a}+\\vec{v}_{\\mathrm{incr}}\\frac{dm}{dt}$$"}
   </div>,
-  <p key="b3-p-s114-8" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-8" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     In variable mass problems, we need to consider the term {"$\\vec{v}_{\\text{incr}}\\dfrac{dm}{dt}$"} in addition to the term {"$m\\vec{a}$"} that we used to consider so far. Here, {"$\\dfrac{dm}{dt}$"} is the rate at which mass is being added to the system and {"$\\vec{v}_{\\text{incr}}$"} is the increase in velocity of the mass that is being added.
   </p>,
-  <p key="b3-p-s114-9" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-9" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If {"$\\quad \\vec{v}=$"} velocity of system, {"$\\quad \\overrightarrow{v'}=$"} velocity of incoming mass
   </p>,
   <p key="b3-p-s114-10" style={{ textAlign: "justify" }}>
     Then, {"$\\quad \\vec{v}_{\\text{incr}}=\\vec{v}-\\vec{v}'$"}
   </p>,
-  <p key="b3-p-s114-11" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-11" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     If we define a term {"$\\vec{v}_{\\text{rel}}$"} as the relative velocity of incoming mass with respect to the velocity of the system given by {"$\\vec{v}_{\\text{rel}}=\\vec{v}'-\\vec{v}$"}, then {"$\\vec{v}_{\\text{rel}}=-\\vec{v}_{\\text{incr}}$"} and the equation written above can be written as
   </p>,
   <div key="b3-math-8" style={{ textAlign: "center", margin: "14px 4px", fontSize: "16.5px", lineHeight: 2.2, fontFamily: "'Times New Roman', Times, serif", overflowX: "auto", overflowY: "hidden", maxWidth: "100%", WebkitOverflowScrolling: "touch" }}>
@@ -1673,10 +1673,10 @@ const content_b3 = [
   <p key="b3-p-s114-12" style={{ textAlign: "justify" }}>
     or {"$\\vec{F}_{\\text{ext}}+\\vec{F}_{\\text{th}}=m\\vec{a}$"}
   </p>,
-  <p key="b3-p-s114-13" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-13" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     where, {"$\\vec{F}_{\\mathrm{th}}=v_{\\text{rel}}\\dfrac{dm}{dt}$"} is the thrust force exerted on the system by the incoming mass.
   </p>,
-  <p key="b3-p-s114-14" style={{ textIndent: 28, textAlign: "justify" }}>
+  <p key="b3-p-s114-14" style={{ margin: "0 0 14px", textAlign: "justify" }}>
     Note that {"$\\dfrac{dm}{dt}>0$"} if mass enters the system and {"$\\quad \\dfrac{dm}{dt}<0$"} if mass leaves the system.
   </p>,
 
