@@ -22,6 +22,12 @@ import Phys12Ch1AppboosterL1Content from "@/components/content/chapters/phys12-c
 import Phys12Ch1AppboosterL2Content from "@/components/content/chapters/phys12-ch1-appbooster-l2";
 import Pj2Ch1AppboosterL1Content from "@/components/content/chapters/pj2-ch1-appbooster-l1";
 import Pj2Ch1AppboosterL2Content from "@/components/content/chapters/pj2-ch1-appbooster-l2";
+import Phys12Ch2TheoryContent from "@/components/content/chapters/phys12-ch2-theory";
+import Phys12Ch2AppboosterL1Content from "@/components/content/chapters/phys12-ch2-appbooster-l1";
+import Phys12Ch2AppboosterL2Content from "@/components/content/chapters/phys12-ch2-appbooster-l2";
+import Phys12Ch3TheoryContent from "@/components/content/chapters/phys12-ch3-theory";
+import Phys12Ch3AppboosterL1Content from "@/components/content/chapters/phys12-ch3-appbooster-l1";
+import Phys12Ch3AppboosterL2Content from "@/components/content/chapters/phys12-ch3-appbooster-l2";
 
 const CHAPTER_NAMES = [
   "bio-9-ch1",
@@ -41,6 +47,12 @@ const CHAPTER_NAMES = [
   "pj2-ch1-appbooster-l2",
   "phys12-ch1-appbooster-l1",
   "phys12-ch1-appbooster-l2",
+  "phys12-ch2-theory",
+  "phys12-ch2-appbooster-l1",
+  "phys12-ch2-appbooster-l2",
+  "phys12-ch3-theory",
+  "phys12-ch3-appbooster-l1",
+  "phys12-ch3-appbooster-l2",
 ] as const;
 
 type Chapter = (typeof CHAPTER_NAMES)[number];
@@ -63,6 +75,12 @@ export const CHAPTER_CONTENT: Record<Chapter, React.ComponentType> = {
   "pj2-ch1-appbooster-l2": Pj2Ch1AppboosterL2Content,
   "phys12-ch1-appbooster-l1": Phys12Ch1AppboosterL1Content,
   "phys12-ch1-appbooster-l2": Phys12Ch1AppboosterL2Content,
+  "phys12-ch2-theory": Phys12Ch2TheoryContent,
+  "phys12-ch2-appbooster-l1": Phys12Ch2AppboosterL1Content,
+  "phys12-ch2-appbooster-l2": Phys12Ch2AppboosterL2Content,
+  "phys12-ch3-theory": Phys12Ch3TheoryContent,
+  "phys12-ch3-appbooster-l1": Phys12Ch3AppboosterL1Content,
+  "phys12-ch3-appbooster-l2": Phys12Ch3AppboosterL2Content,
 };
 
 export const PREVIEW_CHAPTER_CONTENT: Partial<

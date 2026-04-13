@@ -1,8 +1,233 @@
 {
   "version": 1,
-  "generatedAt": "2026-04-10T11:51:45.853Z",
-  "count": 587,
+  "generatedAt": "2026-04-13T10:33:26.343Z",
+  "count": 780,
   "entries": [
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-1.jpg?height=183&width=596&top_left_y=782&top_left_x=309",
+      "objectName": "content/49bc57d3/9afca732.jpg",
+      "exportName": "CONTENT_IMAGE_49BC57D39AFCA7327A8D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-1.jpg?height=308&width=560&top_left_y=1963&top_left_x=326",
+      "objectName": "content/6abd30ab/ccb79242.jpg",
+      "exportName": "CONTENT_IMAGE_6ABD30ABCCB792421AB5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-2.jpg?height=188&width=138&top_left_y=279&top_left_x=1540",
+      "objectName": "content/d2579ff0/5b7cccef.jpg",
+      "exportName": "CONTENT_IMAGE_D2579FF05B7CCCEF19A0"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-2.jpg?height=227&width=132&top_left_y=240&top_left_x=1362",
+      "objectName": "content/a31c15d1/7e7c0c88.jpg",
+      "exportName": "CONTENT_IMAGE_A31C15D17E7C0C88DC59"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-2.jpg?height=325&width=220&top_left_y=236&top_left_x=498",
+      "objectName": "content/7e0bf0e2/7d866aea.jpg",
+      "exportName": "CONTENT_IMAGE_7E0BF0E27D866AEA0FD3"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-2.jpg?height=411&width=616&top_left_y=2045&top_left_x=1211",
+      "objectName": "content/7b01636a/d28d0cc3.jpg",
+      "exportName": "CONTENT_IMAGE_7B01636AD28D0CC38676"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-3.jpg?height=386&width=493&top_left_y=1108&top_left_x=360",
+      "objectName": "content/18981dde/6e1fa607.jpg",
+      "exportName": "CONTENT_IMAGE_18981DDE6E1FA607D63A"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-3.jpg?height=457&width=448&top_left_y=983&top_left_x=1295",
+      "objectName": "content/6f6b0441/1be97520.jpg",
+      "exportName": "CONTENT_IMAGE_6F6B04411BE97520DAFA"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-4.jpg?height=407&width=416&top_left_y=283&top_left_x=399",
+      "objectName": "content/b385e7b5/94085bb7.jpg",
+      "exportName": "CONTENT_IMAGE_B385E7B594085BB7F770"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-4.jpg?height=427&width=497&top_left_y=1634&top_left_x=352",
+      "objectName": "content/96bb6dbd/6e3dac17.jpg",
+      "exportName": "CONTENT_IMAGE_96BB6DBD6E3DAC177845"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-5.jpg?height=330&width=362&top_left_y=2122&top_left_x=425",
+      "objectName": "content/caeb6977/8e19da60.jpg",
+      "exportName": "CONTENT_IMAGE_CAEB69778E19DA607D3C"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-6.jpg?height=444&width=518&top_left_y=764&top_left_x=348",
+      "objectName": "content/60395e0d/9915a3d0.jpg",
+      "exportName": "CONTENT_IMAGE_60395E0D9915A3D06CAF"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-7.jpg?height=332&width=544&top_left_y=1022&top_left_x=335",
+      "objectName": "content/8183395f/ec0c681b.jpg",
+      "exportName": "CONTENT_IMAGE_8183395FEC0C681B5E37"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-7.jpg?height=351&width=338&top_left_y=1710&top_left_x=1349",
+      "objectName": "content/51df053f/2620d9ea.jpg",
+      "exportName": "CONTENT_IMAGE_51DF053F2620D9EA59AD"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-7.jpg?height=388&width=568&top_left_y=1995&top_left_x=322",
+      "objectName": "content/30958faa/8022c45e.jpg",
+      "exportName": "CONTENT_IMAGE_30958FAA8022C45ECE87"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/44e4b262-cd40-41e8-9724-976c5d093254-8.jpg?height=248&width=536&top_left_y=1052&top_left_x=339",
+      "objectName": "content/24d69502/1919b255.jpg",
+      "exportName": "CONTENT_IMAGE_24D695021919B255419F"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-01.jpg?height=491&width=714&top_left_y=1325&top_left_x=1175",
+      "objectName": "content/e52e9c49/24c18074.jpg",
+      "exportName": "CONTENT_IMAGE_E52E9C4924C18074E794"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-02.jpg?height=209&width=520&top_left_y=876&top_left_x=1274",
+      "objectName": "content/73033539/0a4164b3.jpg",
+      "exportName": "CONTENT_IMAGE_730335390A4164B3DA8F"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-02.jpg?height=495&width=592&top_left_y=251&top_left_x=322",
+      "objectName": "content/6bdc8a17/78eee7dd.jpg",
+      "exportName": "CONTENT_IMAGE_6BDC8A1778EEE7DDE7E7"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-03.jpg?height=233&width=665&top_left_y=657&top_left_x=287",
+      "objectName": "content/cca07c74/d6031b20.jpg",
+      "exportName": "CONTENT_IMAGE_CCA07C74D6031B20E0A4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-03.jpg?height=270&width=592&top_left_y=1658&top_left_x=326",
+      "objectName": "content/df5ae2a1/aafed38c.jpg",
+      "exportName": "CONTENT_IMAGE_DF5AE2A1AAFED38CFE66"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-04.jpg?height=356&width=534&top_left_y=775&top_left_x=354",
+      "objectName": "content/6b0415a1/40881c74.jpg",
+      "exportName": "CONTENT_IMAGE_6B0415A140881C747A36"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-04.jpg?height=396&width=467&top_left_y=2021&top_left_x=1297",
+      "objectName": "content/9413bf3e/a6375f9d.jpg",
+      "exportName": "CONTENT_IMAGE_9413BF3EA6375F9D81DF"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-04.jpg?height=418&width=344&top_left_y=1624&top_left_x=449",
+      "objectName": "content/62d980e5/3e190cf8.jpg",
+      "exportName": "CONTENT_IMAGE_62D980E53E190CF86D96"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-04.jpg?height=475&width=508&top_left_y=1289&top_left_x=1276",
+      "objectName": "content/685c7658/e077aa50.jpg",
+      "exportName": "CONTENT_IMAGE_685C7658E077AA5068FC"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-05.jpg?height=317&width=510&top_left_y=1284&top_left_x=365",
+      "objectName": "content/092a5a04/f9657978.jpg",
+      "exportName": "CONTENT_IMAGE_092A5A04F9657978A672"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-05.jpg?height=469&width=644&top_left_y=436&top_left_x=1211",
+      "objectName": "content/0a5e495b/5b250c23.jpg",
+      "exportName": "CONTENT_IMAGE_0A5E495B5B250C23CAB4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-07.jpg?height=339&width=400&top_left_y=2109&top_left_x=1332",
+      "objectName": "content/79594d0d/dcbf721a.jpg",
+      "exportName": "CONTENT_IMAGE_79594D0DDCBF721AA5B8"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-07.jpg?height=349&width=326&top_left_y=296&top_left_x=1370",
+      "objectName": "content/0cdf20fb/ae473a2a.jpg",
+      "exportName": "CONTENT_IMAGE_0CDF20FBAE473A2A1BDA"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-08.jpg?height=360&width=346&top_left_y=1280&top_left_x=449",
+      "objectName": "content/e5968416/4d9669c6.jpg",
+      "exportName": "CONTENT_IMAGE_E59684164D9669C6AC30"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-09.jpg?height=205&width=467&top_left_y=1130&top_left_x=1310",
+      "objectName": "content/f40441f4/378dd06d.jpg",
+      "exportName": "CONTENT_IMAGE_F40441F4378DD06D1399"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-09.jpg?height=473&width=502&top_left_y=640&top_left_x=1280",
+      "objectName": "content/cba62cab/62e7da59.jpg",
+      "exportName": "CONTENT_IMAGE_CBA62CAB62E7DA5939B0"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-09.jpg?height=639&width=493&top_left_y=1843&top_left_x=1284",
+      "objectName": "content/c95e56d9/79389531.jpg",
+      "exportName": "CONTENT_IMAGE_C95E56D9793895314458"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-09.jpg?height=776&width=516&top_left_y=1538&top_left_x=363",
+      "objectName": "content/98692fb4/1e9b69f0.jpg",
+      "exportName": "CONTENT_IMAGE_98692FB41E9B69F00725"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-10.jpg?height=330&width=338&top_left_y=837&top_left_x=451",
+      "objectName": "content/14a40a97/68896cfc.jpg",
+      "exportName": "CONTENT_IMAGE_14A40A9768896CFC76E5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-11.jpg?height=353&width=334&top_left_y=1611&top_left_x=1366",
+      "objectName": "content/de1fa736/563577b6.jpg",
+      "exportName": "CONTENT_IMAGE_DE1FA736563577B6F832"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-12.jpg?height=327&width=299&top_left_y=829&top_left_x=468",
+      "objectName": "content/db607438/4d40d789.jpg",
+      "exportName": "CONTENT_IMAGE_DB6074384D40D789CD3D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-14.jpg?height=313&width=639&top_left_y=240&top_left_x=300",
+      "objectName": "content/c766c8da/139eb9dc.jpg",
+      "exportName": "CONTENT_IMAGE_C766C8DA139EB9DC8226"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-14.jpg?height=373&width=577&top_left_y=1460&top_left_x=330",
+      "objectName": "content/4dac38c7/10d4b10b.jpg",
+      "exportName": "CONTENT_IMAGE_4DAC38C710D4B10B8D3F"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-14.jpg?height=510&width=577&top_left_y=240&top_left_x=1243",
+      "objectName": "content/17a0defe/e220885f.jpg",
+      "exportName": "CONTENT_IMAGE_17A0DEFEE220885FFABB"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-15.jpg?height=248&width=310&top_left_y=369&top_left_x=466",
+      "objectName": "content/f9136147/8025ee42.jpg",
+      "exportName": "CONTENT_IMAGE_F91361478025EE42B962"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-15.jpg?height=476&width=463&top_left_y=1993&top_left_x=1301",
+      "objectName": "content/8258c0cb/b646daf3.jpg",
+      "exportName": "CONTENT_IMAGE_8258C0CBB646DAF34A86"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-15.jpg?height=506&width=607&top_left_y=236&top_left_x=1228",
+      "objectName": "content/115e9d63/7c289e4d.jpg",
+      "exportName": "CONTENT_IMAGE_115E9D637C289E4D0EA8"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-16.jpg?height=476&width=630&top_left_y=1533&top_left_x=305",
+      "objectName": "content/22e9bb82/75dfdf4a.jpg",
+      "exportName": "CONTENT_IMAGE_22E9BB8275DFDF4A59A7"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/56a52937-d5e3-47b9-a4cd-f235ce308fef-17.jpg?height=278&width=276&top_left_y=253&top_left_x=483",
+      "objectName": "content/d3cb0592/6685ff68.jpg",
+      "exportName": "CONTENT_IMAGE_D3CB05926685FF68416E"
+    },
     {
       "legacyUrl": "https://cdn.mathpix.com/cropped/66bd59da-e62b-4461-9de2-30013d9d1d18-01.jpg?height=203&width=712&top_left_y=1864&top_left_x=1160",
       "objectName": "content/5a7f8213/eade1f87.jpg",
@@ -247,6 +472,271 @@
       "legacyUrl": "https://cdn.mathpix.com/cropped/66bd59da-e62b-4461-9de2-30013d9d1d18-20.jpg?height=452&width=639&top_left_y=470&top_left_x=287",
       "objectName": "content/f52a8b85/3760df29.jpg",
       "exportName": "CONTENT_IMAGE_F52A8B853760DF299767"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-01.jpg?height=304&width=572&top_left_y=704&top_left_x=1231",
+      "objectName": "content/6aafcf0f/84a93230.jpg",
+      "exportName": "CONTENT_IMAGE_6AAFCF0F84A93230BB84"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-01.jpg?height=401&width=405&top_left_y=1894&top_left_x=1316",
+      "objectName": "content/25099a67/628f1240.jpg",
+      "exportName": "CONTENT_IMAGE_25099A67628F1240EEE2"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-02.jpg?height=252&width=388&top_left_y=2219&top_left_x=1570",
+      "objectName": "content/d0a98b13/8dc3a79e.jpg",
+      "exportName": "CONTENT_IMAGE_D0A98B138DC3A79E08B9"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-02.jpg?height=308&width=435&top_left_y=846&top_left_x=388",
+      "objectName": "content/11a379d1/41aac332.jpg",
+      "exportName": "CONTENT_IMAGE_11A379D141AAC332C4C4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-02.jpg?height=372&width=562&top_left_y=2071&top_left_x=326",
+      "objectName": "content/540c7fc7/a911fcd6.jpg",
+      "exportName": "CONTENT_IMAGE_540C7FC7A911FCD6C748"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-02.jpg?height=496&width=424&top_left_y=721&top_left_x=1282",
+      "objectName": "content/b58879bf/1788b981.jpg",
+      "exportName": "CONTENT_IMAGE_B58879BF1788B98103D4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-03.jpg?height=244&width=407&top_left_y=938&top_left_x=403",
+      "objectName": "content/a4f18d08/9c91b279.jpg",
+      "exportName": "CONTENT_IMAGE_A4F18D089C91B27975AB"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-03.jpg?height=294&width=349&top_left_y=1937&top_left_x=431",
+      "objectName": "content/dd5b4180/c9294d9e.jpg",
+      "exportName": "CONTENT_IMAGE_DD5B4180C9294D9E3F3D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-03.jpg?height=362&width=790&top_left_y=588&top_left_x=1125",
+      "objectName": "content/2ea855f5/99197abc.jpg",
+      "exportName": "CONTENT_IMAGE_2EA855F599197ABC2232"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-04.jpg?height=224&width=596&top_left_y=2133&top_left_x=1222",
+      "objectName": "content/adc621c2/f230a4be.jpg",
+      "exportName": "CONTENT_IMAGE_ADC621C2F230A4BE54B5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-04.jpg?height=241&width=476&top_left_y=554&top_left_x=1280",
+      "objectName": "content/b12185bd/a89e770f.jpg",
+      "exportName": "CONTENT_IMAGE_B12185BDA89E770FCA93"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-04.jpg?height=283&width=372&top_left_y=1357&top_left_x=1332",
+      "objectName": "content/c5f8f8dd/02dc3ca9.jpg",
+      "exportName": "CONTENT_IMAGE_C5F8F8DD02DC3CA99616"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-04.jpg?height=370&width=450&top_left_y=1048&top_left_x=382",
+      "objectName": "content/815872cf/30c484da.jpg",
+      "exportName": "CONTENT_IMAGE_815872CF30C484DAE6B2"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-04.jpg?height=386&width=556&top_left_y=2062&top_left_x=328",
+      "objectName": "content/df7b5da1/b5544574.jpg",
+      "exportName": "CONTENT_IMAGE_DF7B5DA1B5544574EBBB"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=175&width=497&top_left_y=1155&top_left_x=356",
+      "objectName": "content/82e0b7ba/3bd77b0e.jpg",
+      "exportName": "CONTENT_IMAGE_82E0B7BA3BD77B0E92C1"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=229&width=553&top_left_y=1299&top_left_x=1241",
+      "objectName": "content/10a6b605/55e5097e.jpg",
+      "exportName": "CONTENT_IMAGE_10A6B60555E5097E8759"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=240&width=540&top_left_y=1572&top_left_x=335",
+      "objectName": "content/03f22418/5bd07900.jpg",
+      "exportName": "CONTENT_IMAGE_03F224185BD079000FDC"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=241&width=588&top_left_y=320&top_left_x=313",
+      "objectName": "content/a0ce2403/d2aeec99.jpg",
+      "exportName": "CONTENT_IMAGE_A0CE2403D2AEEC995D8D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=261&width=432&top_left_y=2126&top_left_x=391",
+      "objectName": "content/2ba335be/41d5c1f2.jpg",
+      "exportName": "CONTENT_IMAGE_2BA335BE41D5C1F2DB63"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=263&width=296&top_left_y=2210&top_left_x=1370",
+      "objectName": "content/78234f98/1f6297d5.jpg",
+      "exportName": "CONTENT_IMAGE_78234F981F6297D59639"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=269&width=368&top_left_y=928&top_left_x=1336",
+      "objectName": "content/e250c9c4/ae8fc911.jpg",
+      "exportName": "CONTENT_IMAGE_E250C9C4AE8FC91129F2"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-05.jpg?height=274&width=524&top_left_y=236&top_left_x=1258",
+      "objectName": "content/727444e9/f4bbeef1.jpg",
+      "exportName": "CONTENT_IMAGE_727444E9F4BBEEF1F261"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-06.jpg?height=182&width=304&top_left_y=2081&top_left_x=1654",
+      "objectName": "content/9d353fc1/59fb9501.jpg",
+      "exportName": "CONTENT_IMAGE_9D353FC159FB95017968"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-06.jpg?height=199&width=516&top_left_y=1134&top_left_x=1261",
+      "objectName": "content/9466ede2/3ed866a7.jpg",
+      "exportName": "CONTENT_IMAGE_9466EDE23ED866A71F3F"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-06.jpg?height=220&width=370&top_left_y=979&top_left_x=423",
+      "objectName": "content/6eeb501c/8f74bcb9.jpg",
+      "exportName": "CONTENT_IMAGE_6EEB501C8F74BCB90268"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-06.jpg?height=239&width=489&top_left_y=1946&top_left_x=360",
+      "objectName": "content/ee2a7a98/2f22d733.jpg",
+      "exportName": "CONTENT_IMAGE_EE2A7A982F22D7335306"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-06.jpg?height=281&width=474&top_left_y=227&top_left_x=1284",
+      "objectName": "content/11b30065/5d74e49e.jpg",
+      "exportName": "CONTENT_IMAGE_11B300655D74E49EC684"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-07.jpg?height=228&width=398&top_left_y=1824&top_left_x=1319",
+      "objectName": "content/55d4867a/c485831f.jpg",
+      "exportName": "CONTENT_IMAGE_55D4867AC485831FC65E"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-07.jpg?height=300&width=466&top_left_y=992&top_left_x=1258",
+      "objectName": "content/ac9b73d5/bd0ea77d.jpg",
+      "exportName": "CONTENT_IMAGE_AC9B73D5BD0EA77D18F4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-07.jpg?height=345&width=300&top_left_y=949&top_left_x=455",
+      "objectName": "content/a89e4e79/d30ae181.jpg",
+      "exportName": "CONTENT_IMAGE_A89E4E79D30AE18114CE"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-07.jpg?height=364&width=356&top_left_y=2105&top_left_x=429",
+      "objectName": "content/b07b0703/143abb3d.jpg",
+      "exportName": "CONTENT_IMAGE_B07B0703143ABB3D7444"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-08.jpg?height=246&width=609&top_left_y=515&top_left_x=1211",
+      "objectName": "content/b76c7701/eb3bcb91.jpg",
+      "exportName": "CONTENT_IMAGE_B76C7701EB3BCB91B584"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-08.jpg?height=250&width=398&top_left_y=1912&top_left_x=1319",
+      "objectName": "content/6c504416/1b6274c2.jpg",
+      "exportName": "CONTENT_IMAGE_6C5044161B6274C2ABE6"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-08.jpg?height=252&width=334&top_left_y=971&top_left_x=1353",
+      "objectName": "content/81b9aa53/b16e5769.jpg",
+      "exportName": "CONTENT_IMAGE_81B9AA53B16E57698BF7"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-08.jpg?height=405&width=175&top_left_y=878&top_left_x=519",
+      "objectName": "content/940d319d/a61a9140.jpg",
+      "exportName": "CONTENT_IMAGE_940D319DA61A91405FDA"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-08.jpg?height=409&width=728&top_left_y=1378&top_left_x=243",
+      "objectName": "content/7057778d/f3f8a7dc.jpg",
+      "exportName": "CONTENT_IMAGE_7057778DF3F8A7DC26AC"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=141&width=338&top_left_y=1138&top_left_x=438",
+      "objectName": "content/5d67c6a6/cdafaa4c.jpg",
+      "exportName": "CONTENT_IMAGE_5D67C6A6CDAFAA4C07F2"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=182&width=438&top_left_y=1574&top_left_x=1301",
+      "objectName": "content/77b0decc/4f8018a2.jpg",
+      "exportName": "CONTENT_IMAGE_77B0DECC4F8018A23F7E"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=271&width=362&top_left_y=1972&top_left_x=1488",
+      "objectName": "content/65f99cbe/6c303590.jpg",
+      "exportName": "CONTENT_IMAGE_65F99CBE6C303590B195"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=291&width=343&top_left_y=223&top_left_x=1344",
+      "objectName": "content/dc4c9342/6b51b22b.jpg",
+      "exportName": "CONTENT_IMAGE_DC4C93426B51B22B5AF8"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=315&width=240&top_left_y=1950&top_left_x=1185",
+      "objectName": "content/0e8922a1/717cec15.jpg",
+      "exportName": "CONTENT_IMAGE_0E8922A1717CEC154F49"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=338&width=380&top_left_y=584&top_left_x=1329",
+      "objectName": "content/fcd53670/6dbe5853.jpg",
+      "exportName": "CONTENT_IMAGE_FCD536706DBE58530A80"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=385&width=356&top_left_y=266&top_left_x=429",
+      "objectName": "content/8ccef194/941832d7.jpg",
+      "exportName": "CONTENT_IMAGE_8CCEF194941832D7295C"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-09.jpg?height=390&width=358&top_left_y=1357&top_left_x=373",
+      "objectName": "content/a855a8a6/313222f6.jpg",
+      "exportName": "CONTENT_IMAGE_A855A8A6313222F60E38"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-10.jpg?height=283&width=170&top_left_y=2023&top_left_x=1435",
+      "objectName": "content/1cf16c65/63d2d9cc.jpg",
+      "exportName": "CONTENT_IMAGE_1CF16C6563D2D9CCE613"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-10.jpg?height=291&width=366&top_left_y=1044&top_left_x=681",
+      "objectName": "content/ce1a1f09/fdcd944b.jpg",
+      "exportName": "CONTENT_IMAGE_CE1A1F09FDCD944B8634"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-10.jpg?height=364&width=261&top_left_y=240&top_left_x=1387",
+      "objectName": "content/f3a690c0/a26ec560.jpg",
+      "exportName": "CONTENT_IMAGE_F3A690C0A26EC56073D3"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-10.jpg?height=364&width=338&top_left_y=1239&top_left_x=1349",
+      "objectName": "content/be1623bb/b142f3e7.jpg",
+      "exportName": "CONTENT_IMAGE_BE1623BBB142F3E79D2A"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-10.jpg?height=364&width=371&top_left_y=1409&top_left_x=412",
+      "objectName": "content/1839cb59/e5d1cfab.jpg",
+      "exportName": "CONTENT_IMAGE_1839CB59E5D1CFABDAB0"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-11.jpg?height=244&width=403&top_left_y=1559&top_left_x=403",
+      "objectName": "content/82cb1b7b/a68a0c5a.jpg",
+      "exportName": "CONTENT_IMAGE_82CB1B7BA68A0C5ACF58"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-11.jpg?height=314&width=312&top_left_y=1841&top_left_x=1362",
+      "objectName": "content/75809b78/30c9c1cf.jpg",
+      "exportName": "CONTENT_IMAGE_75809B7830C9C1CF1F5F"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-11.jpg?height=336&width=424&top_left_y=262&top_left_x=395",
+      "objectName": "content/59258492/c7063d40.jpg",
+      "exportName": "CONTENT_IMAGE_59258492C7063D40038E"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/73ae8e54-977b-43ba-9039-e801de828023-11.jpg?height=453&width=504&top_left_y=446&top_left_x=1265",
+      "objectName": "content/fe106011/0a64bc62.jpg",
+      "exportName": "CONTENT_IMAGE_FE1060110A64BC623C13"
     },
     {
       "legacyUrl": "https://cdn.mathpix.com/cropped/89caa104-3814-45db-b6c9-e5a71455ef55-02.jpg?height=267&width=745&top_left_y=1293&top_left_x=689",
@@ -902,6 +1392,481 @@
       "legacyUrl": "https://cdn.mathpix.com/cropped/c74f5c2c-64dd-47e6-a971-e4beb7f59061-28.jpg?height=439&width=401&top_left_y=509&top_left_x=1316",
       "objectName": "content/e5e7bb03/7178444a.jpg",
       "exportName": "CONTENT_IMAGE_E5E7BB037178444A02B8"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-01.jpg?height=431&width=480&top_left_y=1886&top_left_x=365",
+      "objectName": "content/56b7ff0e/2afb5227.jpg",
+      "exportName": "CONTENT_IMAGE_56B7FF0E2AFB5227677E"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-03.jpg?height=314&width=282&top_left_y=1246&top_left_x=466",
+      "objectName": "content/03873dad/11a8c83a.jpg",
+      "exportName": "CONTENT_IMAGE_03873DAD11A8C83A1229"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-03.jpg?height=343&width=400&top_left_y=1879&top_left_x=406",
+      "objectName": "content/82deb45b/31bfc625.jpg",
+      "exportName": "CONTENT_IMAGE_82DEB45B31BFC6253AF5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-03.jpg?height=566&width=514&top_left_y=666&top_left_x=1263",
+      "objectName": "content/f3398ff5/8e04258f.jpg",
+      "exportName": "CONTENT_IMAGE_F3398FF58E04258FC09F"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-04.jpg?height=266&width=488&top_left_y=1791&top_left_x=363",
+      "objectName": "content/f43f453e/64b7973a.jpg",
+      "exportName": "CONTENT_IMAGE_F43F453E64B7973AD22C"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-04.jpg?height=295&width=560&top_left_y=773&top_left_x=328",
+      "objectName": "content/37094163/4cd8791e.jpg",
+      "exportName": "CONTENT_IMAGE_370941634CD8791E1171"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-04.jpg?height=313&width=450&top_left_y=300&top_left_x=1295",
+      "objectName": "content/2fb1192a/84edbe92.jpg",
+      "exportName": "CONTENT_IMAGE_2FB1192A84EDBE926F21"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-04.jpg?height=362&width=632&top_left_y=1362&top_left_x=1203",
+      "objectName": "content/fd188cb7/a2c59b9b.jpg",
+      "exportName": "CONTENT_IMAGE_FD188CB7A2C59B9B9920"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-05.jpg?height=274&width=401&top_left_y=1843&top_left_x=1316",
+      "objectName": "content/840d50c5/e2a18adf.jpg",
+      "exportName": "CONTENT_IMAGE_840D50C5E2A18ADF8B99"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-05.jpg?height=332&width=524&top_left_y=627&top_left_x=1258",
+      "objectName": "content/5f4e5474/54248890.jpg",
+      "exportName": "CONTENT_IMAGE_5F4E547454248890B4FF"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-05.jpg?height=386&width=624&top_left_y=760&top_left_x=294",
+      "objectName": "content/3f767452/2fb1408b.jpg",
+      "exportName": "CONTENT_IMAGE_3F7674522FB1408B1C22"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-06.jpg?height=272&width=502&top_left_y=1546&top_left_x=1267",
+      "objectName": "content/a0f7a93c/9ef43df5.jpg",
+      "exportName": "CONTENT_IMAGE_A0F7A93C9EF43DF5913B"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-06.jpg?height=358&width=242&top_left_y=747&top_left_x=485",
+      "objectName": "content/97fb9e05/ee80bf19.jpg",
+      "exportName": "CONTENT_IMAGE_97FB9E05EE80BF191650"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-06.jpg?height=542&width=458&top_left_y=268&top_left_x=1289",
+      "objectName": "content/f071feb4/8ba2fca9.jpg",
+      "exportName": "CONTENT_IMAGE_F071FEB48BA2FCA9BE68"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-07.jpg?height=175&width=263&top_left_y=1875&top_left_x=1136",
+      "objectName": "content/c00b754d/198bae44.jpg",
+      "exportName": "CONTENT_IMAGE_C00B754D198BAE44CC7D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-07.jpg?height=176&width=220&top_left_y=2328&top_left_x=1149",
+      "objectName": "content/6e8f571a/b929bb32.jpg",
+      "exportName": "CONTENT_IMAGE_6E8F571AB929BB32A5FF"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-07.jpg?height=213&width=296&top_left_y=2081&top_left_x=1108",
+      "objectName": "content/e14b68b9/6911143f.jpg",
+      "exportName": "CONTENT_IMAGE_E14B68B96911143F4166"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-07.jpg?height=343&width=528&top_left_y=867&top_left_x=1254",
+      "objectName": "content/1caf5ff9/ed1c43e7.jpg",
+      "exportName": "CONTENT_IMAGE_1CAF5FF9ED1C43E7BDE9"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-07.jpg?height=356&width=482&top_left_y=543&top_left_x=365",
+      "objectName": "content/1dcfd66f/20813e4d.jpg",
+      "exportName": "CONTENT_IMAGE_1DCFD66F20813E4D6712"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=108&width=313&top_left_y=257&top_left_x=1080",
+      "objectName": "content/2e63d557/5e8e3417.jpg",
+      "exportName": "CONTENT_IMAGE_2E63D5575E8E3417DE6A"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=116&width=350&top_left_y=825&top_left_x=1080",
+      "objectName": "content/3c1a0695/a945cd5c.jpg",
+      "exportName": "CONTENT_IMAGE_3C1A0695A945CD5C5614"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=124&width=313&top_left_y=652&top_left_x=1093",
+      "objectName": "content/5da70002/2dcb9023.jpg",
+      "exportName": "CONTENT_IMAGE_5DA700022DCB9023520A"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=127&width=375&top_left_y=987&top_left_x=1059",
+      "objectName": "content/c862b6b1/d801bae9.jpg",
+      "exportName": "CONTENT_IMAGE_C862B6B1D801BAE9555E"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=170&width=224&top_left_y=1184&top_left_x=1119",
+      "objectName": "content/fbf32fd8/0dd14722.jpg",
+      "exportName": "CONTENT_IMAGE_FBF32FD80DD1472233A4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=170&width=224&top_left_y=1405&top_left_x=1119",
+      "objectName": "content/d87450d9/fca9efa0.jpg",
+      "exportName": "CONTENT_IMAGE_D87450D9FCA9EFA08CD8"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=172&width=242&top_left_y=1639&top_left_x=1119",
+      "objectName": "content/5feec876/46bc2187.jpg",
+      "exportName": "CONTENT_IMAGE_5FEEC87646BC2187B580"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=179&width=211&top_left_y=424&top_left_x=1145",
+      "objectName": "content/4971dacf/a2730a25.jpg",
+      "exportName": "CONTENT_IMAGE_4971DACFA2730A253384"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-08.jpg?height=87&width=368&top_left_y=1869&top_left_x=1332",
+      "objectName": "content/923be8e7/058b4e1b.jpg",
+      "exportName": "CONTENT_IMAGE_923BE8E7058B4E1BE8F7"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-09.jpg?height=203&width=347&top_left_y=1134&top_left_x=433",
+      "objectName": "content/61cd8ef7/6ba2f562.jpg",
+      "exportName": "CONTENT_IMAGE_61CD8EF76BA2F562DBE1"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-09.jpg?height=209&width=604&top_left_y=1478&top_left_x=1216",
+      "objectName": "content/552dfd6e/d4084f10.jpg",
+      "exportName": "CONTENT_IMAGE_552DFD6ED4084F10D808"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-09.jpg?height=244&width=534&top_left_y=605&top_left_x=339",
+      "objectName": "content/a87159f0/d997a95e.jpg",
+      "exportName": "CONTENT_IMAGE_A87159F0D997A95E0525"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-09.jpg?height=365&width=588&top_left_y=519&top_left_x=1226",
+      "objectName": "content/e426de15/c7c4efb9.jpg",
+      "exportName": "CONTENT_IMAGE_E426DE15C7C4EFB92437"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-09.jpg?height=371&width=554&top_left_y=1600&top_left_x=330",
+      "objectName": "content/ff71184d/d5039a35.jpg",
+      "exportName": "CONTENT_IMAGE_FF71184DD5039A354FB5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-10.jpg?height=239&width=458&top_left_y=1433&top_left_x=1319",
+      "objectName": "content/93a7f05a/939416ae.jpg",
+      "exportName": "CONTENT_IMAGE_93A7F05A939416AE0328"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-10.jpg?height=426&width=439&top_left_y=253&top_left_x=1295",
+      "objectName": "content/9c2c67a0/d2caf3f5.jpg",
+      "exportName": "CONTENT_IMAGE_9C2C67A0D2CAF3F52F11"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-10.jpg?height=469&width=662&top_left_y=1291&top_left_x=277",
+      "objectName": "content/b516f089/f1d9d606.jpg",
+      "exportName": "CONTENT_IMAGE_B516F089F1D9D6065682"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-11.jpg?height=248&width=624&top_left_y=416&top_left_x=294",
+      "objectName": "content/d4fadd95/288a34ee.jpg",
+      "exportName": "CONTENT_IMAGE_D4FADD95288A34EE2733"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-11.jpg?height=308&width=628&top_left_y=382&top_left_x=1205",
+      "objectName": "content/31e0aab2/944c1a7c.jpg",
+      "exportName": "CONTENT_IMAGE_31E0AAB2944C1A7C6EA8"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-12.jpg?height=1065&width=897&top_left_y=1413&top_left_x=158",
+      "objectName": "content/4f8da761/1f70cea1.jpg",
+      "exportName": "CONTENT_IMAGE_4F8DA7611F70CEA1011B"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-12.jpg?height=345&width=374&top_left_y=504&top_left_x=1332",
+      "objectName": "content/11df78ae/c1609341.jpg",
+      "exportName": "CONTENT_IMAGE_11DF78AEC16093412EE0"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-12.jpg?height=360&width=392&top_left_y=1516&top_left_x=1323",
+      "objectName": "content/244c3b65/ec1396ab.jpg",
+      "exportName": "CONTENT_IMAGE_244C3B65EC1396ABA105"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-13.jpg?height=173&width=210&top_left_y=792&top_left_x=1413",
+      "objectName": "content/2dc1bc71/fbcd2bd3.jpg",
+      "exportName": "CONTENT_IMAGE_2DC1BC71FBCD2BD3D101"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-13.jpg?height=177&width=252&top_left_y=2307&top_left_x=1394",
+      "objectName": "content/e3a182de/9409bcc4.jpg",
+      "exportName": "CONTENT_IMAGE_E3A182DE9409BCC4A280"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-13.jpg?height=177&width=446&top_left_y=2279&top_left_x=382",
+      "objectName": "content/eb8b3a25/26553a36.jpg",
+      "exportName": "CONTENT_IMAGE_EB8B3A2526553A3666BB"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-13.jpg?height=251&width=700&top_left_y=1299&top_left_x=257",
+      "objectName": "content/eb3d99a3/86f008cd.jpg",
+      "exportName": "CONTENT_IMAGE_EB3D99A386F008CD4207"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-13.jpg?height=272&width=718&top_left_y=687&top_left_x=247",
+      "objectName": "content/630539c7/4fb33954.jpg",
+      "exportName": "CONTENT_IMAGE_630539C74FB339547EB4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-13.jpg?height=299&width=230&top_left_y=1190&top_left_x=1405",
+      "objectName": "content/a537e50f/e0df475a.jpg",
+      "exportName": "CONTENT_IMAGE_A537E50FE0DF475A2656"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-14.jpg?height=207&width=732&top_left_y=674&top_left_x=1153",
+      "objectName": "content/1f942e7e/05577b8c.jpg",
+      "exportName": "CONTENT_IMAGE_1F942E7E05577B8C5D48"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-14.jpg?height=258&width=718&top_left_y=1102&top_left_x=247",
+      "objectName": "content/9f9f311c/270bd4c4.jpg",
+      "exportName": "CONTENT_IMAGE_9F9F311C270BD4C4151D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-15.jpg?height=252&width=476&top_left_y=2088&top_left_x=369",
+      "objectName": "content/1ebb9085/c2f1c09c.jpg",
+      "exportName": "CONTENT_IMAGE_1EBB9085C2F1C09C9CD0"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-15.jpg?height=382&width=314&top_left_y=2081&top_left_x=1362",
+      "objectName": "content/99acbe61/159e068f.jpg",
+      "exportName": "CONTENT_IMAGE_99ACBE61159E068F69A2"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-16.jpg?height=297&width=512&top_left_y=2073&top_left_x=1263",
+      "objectName": "content/f2774dfe/60671656.jpg",
+      "exportName": "CONTENT_IMAGE_F2774DFE6067165690F3"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-16.jpg?height=394&width=514&top_left_y=932&top_left_x=1261",
+      "objectName": "content/c9cf5de9/5ebccbd8.jpg",
+      "exportName": "CONTENT_IMAGE_C9CF5DE95EBCCBD807B9"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-16.jpg?height=411&width=654&top_left_y=485&top_left_x=281",
+      "objectName": "content/096b0ab4/d8200860.jpg",
+      "exportName": "CONTENT_IMAGE_096B0AB4D82008602E8A"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-17.jpg?height=218&width=291&top_left_y=1684&top_left_x=1656",
+      "objectName": "content/d939622a/6bc0e147.jpg",
+      "exportName": "CONTENT_IMAGE_D939622A6BC0E1473933"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-17.jpg?height=242&width=574&top_left_y=878&top_left_x=1233",
+      "objectName": "content/eb0f044c/e13b2d47.jpg",
+      "exportName": "CONTENT_IMAGE_EB0F044CE13B2D4766B2"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-17.jpg?height=316&width=256&top_left_y=2041&top_left_x=1392",
+      "objectName": "content/9a9aa742/c537942a.jpg",
+      "exportName": "CONTENT_IMAGE_9A9AA742C537942A6E6A"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-17.jpg?height=430&width=330&top_left_y=855&top_left_x=442",
+      "objectName": "content/883fe9d4/4789c702.jpg",
+      "exportName": "CONTENT_IMAGE_883FE9D44789C7026C8A"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-18.jpg?height=317&width=379&top_left_y=627&top_left_x=640",
+      "objectName": "content/739e248d/08971033.jpg",
+      "exportName": "CONTENT_IMAGE_739E248D089710333CFC"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-18.jpg?height=366&width=390&top_left_y=990&top_left_x=631",
+      "objectName": "content/e67ab563/71b9ec22.jpg",
+      "exportName": "CONTENT_IMAGE_E67AB56371B9EC22446B"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-18.jpg?height=420&width=467&top_left_y=2049&top_left_x=580",
+      "objectName": "content/120ed641/37707bdf.jpg",
+      "exportName": "CONTENT_IMAGE_120ED64137707BDFC0D4"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-19.jpg?height=325&width=460&top_left_y=1916&top_left_x=1289",
+      "objectName": "content/70a7bf4d/10a167f9.jpg",
+      "exportName": "CONTENT_IMAGE_70A7BF4D10A167F9A7AD"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-19.jpg?height=328&width=468&top_left_y=1778&top_left_x=373",
+      "objectName": "content/71a2cad0/c8f66f4f.jpg",
+      "exportName": "CONTENT_IMAGE_71A2CAD0C8F66F4FCBB8"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-19.jpg?height=330&width=460&top_left_y=1112&top_left_x=1289",
+      "objectName": "content/00011f93/4b84eca4.jpg",
+      "exportName": "CONTENT_IMAGE_00011F934B84ECA4A5C7"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-20.jpg?height=201&width=459&top_left_y=923&top_left_x=382",
+      "objectName": "content/d3c04d00/ae495e4e.jpg",
+      "exportName": "CONTENT_IMAGE_D3C04D00AE495E4E844C"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-20.jpg?height=222&width=524&top_left_y=1568&top_left_x=1258",
+      "objectName": "content/c663dce1/1387f1a9.jpg",
+      "exportName": "CONTENT_IMAGE_C663DCE11387F1A9EA1C"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-20.jpg?height=278&width=768&top_left_y=2148&top_left_x=1136",
+      "objectName": "content/567371c6/1d1527ba.jpg",
+      "exportName": "CONTENT_IMAGE_567371C61D1527BA765D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-20.jpg?height=282&width=502&top_left_y=236&top_left_x=1267",
+      "objectName": "content/02cc47ac/30f436ed.jpg",
+      "exportName": "CONTENT_IMAGE_02CC47AC30F436ED06FF"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-20.jpg?height=330&width=556&top_left_y=240&top_left_x=328",
+      "objectName": "content/67572b9c/026ba90b.jpg",
+      "exportName": "CONTENT_IMAGE_67572B9C026BA90B8A2C"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-21.jpg?height=179&width=650&top_left_y=1448&top_left_x=283",
+      "objectName": "content/d69dcb85/1254232a.jpg",
+      "exportName": "CONTENT_IMAGE_D69DCB851254232A4EC5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-21.jpg?height=231&width=248&top_left_y=1314&top_left_x=1396",
+      "objectName": "content/bc68be3c/401105fa.jpg",
+      "exportName": "CONTENT_IMAGE_BC68BE3C401105FA70E3"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-21.jpg?height=239&width=700&top_left_y=2028&top_left_x=257",
+      "objectName": "content/2fa52795/547afbca.jpg",
+      "exportName": "CONTENT_IMAGE_2FA52795547AFBCA2004"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-21.jpg?height=321&width=201&top_left_y=1710&top_left_x=1417",
+      "objectName": "content/07e43e1b/b327de9f.jpg",
+      "exportName": "CONTENT_IMAGE_07E43E1BB327DE9F0DE0"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-22.jpg?height=248&width=266&top_left_y=1963&top_left_x=1387",
+      "objectName": "content/3d470374/ae20c8ee.jpg",
+      "exportName": "CONTENT_IMAGE_3D470374AE20C8EEB31D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-22.jpg?height=283&width=762&top_left_y=1340&top_left_x=225",
+      "objectName": "content/6639f042/442f7da2.jpg",
+      "exportName": "CONTENT_IMAGE_6639F042442F7DA2A0B5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-22.jpg?height=293&width=463&top_left_y=1815&top_left_x=373",
+      "objectName": "content/5aa1563d/e4046632.jpg",
+      "exportName": "CONTENT_IMAGE_5AA1563DE40466321FA5"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-22.jpg?height=330&width=757&top_left_y=558&top_left_x=227",
+      "objectName": "content/6e432f72/8222de38.jpg",
+      "exportName": "CONTENT_IMAGE_6E432F728222DE38D284"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-22.jpg?height=981&width=762&top_left_y=663&top_left_x=1138",
+      "objectName": "content/b7cdf6aa/b0df6477.jpg",
+      "exportName": "CONTENT_IMAGE_B7CDF6AAB0DF6477EC4D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-23.jpg?height=244&width=438&top_left_y=446&top_left_x=1301",
+      "objectName": "content/fa665e58/45ceea42.jpg",
+      "exportName": "CONTENT_IMAGE_FA665E5845CEEA42D7D9"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-23.jpg?height=258&width=334&top_left_y=1551&top_left_x=1353",
+      "objectName": "content/4354c134/16e243bc.jpg",
+      "exportName": "CONTENT_IMAGE_4354C13416E243BCD04D"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-23.jpg?height=304&width=407&top_left_y=328&top_left_x=403",
+      "objectName": "content/00894d64/ef99f6ef.jpg",
+      "exportName": "CONTENT_IMAGE_00894D64EF99F6EF5085"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-23.jpg?height=313&width=321&top_left_y=1069&top_left_x=446",
+      "objectName": "content/b4f3f978/09ee3e40.jpg",
+      "exportName": "CONTENT_IMAGE_B4F3F97809EE3E402940"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-24.jpg?height=214&width=356&top_left_y=485&top_left_x=429",
+      "objectName": "content/e51402d4/b1912fe1.jpg",
+      "exportName": "CONTENT_IMAGE_E51402D4B1912FE1A14F"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-24.jpg?height=321&width=478&top_left_y=1207&top_left_x=369",
+      "objectName": "content/d1711058/2366225b.jpg",
+      "exportName": "CONTENT_IMAGE_D17110582366225B14CE"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-24.jpg?height=441&width=474&top_left_y=1349&top_left_x=1282",
+      "objectName": "content/3d7f1e08/9a42237d.jpg",
+      "exportName": "CONTENT_IMAGE_3D7F1E089A42237DDF82"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-25.jpg?height=274&width=435&top_left_y=1465&top_left_x=388",
+      "objectName": "content/3b27ce1a/ef8e19ba.jpg",
+      "exportName": "CONTENT_IMAGE_3B27CE1AEF8E19BA9119"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-25.jpg?height=377&width=575&top_left_y=236&top_left_x=317",
+      "objectName": "content/ec70b783/2d64a9f1.jpg",
+      "exportName": "CONTENT_IMAGE_EC70B7832D64A9F12B22"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-26.jpg?height=265&width=224&top_left_y=2208&top_left_x=494",
+      "objectName": "content/78e0fd2f/6ddb5801.jpg",
+      "exportName": "CONTENT_IMAGE_78E0FD2F6DDB5801BA90"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-26.jpg?height=291&width=252&top_left_y=236&top_left_x=481",
+      "objectName": "content/1012176d/af1672cc.jpg",
+      "exportName": "CONTENT_IMAGE_1012176DAF1672CCAE51"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-26.jpg?height=300&width=382&top_left_y=2182&top_left_x=1327",
+      "objectName": "content/3ed800c2/eeb95a76.jpg",
+      "exportName": "CONTENT_IMAGE_3ED800C2EEB95A765F05"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-26.jpg?height=360&width=592&top_left_y=571&top_left_x=1224",
+      "objectName": "content/a2f32f32/e1b5a659.jpg",
+      "exportName": "CONTENT_IMAGE_A2F32F32E1B5A6594CFE"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-26.jpg?height=369&width=596&top_left_y=893&top_left_x=309",
+      "objectName": "content/8080df69/552baceb.jpg",
+      "exportName": "CONTENT_IMAGE_8080DF69552BACEB74C3"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-27.jpg?height=364&width=523&top_left_y=588&top_left_x=343",
+      "objectName": "content/7c91f353/6e5395a7.jpg",
+      "exportName": "CONTENT_IMAGE_7C91F3536E5395A74B56"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-27.jpg?height=467&width=480&top_left_y=240&top_left_x=1280",
+      "objectName": "content/67b9014d/d7d4dd60.jpg",
+      "exportName": "CONTENT_IMAGE_67B9014DD7D4DD60EC37"
+    },
+    {
+      "legacyUrl": "https://cdn.mathpix.com/cropped/c8f26e02-c6a4-4f0c-9473-c50f139e5108-28.jpg?height=497&width=510&top_left_y=1005&top_left_x=352",
+      "objectName": "content/6f87f5b3/6520fdcc.jpg",
+      "exportName": "CONTENT_IMAGE_6F87F5B36520FDCCBE1E"
     },
     {
       "legacyUrl": "https://cdn.mathpix.com/snip/images/-ur8_ycC054-xllZfw8pdWxVLuGGO0Tg0Fyea0qjAbQ.original.fullsize.png",
