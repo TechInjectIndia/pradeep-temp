@@ -31,45 +31,38 @@ export default function RuntimeFlowchart({
   compiledCode,
   title,
 }: RuntimeFlowchartProps) {
-  const [Component, setComponent] = React.useState<React.ComponentType | null>(
-    null,
-  );
-  const [error, setError] = React.useState<string | null>(null);
+  let Component: React.ComponentType | null = null;
+  let error: string | null = null;
 
-  React.useEffect(() => {
-    try {
-      const module = { exports: {} as RuntimeModule };
-      const executeModule = new Function(
-        "require",
-        "module",
-        "exports",
-        compiledCode,
-      ) as (
-        require: ReturnType<typeof createRuntimeRequire>,
-        module: { exports: RuntimeModule },
-        exports: RuntimeModule,
-      ) => void;
+  try {
+    const module = { exports: {} as RuntimeModule };
+    const executeModule = new Function(
+      "require",
+      "module",
+      "exports",
+      compiledCode,
+    ) as (
+      require: ReturnType<typeof createRuntimeRequire>,
+      module: { exports: RuntimeModule },
+      exports: RuntimeModule,
+    ) => void;
 
-      executeModule(createRuntimeRequire(), module, module.exports);
+    executeModule(createRuntimeRequire(), module, module.exports);
 
-      const resolvedComponent = module.exports.default ?? module.exports;
+    const resolvedComponent = module.exports.default ?? module.exports;
 
-      if (typeof resolvedComponent !== "function") {
-        throw new Error("Returned flowchart did not export a React component.");
-      }
-
-      setComponent(() => resolvedComponent as React.ComponentType);
-      setError(null);
-    } catch (runtimeError) {
-      console.error("Failed to load flowchart component", runtimeError);
-      setComponent(null);
-      setError(
-        runtimeError instanceof Error
-          ? runtimeError.message
-          : "Failed to render this flowchart.",
-      );
+    if (typeof resolvedComponent !== "function") {
+      throw new Error("Returned flowchart did not export a React component.");
     }
-  }, [compiledCode]);
+
+    Component = resolvedComponent as React.ComponentType;
+  } catch (runtimeError) {
+    console.error("Failed to load flowchart component", runtimeError);
+    error =
+      runtimeError instanceof Error
+        ? runtimeError.message
+        : "Failed to render this flowchart.";
+  }
 
   if (error) {
     return (
@@ -85,14 +78,12 @@ export default function RuntimeFlowchart({
   }
 
   if (!Component) {
-    return (
-      <main className="w-full min-h-screen">
-        <p className="text-sm text-neutral-500">Loading flowchart...</p>
-      </main>
-    );
+    return null;
   }
 
-  return (<main className="w-full min-h-screen">
-    <Component />
-  </main>);
+  return (
+    <main className="w-full min-h-screen">
+      <Component />
+    </main>
+  );
 }
