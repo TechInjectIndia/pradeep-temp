@@ -2,7 +2,8 @@ import ts from "typescript";
 
 
 const FLOWCHART_FUNCTION_URL =
-  "http://127.0.0.1:5005/pradeep-publications/asia-south1/getProcessedFlowchartCodeByTitle";
+  process.env.NEXT_PUBLIC_FLOWCHART_FUNCTION_URL ||
+  "https://asia-south1-pradeep-publications.cloudfunctions.net/getProcessedFlowchartCodeByTitle";
 const FLOWCHART_RUNTIME_HEADER = "x-flowchart-app-token";
 
 type ProcessedFlowchartResponse = {
