@@ -9,12 +9,15 @@ export const dynamic = "force-dynamic";
 
 type FlowchartPageProps = {
   params: Promise<{ title: string }>;
+  searchParams: Promise<{ updatedAt?: string }>;
 };
 
 export default async function FlowchartTitlePage({
   params,
+  searchParams,
 }: FlowchartPageProps) {
   const { title } = await params;
+  const { updatedAt } = await searchParams;
   const flowchart = await fetchProcessedFlowchartCode(title);
 
   if (!flowchart) {
@@ -23,5 +26,11 @@ export default async function FlowchartTitlePage({
 
   const compiledCode = compileFlowchartModule(flowchart.code);
 
-  return <RuntimeFlowchart compiledCode={compiledCode} title={title} />;
+  return (
+    <RuntimeFlowchart
+      key={updatedAt ?? title}
+      compiledCode={compiledCode}
+      title={title}
+    />
+  );
 }
